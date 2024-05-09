@@ -47,7 +47,13 @@ def main():
             logger.info(f"Invalid choice {key}. ({DATAHANDLERS.keys()})")
             exit(1)
 
-    pipe = {}
+    # Prepend 'BasicSetup' datahandler
+    args.datahandlers = [('BasicSetup', None)] + args.datahandlers
+
+    pipe = {
+        'size': 50,  # default
+        'resolution': 100,  # default
+    }
     pipes = [pipe]
 
     # Extract general settings (not given by dicts)
@@ -92,6 +98,8 @@ def main():
                 logger.debug("### type(returned_data) is dict:")
                 # Update pipe and add to new pipes
                 pipe = {**pipe, **returned_data}
+                # Clean pipe, if any of the returns are None
+                pipe = {k: v for k, v in pipe.items() if v is not None}
                 new_pipes.append(pipe)
             elif type(returned_data) is list:
                 logger.debug("### type(returned_data) is list:")

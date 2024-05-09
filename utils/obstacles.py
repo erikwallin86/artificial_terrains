@@ -2,8 +2,10 @@ import numpy as np
 
 
 class Obstacles:
-    array_types = ['position', 'radius', 'height']
-    limit_name_mapping = {'position': 'pos_lim', 'radius': 'rad_lim'}
+    # array_types = ['position', 'radius', 'height']
+    array_types = ['position', 'width', 'height', 'yaw_deg', 'aspect',
+                   'pitch_deg']
+    limit_name_mapping = {'position': 'pos_lim', 'width': 'width_lim'}
 
     def __init__(self, Y=None, N=None, **kwargs):
         '''
@@ -30,15 +32,21 @@ class Obstacles:
         if isinstance(key, (slice, np.ndarray)):
             dict_of_arrays = {
                 'position': self.position[:, key],
-                'radius': self.radius[:, key],
+                'width': self.width[:, key],
                 'height': self.height[:, key],
+                'yaw_deg': self.yaw_deg[:, key],
+                'aspect': self.aspect[:, key],
+                'pitch_deg': self.pitch_deg[:, key],
             }
             return cls.from_arrays(dict_of_arrays)
         else:
             dict_of_arrays = {
                 'position': self.position[:, key, np.newaxis],
-                'radius': self.radius[:, key, np.newaxis],
+                'width': self.width[:, key, np.newaxis],
                 'height': self.height[:, key, np.newaxis],
+                'yaw_deg': self.yaw_deg[:, key, np.newaxis],
+                'aspect': self.aspect[:, key, np.newaxis],
+                'pitch_deg': self.pitch_deg[:, key, np.newaxis],
             }
             return cls.from_arrays(dict_of_arrays)
 
@@ -50,8 +58,11 @@ class Obstacles:
         # Construct new combined arrays
         dict_of_new_arrays = {
             'position': np.concatenate((self.position, other.position), axis=1),
-            'radius': np.concatenate((self.radius, other.radius), axis=1),
+            'width': np.concatenate((self.width, other.width), axis=1),
             'height': np.concatenate((self.height, other.height), axis=1),
+            'yaw_deg': np.concatenate((self.yaw_deg, other.yaw_deg), axis=1),
+            'aspect': np.concatenate((self.aspect, other.aspect), axis=1),
+            'pitch_deg': np.concatenate((self.pitch_deg, other.pitch_deg), axis=1),
         }
         cls = type(self)
 
@@ -60,10 +71,13 @@ class Obstacles:
     def generator(self):
         for i in range(len(self)):
             position = self.position[:, i].tolist()
-            radius = self.radius[0, i]
+            width = self.width[0, i]
             height = self.height[0, i]
+            yaw_deg = self.yaw_deg[0, i]
+            aspect = self.aspect[0, i]
+            pitch_deg = self.pitch_deg[0, i]
 
-            yield position, radius, height
+            yield position, width, height, yaw_deg, aspect, pitch_deg
 
     def __iter__(self):
         return self.generator()
@@ -128,16 +142,23 @@ class Obstacles:
         # radius = loguniform.rvs(rad_lim[0], rad_lim[1], size=(1, N))
         exp = np.random.exponential(0.5, size=(1, N))
         exp = np.clip(exp, 0, 3)
-        radius = np.interp(exp, [0, 3], rad_lim)
+        width = np.interp(exp, [0, 6], rad_lim)
 
         low = np.array(pos_lim)[0].reshape(2, 1)
         high = np.array(pos_lim)[1].reshape(2, 1)
         position = np.random.uniform(low, high, size=(2, N))
 
+        yaw_deg = np.random.uniform(low=0, high=360, size=(1, N))
+        pitch_deg = np.random.uniform(low=0, high=30, size=(1, N))
+        aspect = np.random.uniform(low=0.5, high=1.5, size=(1, N))
+
         dict_of_arrays = {
             'position': position,
-            'radius': radius,
-            'height': radius,
+            'width': width,
+            'height': width/2,
+            'yaw_deg': yaw_deg,
+            'pitch_deg': pitch_deg,
+            'aspect': aspect,
         }
         self.set_from_dict_of_arrays(dict_of_arrays)
 
@@ -169,8 +190,16 @@ class Obstacles:
         return obstacles_obj
 
     def save_numpy(self, filename, append=False):
-        np.savez(filename, position=self.position,
-                 radius=self.radius, height=self.height)
+        dict_of_arrays = {
+            'position': self.position,
+            'width': self.width,
+            'height': self.height,
+            'yaw_deg': self.yaw_deg,
+            'aspect': self.aspect,
+            'pitch_deg': self.pitch_deg,
+        }
+
+        np.savez(filename, **dict_of_arrays)
 
     def save_pickle(self, filename, append=False):
         raise NotImplementedError
@@ -191,7 +220,10 @@ class Obstacles:
     def copy(self):
         new_obj = type(self)()
         new_obj.position = self.position.copy()
-        new_obj.radius = self.radius.copy()
+        new_obj.width = self.width.copy()
         new_obj.height = self.height.copy()
+        new_obj.yaw_deg = self.yaw_deg.copy()
+        new_obj.aspect = self.aspect.copy()
+        new_obj.pitch_deg = self.pitch_deg.copy()
 
         return new_obj

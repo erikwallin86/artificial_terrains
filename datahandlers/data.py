@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from utils.terrains import Terrain
+from utils.debug import debug
 
 
 def debug_decorator(func):
@@ -16,11 +17,18 @@ def debug_decorator(func):
         else:
             self.file_id = ''
 
+        # Possibly debug
+        debug(self, kwargs, call_number, call_total, 'input')
+
         result = func(
             self, *args,
             call_number=call_number,
             call_total=call_total,
             **kwargs)
+
+        # Possibly debug
+        debug(self, result, call_number, call_total, 'output')
+
         return result
     return wrapper
 
@@ -33,6 +41,8 @@ class DataHandler():
     def __init__(self, save_dir=None, logger=None):
         self.save_dir = save_dir
         self.logger = logger
+
+        self.save_dir_original = save_dir
 
         self.save_dir = os.path.join(self.save_dir, self.__class__.__name__)
         if self.create_folder:
@@ -73,6 +83,7 @@ class Resolution(DataHandler):
         resolution = default if default is not None else resolution
 
         return {
+            'ppm': None,
             'N': resolution,
             }
 
@@ -108,6 +119,7 @@ class PPM(DataHandler):
 
         return {
             'ppm': ppm,
+            'resolution': None,
             }
 
 
@@ -128,108 +140,34 @@ class Seed(DataHandler):
             }
 
 
-class MakeFlat(DataHandler):
-    ''' Make basic terrains '''
-    @debug_decorator
-    def __call__(self, resolution=100, size=50, **kwargs):
-        from utils.terrains import Terrain
-        terrain = Terrain.from_array(
-            np.zeros((resolution, resolution)), size=(size, size))
-        filename = 'terrain.npz'
-        filename = os.path.join(self.save_dir, filename)
-        terrain.save(filename)
-
-
-class Basic(DataHandler):
+class Folder(DataHandler):
+    ''' Set 'folder', affecting e.g Save, and Plot '''
     create_folder = False
 
-    ''' Make basic terrains
-
-    Second version, test new interface
-    '''
     @debug_decorator
-    def __call__(self, **kwargs):
-        from utils.noise import get_simplex2
-        from utils.terrains import Terrain
+    def __call__(self, folder=None, default=None, **kwargs):
+        # göra så att 'default' parametern alltid står först
+        # och göra det här automatiskt
+        folder = default if default is not None else folder
 
-        scale_list = [400, 32, 0.5]
-
-        terrain_dict = {}
-
-        info_dict = {}
-        for i, x in enumerate(scale_list):
-            scaling = 1.75/(1+x/68)
-            simplex_noise = 1/scaling * get_simplex2(
-                **kwargs,
-                scale_x=x, scale_y=x,
-                center=False, info_dict=info_dict,
-                logger_fn=self.info,
-            )
-
-            terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
+        self.info(f"Set 'folder':{folder}")
 
         return {
-            'terrain_dict': terrain_dict,
+            'folder': folder,
             }
 
 
-class Octaves(DataHandler):
+class DebugPlot(DataHandler):
+    ''' Do debug plot '''
     create_folder = False
-    ''' Make terrain by combining octaves
 
-    Args:
-      num_octaves: (int) number of octaves/terrains to generate
-      start (float): start scale
-      amplitude_start (float): amplitude for start octave
-      persistance (float): factor by which amplitude is scaled for each octave
-    '''
     @debug_decorator
-    def __call__(self, num_octaves=10, start=128, persistance=0.60,
-                 amplitude_start=10, default=None, random_amp=0.5, **kwargs):
-        from utils.noise import get_simplex2
-        from utils.terrains import Terrain
+    def __call__(self, default=None, filename='debug_plot.png', **kwargs):
+        from utils.plots import debug_plot_horizontal
 
-        # Get number of octaves from possible default input
-        num_octaves = default if default is not None else num_octaves
-
-        # Generate scale list
-        start_log2 = np.log2(start)
-        end_log2 = start_log2+1 - num_octaves
-        scale_list = np.logspace(start_log2, end_log2, num_octaves, base=2)
-
-        # Generate amplitude list
-        amplitude_start_log = np.log(amplitude_start)/np.log(persistance)
-        amplitude_end_log = amplitude_start_log+num_octaves-1
-        amplitude_list = np.logspace(amplitude_start_log, amplitude_end_log,
-                                     num_octaves, base=persistance)
-
-        # Possibly multiply amplitudes by random perturbations
-        if random_amp:
-            random_factor = np.random.normal(
-                loc=1.0, scale=random_amp, size=amplitude_list.shape)
-            amplitude_list *= random_factor
-
-        terrain_dict = {}
-
-        info_dict = {}
-        for i, x in enumerate(scale_list):
-            scaling = 1.75/(1+x/68)
-            simplex_noise = 1/scaling * get_simplex2(
-                **kwargs,
-                scale_x=x, scale_y=x,
-                center=False, info_dict=info_dict,
-                logger_fn=self.info,
-            )
-
-            terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
-
-        return {
-            'terrain_dict': terrain_dict,
-            # Pass weights, for use in WeightedSum
-            'weights': amplitude_list,
-            }
+        filename = default if default is not None else filename
+        filename = os.path.join(self.save_dir_original, filename)
+        debug_plot_horizontal(filename, **kwargs)
 
 
 class Hypercube(DataHandler):
@@ -293,232 +231,18 @@ class Y(DataHandler):
         return pipe
 
 
-class Combine(DataHandler):
-    ''' Combined basic terrains within a terrain_dict '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, operation='Add', terrain_dict={},
-                 default=None, call_number=None, call_total=None,
-                 last=None, **pipe):
-        operations = ['Add', 'Max', 'Min', 'Prod']
-        operation = default if default is not None else operation
-        assert operation in operations, f'operation not in {operations}'
-
-        if len(terrain_dict) > 1:
-            # Work with the terrain_dict
-            terrains = list(terrain_dict.values())
-            self.info(f"{operation} {len(terrains)} terrains from 'dict'")
-        elif 'terrain' in pipe and 'terrain_heap' in pipe:
-            # Work with terrain + terrain-heap
-            terrains = [pipe['terrain']] + pipe['terrain_heap'][::-1]
-
-            # Possibly only work with last N terrains
-            if last is not None:
-                terrains = terrains[:last]
-
-            self.info(f"{operation} {len(terrains)} terrains from 'heap'")
-            # Remove any used terrains from terrain_heap.
-            pipe['terrain_heap'] = [terrain for terrain in pipe['terrain_heap']
-                                    if terrain not in terrains]
-            if len(pipe['terrain_heap']) > 0:
-                self.info(f"{len(pipe['terrain_heap'])} terrains remaining")
-
-            # Remove terrain, as this now is first in terrains
-            pipe['terrain'] = None
-
-        # Apply any of the operations
-        if operation == 'Add':
-            array = np.sum(terrains, axis=0)
-            terrain = Terrain.from_array(
-                array, size=terrains[0].size, extent=terrains[0].extent)
-        elif operation == 'Max':
-            array = np.maximum.reduce(terrains)
-            terrain = Terrain.from_array(
-                array, size=terrains[0].size, extent=terrains[0].extent)
-        elif operation == 'Min':
-            array = np.minimum.reduce(terrains)
-            terrain = Terrain.from_array(
-                array, size=terrains[0].size, extent=terrains[0].extent)
-        elif operation == 'Prod':
-            array = np.prod(terrains, axis=0)
-            terrain = Terrain.from_array(
-                array, size=terrains[0].size, extent=terrains[0].extent)
-        else:
-            raise AttributeError
-
-        # Possibly move existing terrain to terrain_heap
-        if 'terrain' in pipe and pipe['terrain'] is not None:
-            if 'terrain_heap' in pipe and isinstance(pipe['terrain_heap'], list):
-                pipe['terrain_heap'].append(pipe['terrain'])
-            else:
-                pipe['terrain_heap'] = [pipe['terrain']]
-        # Reset any terrain_dict
-        pipe['terrain_dict'] = {}
-        # Set the new terrain
-        pipe['terrain'] = terrain
-
-        return pipe
-
-
-class CombineLast(Combine):
-    ''' Combine, with only the last two terrains,
-
-    'terrain' and the latest from the 'heap'
-    '''
-    def __call__(self, *args, last=None, **kwargs):
-        return super(CombineLast, self).__call__(*args, last=2, **kwargs)
-
-
-class WeightedSum(DataHandler):
-    ''' Weighted sum of basic terrains within a terrain_dict '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, weights=[5, 8, 0.1], terrain_dict={},
-                 call_number=None, call_total=None,
-                 default=None, **pipe):
-
-        weights = default if default is not None else weights
-        weights = np.array(weights).reshape(-1, 1, 1)
-
-        self.info(f"Use weights:{weights.squeeze()}")
-
-        terrains = list(terrain_dict.values())
-        array = np.sum(np.multiply(terrains, weights), axis=0)
-        terrain = Terrain.from_array(
-            array, size=terrains[0].size, extent=terrains[0].extent)
-
-        # Possibly move existing terrain to terrain_heap
-        if 'terrain' in pipe and pipe['terrain'] is not None:
-            if 'terrain_heap' in pipe and isinstance(pipe['terrain_heap'], list):
-                pipe['terrain_heap'].append(pipe['terrain'])
-            else:
-                pipe['terrain_heap'] = [pipe['terrain']]
-        # Reset any terrain_dict
-        pipe['terrain_dict'] = {}
-        # Set the new terrain
-        pipe['terrain'] = terrain
-
-        return pipe
-
-
-class BezierRemap(DataHandler):
-    ''' Nonlinear remapping of values using bezier curves
-
-    Uses a 3rd order bezier curve, with p0=(0, 0) and p3=(1, 1).
-    p1, and p2 are free, and are used to shape the bezier curve.
-    p1 and p2 are set given 1, 2, or 4 input numbers.
-
-    Args:
-      bezier_args: (float, or list of length 1, 2, or 4)
-        a float in [-1, 1]:  p1=p2=[a, 1-a]
-        [a, b] floats in [-1, 1]:  p1=p2=[a, b]
-        [a, b, c, d] floats in [-1, 1]:  p1=[a, b], p2=[c, d]
-
-    '''
-    create_folder = True
-
-    @debug_decorator
-    def __call__(self, bezier_args=0.5, terrain_dict={},
-                 default=None, plot=False, call_number=None, call_total=None,
-                 last=None, **pipe):
-
-        bezier_args = default if default is not None else bezier_args
-        # Make sure a is a list
-        if not isinstance(bezier_args, list):
-            bezier_args = [bezier_args]
-
-        if len(terrain_dict) > 1:
-            # Work with the terrain_dict
-            terrains = list(terrain_dict.values())
-        elif 'terrain' in pipe and 'terrain_heap' in pipe:
-            # Work with terrain + terrain-heap
-            terrains = [pipe['terrain']] + pipe['terrain_heap'][::-1]
-            # Possibly only work with last N terrains
-            if last is not None:
-                terrains = terrains[:last]
-            # Remove any used terrains from terrain_heap.
-            pipe['terrain_heap'] = [terrain for terrain in pipe['terrain_heap']
-                                    if terrain not in terrains]
-            if len(pipe['terrain_heap']) > 0:
-                self.info(f"{len(pipe['terrain_heap'])} terrains remaining")
-
-        # Remove terrain, as this now is first in terrains
-        pipe['terrain'] = None
-
-        # Get bezier curve
-        t_array = np.linspace(0, 1, 50)
-        xp, fp, points = self.bezier_function(t_array, *bezier_args)
-
-        # plot
-        if plot:
-            from utils.plots import new_fig
-            fig, ax = new_fig()
-            ax.plot(xp, fp)
-            filename = os.path.join(self.save_dir, 'bezier.png')
-            ax.scatter(*points.T)
-            for i, point in enumerate(points):
-                ax.annotate(i, point)
-            fig.savefig(filename)
-
-        # Apply nonlinear bezier remapping
-        for terrain in terrains:
-            # Normalize array
-            z_min = np.min(terrain.array)
-            z_max = np.max(terrain.array)
-            normalized_array = (terrain.array - z_min) / (z_max - z_min)
-
-            # Use bezier curve to do nonlinear remapping
-            transformed_array = np.interp(normalized_array, xp, fp)
-
-            # Rescale to original limits
-            rescaled_array = transformed_array * (z_max - z_min) + z_min
-
-            # Assign to terrain
-            terrain.array = rescaled_array
-
-    @staticmethod
-    def bezier_function(t, *args, p0=[0, 0], p1=None, p2=None, p3=[1, 1]):
-        if p1 is None or p2 is None:
-            # Set from a
-            if len(args) == 1:
-                a = args[0]
-                p1 = [a, 1-a]
-                p2 = [a, 1-a]
-
-            elif len(args) == 2:
-                a, b = args
-                p1 = [a, b]
-                p2 = [a, b]
-            elif len(args) == 4:
-                a, b, c, d = args
-                p1 = [a, b]
-                p2 = [c, d]
-
-        p0 = np.array(p0).reshape(-1, 2)
-        p1 = np.array(p1).reshape(-1, 2)
-        p2 = np.array(p2).reshape(-1, 2)
-        p3 = np.array(p3).reshape(-1, 2)
-
-        t = t.reshape(-1, 1)
-
-        curve = (1-t)**3*p0 + 3*(1-t)**2*t*p1 + 3*(1-t)*t**2*p2 + t**3*p3
-        xp = curve[:, 0]
-        fp = curve[:, 1]
-
-        points = [p0.squeeze(), p1.squeeze(), p2.squeeze(), p3.squeeze()]
-
-        return np.array(xp), np.array(fp), np.array(points)
-
-
 class MakeObstacles(DataHandler):
     ''' Make basic terrains '''
     @debug_decorator
-    def __call__(self, resolution=100, size=50, **kwargs):
+    def __call__(self, resolution=None, size=None, ppm=None, **kwargs):
         from utils.noise import get_simplex
         from utils.obstacles import Obstacles
         from utils.plots import plot_obstacles
+
+        from utils.artificial_shapes import determine_size_and_resolution
+        # Get size and resolution from any two tuples: ppm, size, resolution
+        size_x, size_y, N_x, N_y = determine_size_and_resolution(
+            ppm, size, resolution)
 
         x = 1
         N = resolution
@@ -528,103 +252,81 @@ class MakeObstacles(DataHandler):
             Nx=N, Ny=N, scale_x=N*x, scale_y=N*x)
 
         obstacles = Obstacles(Y=3)
+
+        # Fix using extent...
+        diff = np.array([size_x/2, size_y/2]).reshape(2, 1)
+        obstacles.position = np.subtract(obstacles.position, diff)
+
         filename = 'obstacles.png'
         filename = os.path.join(self.save_dir, filename)
         plot_obstacles(obstacles, filename)
         obstacles.save_numpy(filename.replace('.png', '.npz'))
 
+        # Filter out small obstacles
+        pick = (obstacles.height > 0.29).squeeze()
+        obstacles = obstacles[pick]
 
-class Rocks(DataHandler):
-    create_folder = False
+        pipe = {}
+        pipe['position'] = obstacles.position.T
+        # For these, we remove one dimension
+        pipe['width'] = obstacles.width[0, :]
+        pipe['height'] = obstacles.height[0, :]
+        pipe['yaw_deg'] = obstacles.yaw_deg[0, :]
+        pipe['aspect'] = obstacles.aspect[0, :]
+        pipe['pitch_deg'] = obstacles.pitch_deg[0, :]
 
-    ''' Test to make some rocks '''
+        return pipe
+
+
+class PlotObstacles(DataHandler):
+    ''' Plot obstacles '''
     @debug_decorator
-    def __call__(self,
-                 rock_size=[0.5, 1, 2, 4],
-                 rock_heights=None,
-                 fraction=0.8,
-                 default=None,
+    def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
+                 width=[5], aspect=[1], pitch_deg=[0],
+                 filename='obstacles.png', default=None,
                  **kwargs):
-        rock_size = default if default is not None else rock_size
-        if rock_heights is None:
-            rock_heights = np.divide(rock_size, 2)
-            # [0.25, 0.5, 1, 2],
+        # Setup filename
+        filename = default if default is not None else filename
+        filename = os.path.join(self.save_dir_original, filename)
 
-        from utils.noise import get_simplex2
-        from utils.terrains import Terrain
+        from utils.obstacles import Obstacles
+        from utils.plots import plot_obstacles
+        obstacles = Obstacles()
 
-        terrain_dict = {}
-        for i, (x, height) in enumerate(zip(rock_size, rock_heights)):
-            info_dict = {}
-            scaling = 1.75/(1+x*0.75)
-            simplex_noise = 1/scaling * get_simplex2(
-                scale_x=x, scale_y=x,
-                info_dict=info_dict,
-                center=False,
-                logger_fn=self.info,
-                **kwargs,
-            )
+        obstacles.position = np.array(position).T
+        obstacles.height = np.array(height).reshape(1, -1)
+        obstacles.yaw_deg = np.array(yaw_deg).reshape(1, -1)
+        obstacles.width = np.array(width).reshape(1, -1)
+        obstacles.aspect = np.array(aspect).reshape(1, -1)
+        obstacles.pitch_deg = np.array(pitch_deg).reshape(1, -1)
 
-            max_value = np.max(simplex_noise)
-            # Pick all that is not holes/rocks
-            pick = (simplex_noise < max_value*fraction)
-            # Normalize, and remove all that is not holes/rocks
-            simplex_noise = np.divide(
-                simplex_noise - max_value*fraction, max_value*(1-fraction))
-            simplex_noise[pick] = 0
-            # Scale heights
-            simplex_noise = simplex_noise * height
+        extent = [-size/2, size/2, -size/2, size/2]  # TODO: Temporary fix
 
-            terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
-
-        return {
-            'terrain_dict': terrain_dict,
-            }
+        plot_obstacles(obstacles, filename, xlim=extent[:2], ylim=extent[:-2])
 
 
-class Holes(DataHandler):
-    create_folder = False
-
-    ''' Test to make some rocks '''
+class SaveObstacles(DataHandler):
+    ''' Save obstacles '''
     @debug_decorator
-    def __call__(self, size_list=[0.5, 1, 2, 4],
-                 fraction=0.8,
-                 default=None,
+    def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
+                 width=[5], aspect=[1], pitch_deg=[0],
+                 filename='obstacles.npz', default=None,
                  **kwargs):
-        size_list = default if default is not None else size_list
+        # Setup filename
+        filename = default if default is not None else filename
+        filename = os.path.join(self.save_dir, filename)
 
-        from utils.noise import get_simplex2
-        from utils.terrains import Terrain
+        from utils.obstacles import Obstacles
+        obstacles = Obstacles()
 
-        terrain_dict = {}
-        for i, x in enumerate(size_list):
-            info_dict = {}
-            scaling = 1.75/(1+x*0.75)
-            simplex_noise = 1/scaling * get_simplex2(
-                scale_x=x, scale_y=x,
-                info_dict=info_dict,
-                center=False,
-                logger_fn=self.info,
-                **kwargs,
-            )
+        obstacles.position = np.array(position).T
+        obstacles.height = np.array(height).reshape(1, -1)
+        obstacles.yaw_deg = np.array(yaw_deg).reshape(1, -1)
+        obstacles.width = np.array(width).reshape(1, -1)
+        obstacles.aspect = np.array(aspect).reshape(1, -1)
+        obstacles.pitch_deg = np.array(pitch_deg).reshape(1, -1)
 
-            min_value = np.min(simplex_noise)
-            # Pick all that is not holes/rocks
-            pick = (simplex_noise > min_value*fraction)
-            # Normalize, and remove all that is not holes/rocks
-            simplex_noise = np.divide(
-                simplex_noise - min_value*fraction, -min_value*(1-fraction))
-            simplex_noise[pick] = 0
-            # Scale heights
-            simplex_noise = simplex_noise * (x/8)
-
-            terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
-
-        return {
-            'terrain_dict': terrain_dict,
-            }
+        obstacles.save_numpy(filename)
 
 
 class MakePerturbations(DataHandler):
@@ -769,6 +471,93 @@ class MakeEdgy(DataHandler):
 
             terrain = Terrain.from_array(simplex_noise, size=(size, size))
             terrain.save(filename.replace('.png', '.npz'))
+
+
+class Random(DataHandler):
+    create_folder = False
+    '''
+    Set random position, height, width, yaw, etc.
+    '''
+    @debug_decorator
+    def __call__(
+            self, number_of_values=3,
+            position=[[0, 0]], height=[1], yaw=[0],
+            size=None,
+            default=None, **kwargs):
+
+        to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg']
+
+        pipe = {}
+
+        if default is not None and isinstance(default, (int, float)):
+            number_of_values = default
+
+        # Generate position
+        if 'position' in to_generate:
+            pipe['position'] = np.random.uniform(
+                low=-size/2, high=size/2, size=(number_of_values, 2))
+
+        # Generate yaw
+        if 'yaw_deg' in to_generate:
+            pipe['yaw_deg'] = np.random.uniform(
+                low=0, high=360, size=(number_of_values))
+
+        # Generate pitch
+        if 'pitch_deg' in to_generate:
+            pipe['pitch_deg'] = np.random.uniform(
+                low=0, high=30, size=(number_of_values))
+
+        # Generate width
+        if 'width' in to_generate:
+            pipe['width'] = np.random.uniform(
+                low=0, high=10, size=(number_of_values))
+
+        # Generate height
+        if 'height' in to_generate:
+            pipe['height'] = np.random.uniform(
+                low=0, high=5, size=(number_of_values))
+
+        # Generate aspect
+        if 'aspect' in to_generate:
+            pipe['aspect'] = np.random.uniform(
+                low=0.5, high=1.5, size=(number_of_values))
+
+        print(f"pipe:{pipe}")
+
+        return pipe
+
+
+class LoadObstacles(DataHandler):
+    ''' '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self,
+                 filename='obstacles.npz',
+                 default=None,
+                 call_number=None,
+                 call_total=None,
+                 **pipe):
+        filename = default if default is not None else filename
+
+        from utils.obstacles import Obstacles
+        obstacles = Obstacles.from_numpy(filename)
+
+        # Filter
+        pick = (obstacles.height > 0.29).squeeze()
+        obstacles = obstacles[pick]
+
+        # Add to pipe, in same manner as the 'Random' datahandler does
+
+        pipe['position'] = obstacles.position.T
+        # For these, we remove one dimension
+        pipe['width'] = obstacles.width[0, :]
+        pipe['height'] = obstacles.height[0, :]
+        pipe['yaw_deg'] = obstacles.yaw_deg[0, :]
+        pipe['aspect'] = obstacles.aspect[0, :]
+        pipe['pitch_deg'] = obstacles.pitch_deg[0, :]
+
+        return pipe
 
 
 class Test(DataHandler):

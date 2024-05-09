@@ -407,7 +407,7 @@ def spawn_particles(obstacle_density_mapping, probability):
     from utils.noise import generate_points_from_2D_prob
     # Create lists of particles
     particle_pos = []
-    particle_radius = []
+    particle_width = []
     for H, density in obstacle_density_mapping.items():
         # Generate random integers
         size = probability.shape
@@ -419,16 +419,25 @@ def spawn_particles(obstacle_density_mapping, probability):
         position = indices + uniform_noise
 
         particle_pos.append(position)
-        particle_radius.append(0.5*H/100.0 * np.ones((1, indices.shape[1])))
+        particle_width.append(H/100.0 * np.ones((1, indices.shape[1])))
 
     # Turn into arrays
     particle_pos = np.concatenate(particle_pos, axis=1)
-    particle_radius = np.concatenate(particle_radius, axis=1)
+    particle_width = np.concatenate(particle_width, axis=1)
+
+    # Generate other parameters
+    N = particle_pos.shape[1]
+    yaw_deg = np.random.uniform(low=0, high=360, size=(1, N))
+    pitch_deg = np.random.uniform(low=0, high=30, size=(1, N))
+    aspect = np.random.uniform(low=0.5, high=1.5, size=(1, N))
 
     return {
         'position': particle_pos,
-        'radius': particle_radius,
-        'height': particle_radius,
+        'width': particle_width,
+        'height': particle_width/2,
+        'yaw_deg': yaw_deg,
+        'aspect': aspect,
+        'pitch_deg': pitch_deg,
         }
 
 

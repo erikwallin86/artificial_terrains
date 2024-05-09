@@ -54,11 +54,14 @@ class Terrain():
         raise NotImplementedError
 
     @classmethod
-    def from_array(cls, array, size=(50, 50), extent=None, **kwargs):
+    def from_array(cls, array, size=(50.0, 50.0), extent=None, **kwargs):
         ''' Use array '''
         terrain_obj = cls()
-        terrain_obj.array = array
+        terrain_obj.array = array.astype(np.float64)
         terrain_obj.size = size
+
+        if extent is None:
+            extent = [-size[0]/2, size[0]/2, -size[1]/2, size[1]/2]
         terrain_obj.extent = extent
 
         # TODO: I do nothing with the kwargs,

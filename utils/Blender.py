@@ -447,22 +447,27 @@ def setup_camera(
 
 
 def setup_top_camera(
-        array, size,
+        array, resolution, size,
         camera_name='Camera', camera_type='ORTHO',
 ):
     '''
     Setup camera to produce array
+
+    Args:
+      size: physical size of camera
+
     '''
     camera = bpy.data.objects[camera_name]
     z = np.max(array) + 1.0  # due to camera extension?
+    z += 10  # Add 10 m margin, since it doesn't matter for 'Depth'
 
     rx, ry, rz = 0, 0, 0
     x, y = 0, 0
 
     # Set resolution from array shape
     scene = bpy.data.scenes["Scene"]
-    scene.render.resolution_x = array.shape[0]
-    scene.render.resolution_y = array.shape[1]
+    scene.render.resolution_x = resolution[0]
+    scene.render.resolution_y = resolution[1]
 
     # Set location
     camera.location.x = x
@@ -485,7 +490,7 @@ def setup_top_camera(
 
 
 def setup_angled_camera(
-        angle=30,
+        angle=45,
         center=[0, 0, 0],
         distance=None,
         view_angle=50,
@@ -528,15 +533,7 @@ def set_view_to_camera():
 
 
 def add_holdout_plane(array, name='Plane'):
-    ''' Add holdout plane
-
-    Some arrays have a 'bottom' which is not actual terrain
-    '''
-    hist, bins = np.histogram(array.flatten(), bins=50)
-    level = 0
-    for h, b in zip(hist, bins):
-        if h < 10:
-            level = b
+    ''' Add holdout plane '''
 
     # Remove any object called <name> to avoid duplicate complications
     if name in bpy.data.objects:
@@ -545,9 +542,9 @@ def add_holdout_plane(array, name='Plane'):
 
     # Add plane
     bpy.ops.mesh.primitive_plane_add(
-        size=200,
+        size=2000,
         align='WORLD',
-        location=(0, 0, level),
+        location=(0, 0, -100),
         rotation=(0, 0, 0),
     )
     # Create material
@@ -865,6 +862,77 @@ def setup_render_z():
         ('CompositorNodeComposite', 'Image', None)
         )
     add_nodes_branch(tree, node_link_list, y=100)
+
+
+def setup_segmentation_render():
+    # Connect Render Layers to 'Viewer'
+    # We can not get image from 'Render Result', only 'Viewer Layer'
+
+    # Setup scene to use nodes
+    bpy.context.scene.use_nodes = True
+    # Get node tree for the compositor
+    tree = bpy.context.scene.node_tree
+
+    # Prepare nodes
+    node_link_list = (
+        ('CompositorNodeRLayers', None, 'Image'),
+        ('CompositorNodeViewer', 'Image', None)
+        )
+    setup_nodes(tree, node_link_list)
+
+    # Add another branch
+    node_link_list = (
+        ('CompositorNodeRLayers', None, 'Image'),
+        ('CompositorNodeComposite', 'Image', None)
+        )
+    add_nodes_branch(tree, node_link_list, y=100)
+
+    # Set color management to use raw linear colors
+    bpy.context.scene.display_settings.display_device = 'sRGB'
+    bpy.context.scene.view_settings.view_transform = 'Raw'
+
+    # Loop through all objects in the current scene, and color
+    for obj in bpy.data.objects:
+        # Check if 'Ground' or 'Rock' is in the object's name
+        if "Ground" in obj.name:
+            set_emission_material(obj, [0, 0, 0])
+        if "Rock" in obj.name:
+            set_emission_material(obj, [1, 1, 1])
+
+
+def set_emission_material(obj, color):
+    # Ensure the object is of type 'MESH'
+    if obj.type == 'MESH':
+        # Remove all existing materials from the object
+        obj.data.materials.clear()
+
+        # Create a new material
+        mat = bpy.data.materials.new(name="EmissionMaterial")
+
+        # Use nodes for the material
+        mat.use_nodes = True
+        nodes = mat.node_tree.nodes
+
+        # Clear default nodes
+        nodes.clear()
+
+        # Create Emission node
+        emission_node = nodes.new(type='ShaderNodeEmission')
+        emission_node.location = (0, 0)
+        emission_node.inputs[0].default_value = (color[0], color[1], color[2], 1)  # RGB and Alpha
+
+        # Create Material Output node
+        output_node = nodes.new(type='ShaderNodeOutputMaterial')
+        output_node.location = (200, 0)
+
+        # Link Emission node to Material Output
+        links = mat.node_tree.links
+        links.new(emission_node.outputs[0], output_node.inputs[0])
+
+        # Assign material to object
+        obj.data.materials.append(mat)
+    else:
+        print("The function is only applicable to mesh objects.")
 
 
 def setup_nodes(

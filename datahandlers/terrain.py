@@ -50,19 +50,11 @@ class LoadTerrain(DataHandler):
 
         # Load all terrain-files
         for filename in new_file_list:
-            # Load data
-            loaded_data = np.load(filename, allow_pickle=True)
-            # Split in 'array' and 'info_dict'
-            hf_info_dict = {}
-            for key in loaded_data.files:
-                if key == 'heights':
-                    hf_array = loaded_data['heights']
-                else:
-                    hf_info_dict[key] = loaded_data[key]
+            from utils.terrains import Terrain
+            terrain = Terrain.from_numpy(filename)
 
             new_pipe = pipe.copy()
-            new_pipe['hf_array'] = hf_array
-            new_pipe['hf_info_dict'] = hf_info_dict
+            new_pipe['terrain'] = terrain
             pipes.append(new_pipe)
 
         if len(pipes) == 0:
@@ -122,8 +114,8 @@ class Load(DataHandler):
         # Create empty pipes list
         pipes = []
 
-        # If hf already in pipe, make sure to add this first
-        if 'hf_array' in pipe:
+        # If terrain already in pipe, make sure to add this first
+        if 'terrain' in pipe:
             pipes.append(pipe)
 
         # Make sure file-list is a list

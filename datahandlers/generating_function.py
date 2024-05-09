@@ -1,0 +1,141 @@
+from datahandlers.data import DataHandler, debug_decorator
+import numpy as np
+from utils.terrains import Terrain
+
+
+class Gaussian(DataHandler):
+    create_folder = False
+    '''
+    Gaussian hill
+    '''
+    @debug_decorator
+    def __call__(
+            self, position=[[0, 0]], height=[1], yaw_deg=[0], width=[5],
+            aspect=[1], pitch_deg=[0],
+            function_name='gaussian',
+            terrain_dict={},
+            size=None, resolution=None, ppm=None,
+            default=None, **kwargs):
+        '''
+
+        Args:
+          position: list of positions, where position is [x, y] list
+          heights: list of heights, where height is float in [-infty, infty]
+          yaws: list of yaw, where yaw is float in [0, 2*np.pi]
+        '''
+        print(f"### INTPUT len(terrain_dict):{len(terrain_dict)}")
+        print(f"kwargs:{kwargs}")
+
+        # Format arguments
+        if np.array(position).ndim == 1:
+            position = [position]
+        if np.array(height).ndim == 0:
+            height = [height]
+        if np.array(yaw_deg).ndim == 0:
+            yaw_deg = [yaw_deg]
+        if np.array(width).ndim == 0:
+            width = [width]
+        if np.array(aspect).ndim == 0:
+            aspect = [aspect]
+        if np.array(pitch_deg).ndim == 0:
+            pitch_deg = [pitch_deg]
+
+        # Setup sizes etc.
+        from utils.artificial_shapes import determine_size_and_resolution
+        # Get size and resolution from any two tuples: ppm, size, resolution
+        size_x, size_y, N_x, N_y = determine_size_and_resolution(
+            ppm, size, resolution)
+
+        properties = {
+            'position': position,
+            'height': height,
+            'yaw_deg': yaw_deg,
+            'width': width,
+            'aspect': aspect,
+            'pitch_deg': pitch_deg,
+        }
+
+        keys = list(properties.keys())
+
+        from itertools import zip_longest
+        from utils.artificial_shapes import get_meshgrid
+        from utils.artificial_shapes import FUNCTIONS
+
+        for values in zip_longest(*properties.values()):
+            # Create a dictionary for each group, excluding any None values
+            kwargs = {k: v for k, v in zip(keys, values) if v is not None}
+            print(f"kwargs:{kwargs}")
+
+            # Setup function callable
+            function_callable = FUNCTIONS[function_name](**kwargs)
+
+            # Get meshgrid
+            X, Y = get_meshgrid(size_x, size_y, N_x, N_y)
+
+            # Get heights from function callable
+            heights_array = function_callable(X, Y)
+
+            # Make terrain, and add to dict
+            terrain = Terrain.from_array(heights_array)
+            # desctiption = f'{kwargs.__repr__()}'
+            desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
+            terrain_dict[desctiption] = terrain
+
+        print(f"### OUTPUT len(terrain_dict):{len(terrain_dict)}")
+        return {
+            'terrain_dict': terrain_dict,
+            'position': None,
+            'height': None,
+            'yaw_deg': None,
+            'width': None,
+            'aspect': None,
+            'pitch_deg': None,
+        }
+
+        # if len(terrain_dict) > 1:
+        #     return {'terrain_dict': terrain_dict}
+        # else:
+        #     return {'terrain': terrain}
+
+
+class Step(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='step', **kwargs)
+
+
+class Donut(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='donut', **kwargs)
+
+
+class Plane(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='plane', **kwargs)
+
+
+class Sphere(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='sphere', **kwargs)
+
+
+class Cube(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='cube', **kwargs)
+
+
+class SmoothStep(Gaussian):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='smoothstep', **kwargs)
+
+
+class Sine(Gaussian):
+    def __call__(self, call_number=None, call_total=None, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='sine', call_number=call_number,
+            call_total=call_total, **kwargs)

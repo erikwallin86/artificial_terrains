@@ -26,62 +26,58 @@ def fix_blender_argv():
     sys.argv = ['blender.py'] + argv
 
 
-class Clean(DataHandler):
-    ''' Remove Cube and Camera '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, data=None, default=None, **_):
-        from utils.Blender import remove_object
-        remove_object(name='Cube')
-
-
 class Ground(DataHandler):
     ''' Print array info '''
     create_folder = False
 
     @debug_decorator
     def __call__(self, filename=None, default=None,
-                 hf_array=None, hf_info_dict=None,
-                 ground_material=None, **_):
+                 call_number=None, call_total=None,
+                 ground_material=None, **pipe):
         filename = default if default is not None else filename
         if filename is not None:
+            from utils.terrains import Terrain
             # Load data
-            loaded_data = np.load(filename)
-            # Split in 'array' and 'info_dict'
-            hf_info_dict = {}
-            for key in loaded_data.files:
-                if key == 'heights':
-                    hf_array = loaded_data['heights']
-                else:
-                    hf_info_dict[key] = loaded_data[key]
+            terrain = Terrain.from_numpy(filename)
+            # And add to pipe
+            pipe['terrain'] = terrain
+        elif 'terrain' in pipe:
+            terrain = pipe['terrain']
+        elif 'terrain_dict' in pipe and len(pipe['terrain_dict']) > 0:
+            # Pick last from terrain-dict
+            terrain = list(pipe['terrain_dict'].values())[-1]
         else:
-            assert hf_info_dict is not None, 'No hf_array'
+            print('No terrain')
+            exit(0)
 
         # Make grid from array
         from utils.Blender import grid_from_array
 
         name = 'Ground' + self.file_id
-        grid_obj = grid_from_array(hf_array, name=name, **hf_info_dict)
+        grid_obj = grid_from_array(terrain.array, name=name, size=terrain.size)
 
         if ground_material is not None:
             grid_obj.data.materials.append(ground_material)
 
-        return {
-            'hf_array': hf_array,
-            'hf_info_dict': hf_info_dict,
-            'grid_obj': grid_obj,
-            }
+        pipe['grid_obj'] = grid_obj,
+
+        return pipe
 
 
-class Setup(DataHandler):
-    ''' '''
+class BasicSetup(DataHandler):
+    '''
+    Basic setup of blender scene. Remove cube and add hrdi lights
+    '''
     create_folder = False
 
     @debug_decorator
-    def __call__(self, hf_info_dict=None, default=None, grid_obj=None, **_):
+    def __call__(self, default=None, **_):
         from utils.Blender import (
             get_material, setup_z_coord_shader, add_grid, setup_lights)
+        # Remove Cube
+        from utils.Blender import remove_object
+        remove_object(name='Cube')
+
         # Create Groundmaterial
         ground_material = get_material(name='GroundMaterial')
         ground_material.use_nodes = True
@@ -96,18 +92,11 @@ class Setup(DataHandler):
             add_grid(ground_material, **grid_kwargs)
 
         # Setup lights
-        if hf_info_dict is not None:
-            size = hf_info_dict['size']
-            sun_position = (0, size[0], 70)
-        else:
-            sun_position = (0, 70, 70)
+        sun_position = (0, 70, 70)
 
         use_hdri = True
         light_kwargs = {'level': 10}
         setup_lights(use_hdri, sun_position=sun_position, **light_kwargs)
-
-        if grid_obj is not None:
-            grid_obj.data.materials.append(ground_material)
 
         return {
             'ground_material': ground_material,
@@ -168,23 +157,29 @@ class Camera(DataHandler):
 
     @debug_decorator
     def __call__(self, camera='top', default=None,
-                 hf_array=None, hf_info_dict=None,
+                 terrain=None,
+                 size=None,
+                 ppm=None,
+                 resolution=None,
                  **_):
+        from utils.artificial_shapes import determine_size_and_resolution
+        size_x, size_y, N_x, N_y = determine_size_and_resolution(
+            ppm, size, resolution)
+
         from utils.Blender import (
             setup_top_camera, set_view_to_camera, setup_angled_camera)
 
         camera = default if default is not None else camera
-        print(f"camera:{camera}")
         assert camera in ['top', 'angled']
-        assert hf_info_dict is not None, 'Run LoadTerrain before'
+        assert terrain is not None, 'Run LoadTerrain before'
 
-        size = hf_info_dict['size']
+        size = terrain.size
         camera_kwargs = {}
         # Setup camera
         if camera == 'top':
-            camera = setup_top_camera(hf_array, size)
+            camera = setup_top_camera(terrain.array, (N_x, N_y), size)
         elif camera == 'angled':
-            middle_z = hf_array[int(hf_array.shape[0]/2), int(hf_array.shape[1]/2)]
+            middle_z = terrain.array[int(terrain.array.shape[0]/2), int(terrain.array.shape[1]/2)]
             camera = setup_angled_camera(
                 center=[0, 0, middle_z], distance=size[0]*2, **camera_kwargs)
         set_view_to_camera()
@@ -243,7 +238,7 @@ class Depth(DataHandler):
     ''' '''
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
-                 hf_array=None, hf_info_dict=None,
+                 terrain=None,
                  overwrite=False,
                  **_):
         from utils.Blender import get_depth, render_eevee
@@ -251,22 +246,23 @@ class Depth(DataHandler):
 
         setup_render_z()
 
+        # (The render must not be done in order to retrieve the array)
         render_eevee(save_dir=self.save_dir, filename='test.png')
         dmap = -get_depth()
 
         # Set lowest point at 0
         dmap = dmap - np.min(dmap)
 
-        # Remove file ending
-        filename = filename.replace('.npz', '')
-        filename = os.path.join(
-            self.save_dir, filename + self.file_id + '.npz')
-        if os.path.exists(filename) and not overwrite:
-            # Skip if file already exists
-            return
+        from utils.terrains import Terrain
+        terrain = Terrain.from_array(
+            dmap,
+            size=terrain.size,  # TODO: take from camera instead
+            extent=terrain.extent,  # TODO: take from camera instead
+        )
 
-        with open(filename, 'wb') as f:
-            np.savez(f, heights=dmap, **hf_info_dict)
+        return {
+            'terrain': terrain,
+        }
 
 
 class Render(DataHandler):
@@ -282,99 +278,113 @@ class Render(DataHandler):
         render_eevee(save_dir=self.save_dir, filename=filename)
 
 
+class RenderSegmentation(DataHandler):
+    '''
+    Uniform color for 'Rock's and 'Ground'. Render and get array
+    '''
+    @debug_decorator
+    def __call__(self, filename='render.png', default=None,
+                 overwrite=False,
+                 **_):
+        from utils.Blender import render_eevee, get_depth
+        from utils.Blender import setup_segmentation_render
+        setup_segmentation_render()
+
+        # Render. This can be skipped
+        render_eevee(save_dir=self.save_dir, filename=filename)
+
+        # We can use the 'get_depth' function to get the
+        # 'segmentation-image' from the 'Viewer Node'
+        array = get_depth()
+
+        return {'segmentation_array': array}
+
+
 class Exit(DataHandler):
     ''' '''
+    create_folder = False
+
     @debug_decorator
     def __call__(self, **_):
         exit(0)
 
 
-class MakeInterpolator(DataHandler):
+class Holdout(DataHandler):
     ''' '''
+    create_folder = False
+
     @debug_decorator
     def __call__(self,
-                 hf_array=None, hf_info_dict=None,
+                 terrain=None,
+                 default=None,
                  **_):
-        from utils.interpolator import Interpolator
-
-        size = hf_info_dict['size']
-
-        if 'extent' in hf_info_dict:
-            extent = hf_info_dict['extent']
-        else:
-            extent = [-size[0]/2, size[0]/2, -size[1]/2, size[0]/2]
-
-        resolution = hf_array.shape
-
-        # Setup interpolator
-        interpolator = Interpolator(hf_array, extent)
-        points = interpolator.setup_points(
-            size=size, resolution=resolution)
-
-        # Debug
-        # # Get heights and grid_points
-        # x = 0
-        # y = 0
-        # yaw = 0
-        # heights, grid_points = interpolator.get_height_map((x, y), yaw, points)
-        #
-        # from utils.plots import plot_image
-        # filename = os.path.join(self.save_dir, 'test.png')
-        # fig, ax = plot_image(heights)
-        # fig.savefig(filename)
-
-        return {
-            'interpolator': interpolator,
-            }
+        from utils.Blender import add_holdout_plane
+        add_holdout_plane(terrain.array)
 
 
 class AddRocks(DataHandler):
     ''' '''
+    create_folder = False
+
     @debug_decorator
     def __call__(self,
                  filename='obstacles.npz',
-                 hf_array=None, hf_info_dict=None,
-                 interpolator=None,
+                 position=[[-10, 10], [10, 10], [10, -10], [-10, -10]],
+                 width=[10, 5, 3, 1],
+                 yaw_deg=[0, 90, 180, 270],
+                 pitch_deg=[0, 10, 20, 30],
+                 terrain=None,
+                 size=None,
                  default=None,
                  **_):
-        # assert interpolator is not None, 'Run MakeInterpolator before'
-        import bpy
-
-        if hf_info_dict is not None:
-            # TODO: should be tuple!!
-            size = hf_info_dict['size']
+        # Construct 'interpolator'
+        if terrain is not None:
+            from utils.interpolator import Interpolator
+            interpolator = Interpolator(terrain.array, terrain.extent)
         else:
-            # Workaround
-            size = 50
+            interpolator = None
 
-        filename = default if default is not None else filename
+        import bpy
+        self.position = position
+        self.width = width
+        self.yaw_deg = yaw_deg
+        self.pitch_deg = pitch_deg
 
-        from utils.obstacles import Obstacles
-        obstacles = Obstacles.from_numpy(filename)
-        height = obstacles.height
-        print(f"np.max(height):{np.max(height)}")
-
-        for position, radius, height in obstacles:
-            if height > 0.29:
+        for position, width, yaw_deg, pitch_deg in zip(
+                self.position, self.width, self.yaw_deg, self.pitch_deg):
+            if width > 0.29:
                 print(f"position:{position}")
-                obj_path = '/home/erik/csgit/artificial_terrains/models/Rocks/agx_data_models/convex_rock2.obj'
+                rocks = [
+                    'models/Rocks/agx_data_models/convex_rock2.obj',
+                    # 'models/Rocks/agx_data_models/convex_rock3.obj',
+                    # 'models/Rocks/agx_data_models/convex_rock4.obj',
+                    # 'models/Rocks/agx_data_models/convex_rock5.obj',
+                    # 'models/Rocks/agx_data_models/convex_rock6.obj',
+                ]
+
+                import random
+                obj_path = random.choice(rocks)
                 # Import the OBJ file
-                bpy.ops.import_scene.obj(filepath=obj_path)
+                bpy.ops.wm.obj_import(filepath=obj_path)
+
                 obj = bpy.context.selected_objects[0]
 
                 # Set the origin to the center of mass
                 bpy.context.view_layer.objects.active = obj
                 bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_MASS')
 
-                scale_factor = 0.001 * 6 * height
+                scale_factor = 0.001 * width
                 bpy.ops.transform.resize(value=(
                     scale_factor, scale_factor, scale_factor))
 
                 # TODO: size should be a tuple!!
-                x, y = np.subtract(position, size/2)
+                # x, y = np.subtract(position, size/2)
+                x, y = position
                 if interpolator is not None:
                     z = interpolator(x, y)
                 else:
                     z = 0
                 obj.location = (x, y, z)
-                obj.rotation_euler = np.random.random(3)*np.pi*2
+                # obj.rotation_euler = np.random.random(3)*np.pi*2
+                obj.rotation_euler = [np.deg2rad(pitch_deg), 0, np.deg2rad(yaw_deg)]
+                obj.name = 'Rock'

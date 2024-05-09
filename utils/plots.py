@@ -257,7 +257,7 @@ def plot_obstacles(
 
       color: str or np.array
     '''
-    radius = obstacles.radius
+    radius = obstacles.width/2
     position = obstacles.position
 
     if fig_ax is not None:
@@ -279,7 +279,7 @@ def plot_obstacles(
         ax.set_ylim(ylim)
 
     if isinstance(color, str) and color == 'radius':
-        c = radius
+        c = radius/np.max(radius)
     else:
         c = color
 
@@ -402,6 +402,7 @@ def plot_hf(hf_array, extent, ax=None, fig=None,
 
 
 def plot_terrain(terrain, ax=None, fig=None,
+                 cmap=cc.cm.dimgray,
                  label='Height (m)', **_):
     '''
     plot hf
@@ -410,7 +411,90 @@ def plot_terrain(terrain, ax=None, fig=None,
         fig, ax = new_fig()
 
     # Plot image
-    im = ax.imshow(terrain.array.T, origin='lower', extent=terrain.extent)
+    im = ax.imshow(terrain.array.T, origin='lower', extent=terrain.extent,
+                   cmap=cmap)
     fig.colorbar(im, label=label)
 
     return fig, ax
+
+
+def debug_plot(filename=None, terrain=None, terrain_dict={}, terrain_heap=[], **kwargs):
+    dict_length = len(terrain_dict)
+    heap_length = len(terrain_heap) + 1
+
+    max_length = max(dict_length, heap_length)
+
+    fig, axs = new_fig(nrows=max_length, ncols=2, figsize=(2.65*3, max_length*3))
+    axs = np.array(axs).reshape(max_length, 2)
+
+    # Plot terrain
+    if terrain is not None:
+        ax = axs[heap_length-1, 0]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('blue')
+        ax.patch.set_linewidth(10)
+
+    # Plot heap
+    for i, terrain in enumerate(terrain_heap):
+        ax = axs[i, 0]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('red')
+        ax.patch.set_linewidth(10)
+
+    # Plot dict
+    for i, (name, terrain) in enumerate(terrain_dict.items()):
+        ax = axs[i, 1]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('green')
+        ax.patch.set_linewidth(10)
+
+    # turn of unused axes
+    for ax in axs.flatten():
+        if not ax.images:
+            ax.set_axis_off()
+
+    # Save
+    fig.tight_layout()
+    fig.savefig(filename)
+
+
+def debug_plot_horizontal(
+        filename=None, terrain=None, terrain_dict={},
+        terrain_heap=[], **kwargs):
+    dict_length = len(terrain_dict)
+    heap_length = len(terrain_heap) + 1
+
+    max_length = max(dict_length, heap_length)
+
+    fig, axs = new_fig(nrows=2, ncols=max_length, figsize=(max_length*3, 3*1.45))
+    axs = np.array(axs).reshape(2, max_length)
+
+    # Plot terrain
+    if terrain is not None:
+        ax = axs[0, heap_length-1]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('blue')
+        ax.patch.set_linewidth(10)
+
+    # Plot heap
+    for i, terrain in enumerate(terrain_heap):
+        ax = axs[0, i]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('red')
+        ax.patch.set_linewidth(10)
+
+    # Plot dict
+    for i, (name, terrain) in enumerate(terrain_dict.items()):
+        ax = axs[1, i]
+        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
+        ax.patch.set_edgecolor('green')
+        ax.patch.set_linewidth(10)
+
+    # turn of unused axes
+    for ax in axs.flatten():
+        if not ax.images:
+            ax.set_axis_off()
+
+    # Save
+    fig.tight_layout()
+    fig.savefig(filename)
