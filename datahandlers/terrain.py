@@ -365,8 +365,8 @@ class Plot(DataHandler):
 
     ''' Plot terrain '''
     @debug_decorator
-    def __call__(self, filename="terrain.png", default=None, overwrite=False,
-                 terrain=None, terrain_dict={}, folder='Plot',
+    def __call__(self, default=None, overwrite=False,
+                 terrain_dict={}, terrain_heap=[], folder='Plot',
                  exportmode=False, dpi=400,
                  call_number=None, call_total=None, **kwargs):
         from utils.plots import plot_terrain, save_all_axes
@@ -374,6 +374,7 @@ class Plot(DataHandler):
 
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
+
         # Use folder
         basename = os.path.basename(self.save_dir)
         if basename != folder:
@@ -385,9 +386,9 @@ class Plot(DataHandler):
             os.makedirs(self.save_dir)
 
         # Plot terrain
-        if terrain is not None:
+        for i, terrain in enumerate(terrain_heap):
+            filename = f'terrain{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
-            filename = add_id(filename, self.file_id)
             if not os.path.exists(filename) or overwrite:
                 fig, ax = plot_terrain(terrain)
                 fig.savefig(filename, dpi=dpi)
@@ -395,8 +396,8 @@ class Plot(DataHandler):
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
 
         # Plot terrain_dict
-        for name, terrain in terrain_dict.items():
-            filename = f'terrain_dict_{name}{self.file_id}.png'
+        for i, (name, terrain) in enumerate(terrain_dict.items()):
+            filename = f'terrain_dict{self.file_id}_{i:05d}_{name}.png'
             filename = os.path.join(self.save_dir, filename)
             if not os.path.exists(filename) or overwrite:
                 fig, ax = plot_terrain(terrain)
