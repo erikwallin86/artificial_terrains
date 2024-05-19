@@ -8,34 +8,45 @@ class Combine(DataHandler):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Add', terrain_dict={},
-                 default=None, call_number=None, call_total=None,
-                 last=None, **pipe):
+    def __call__(self, operation='Add', terrain_dict={}, terrain_heap=[],
+                 default=None, last=None, **_):
+        '''
+        Combine terrains in terrain_dict (or terrain_heap) using 'operation'
+
+        Args:
+          operation (string): What operation to perform
+          last (int): Use last N terrains. If None, then all are used
+
+        '''
         operations = ['Add', 'Max', 'Min', 'Prod']
         operation = default if default is not None else operation
         assert operation in operations, f'operation not in {operations}'
 
+        if last is not None and last > 0:
+            # When e.g. taking the last two, the slice is [-2:]
+            # So here we make sure this is negative
+            last = -last
+
         if len(terrain_dict) > 0:
-            # Work with the terrain_dict
-            terrains = list(terrain_dict.values())
+            # Work with the terrain_dict. Trick to slice dict using last
+            sliced_terrain_dict = dict(list(terrain_dict.items())[last:])
+            terrains = list(sliced_terrain_dict.values())
+
+            # Remove any used terrains from the terrain_dict
+            terrain_dict = {k: v for k, v in terrain_dict.items()
+                            if k not in sliced_terrain_dict}
+
             self.info(f"{operation} {len(terrains)} terrains from 'dict'")
-        elif 'terrain' in pipe and 'terrain_heap' in pipe:
-            # Work with terrain + terrain-heap
-            terrains = [pipe['terrain']] + pipe['terrain_heap'][::-1]
-
-            # Possibly only work with last N terrains
-            if last is not None:
-                terrains = terrains[:last]
-
+        elif len(terrain_heap) > 0:
+            # Get terrains from heap (if last=None then all are used)
+            terrains = terrain_heap[last:]
             self.info(f"{operation} {len(terrains)} terrains from 'heap'")
-            # Remove any used terrains from terrain_heap.
-            pipe['terrain_heap'] = [terrain for terrain in pipe['terrain_heap']
-                                    if terrain not in terrains]
-            if len(pipe['terrain_heap']) > 0:
-                self.info(f"{len(pipe['terrain_heap'])} terrains remaining")
 
-            # Remove terrain, as this now is first in terrains
-            pipe['terrain'] = None
+            # Remove any used terrains from terrain_heap.
+            terrain_heap = [terrain for terrain in terrain_heap
+                            if terrain not in terrains]
+            if len(terrain_heap) > 0:
+                self.info(f"{len(terrain_heap)} terrains remaining")
 
         # Apply any of the operations
         if operation == 'Add':
@@ -57,18 +68,14 @@ class Combine(DataHandler):
         else:
             raise AttributeError
 
-        # Possibly move existing terrain to terrain_heap
-        if 'terrain' in pipe and pipe['terrain'] is not None:
-            if 'terrain_heap' in pipe and isinstance(pipe['terrain_heap'], list):
-                pipe['terrain_heap'].append(pipe['terrain'])
-            else:
-                pipe['terrain_heap'] = [pipe['terrain']]
-        # Reset any terrain_dict
-        pipe['terrain_dict'] = {}
-        # Set the new terrain
-        pipe['terrain'] = terrain
+        # Add terrain to heap
+        terrain_heap.append(terrain)
 
-        return pipe
+        # Return updated heap/dict
+        return {
+            'terrain_dict': terrain_dict,
+            'terrain_heap': terrain_heap,
+        }
 
 
 class CombineLast(Combine):
