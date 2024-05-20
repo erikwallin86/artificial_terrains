@@ -35,6 +35,7 @@ class Terrain():
         terrain_obj.array, info_dict = load_hf2(filename)
         terrain_obj.size = info_dict['size']
         terrain_obj.extent = info_dict['extent']
+        terrain_obj.kwargs = {}  # TODO: Added as a fix. But not in use I think
 
         return terrain_obj
 
