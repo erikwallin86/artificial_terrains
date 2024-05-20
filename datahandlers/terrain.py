@@ -71,11 +71,11 @@ class Save(DataHandler):
 
     ''' Save numpy terrain '''
     @debug_decorator
-    def __call__(self, filename="terrain.npz", folder='Save',
+    def __call__(self, folder='Save',
                  default=None,
-                 terrain=None, terrain_dict={},
+                 terrain_dict={}, terrain_heap=[],
                  overwrite=False,
-                 call_number=None, call_total=None, **kwargs):
+                 **_):
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
         # Use folder
@@ -89,14 +89,15 @@ class Save(DataHandler):
             os.makedirs(self.save_dir)
 
         # Save terrain
-        filename = os.path.join(self.save_dir, f'terrain{self.file_id}.npz')
-        if terrain is not None:
+        for i, terrain in enumerate(terrain_heap):
+            filename = f'terrain{self.file_id}_{i:05d}.npz'
+            filename = os.path.join(self.save_dir, filename)
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
 
         # Save from terrain-dict
-        for name, terrain in terrain_dict.items():
-            filename = f'terrain_dict_{name}{self.file_id}.npz'
+        for i, (name, terrain) in enumerate(terrain_dict.items()):
+            filename = f'terrain_dict{self.file_id}_{i:05d}_{name}.npz'
             filename = os.path.join(self.save_dir, filename)
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
@@ -370,7 +371,6 @@ class Plot(DataHandler):
                  exportmode=False, dpi=400,
                  call_number=None, call_total=None, **kwargs):
         from utils.plots import plot_terrain, save_all_axes
-        from utils.utils import add_id
 
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
