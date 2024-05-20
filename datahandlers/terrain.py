@@ -3,69 +3,6 @@ import os
 import numpy as np
 
 
-class LoadTerrain(DataHandler):
-    ''' Load terrains '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, file_list=None, default=None,
-                 call_number=None, call_total=None, **pipe):
-        from utils.utils import get_list_of_files
-
-        # Create empty pipes list
-        pipes = []
-
-        # If hf already in pipe, make sure to add this first
-        if 'hf_array' in pipe:
-            pipes.append(pipe)
-
-        # Make sure file-list is a list
-        file_list = default if default is not None else file_list
-
-        # Draft of handling wildcards
-        # Not sure how to best handle this systematically
-        if '*' in file_list:
-            import glob
-            file_list = glob.glob(file_list)
-            file_list.sort()
-
-        if '[' in file_list:
-            import glob
-            file_list = glob.glob(file_list)
-            file_list.sort()
-
-        if not isinstance(file_list, list):
-            file_list = [file_list]
-
-        # If folder, get all npz files in it
-        new_file_list = []
-        for filename in file_list:
-            if os.path.isdir(filename):
-                folder = filename
-                files = get_list_of_files([folder], '.npz')
-                for f in files:
-                    new_file_list.append(os.path.join(folder, f))
-            else:
-                new_file_list.append(filename)
-
-        # Load all terrain-files
-        for filename in new_file_list:
-            from utils.terrains import Terrain
-            terrain = Terrain.from_numpy(filename)
-
-            new_pipe = pipe.copy()
-            new_pipe['terrain'] = terrain
-            pipes.append(new_pipe)
-
-        if len(pipes) == 0:
-            raise ValueError("Empty pipe")
-        elif len(pipes) == 1:
-            # Just return pipe
-            return pipes[0]
-        else:
-            return pipes
-
-
 class Save(DataHandler):
     create_folder = False
 
@@ -110,18 +47,78 @@ class Load(DataHandler):
     @debug_decorator
     def __call__(self, file_list=None, default=None,
                  call_number=None, call_total=None, **pipe):
-        from utils.utils import get_list_of_files
+        """
+        Load terrain files into structured lists.
 
-        # Create empty pipes list
-        pipes = []
+        Args:
+            file_list (list): List of filenames or patterns to load.
+            default (list): Default list of filenames if file_list is None.
+            call_number (int): Current call number (optional).
+            call_total (int): Total number of calls (optional).
+            **pipe (dict): Additional arguments.
 
-        # If terrain already in pipe, make sure to add this first
-        if 'terrain' in pipe:
-            pipes.append(pipe)
-
-        # Make sure file-list is a list
+        Returns:
+            list: A list of pipes containing loaded terrain data.
+        """
+        # Get file-list
         file_list = default if default is not None else file_list
+        # Parse any wildcards, and make sure it is a list
+        file_list = self.parse_wildcards(file_list)
+        # Check that files exist, and possibly prepend 'save-dir'
+        file_list = self.check_exist_and_possibly_prepend_savedir(file_list)
+        # Expand folders to get npz files
+        file_list = self.expand_folders_to_get_npz(file_list)
 
+        import re
+        from utils.terrains import Terrain
+        # Regular expressions to match filenames
+        terrain_regex = re.compile(r'terrain(_\d{5})?_(\d{5}).npz')
+        terrain_dict_regex = re.compile(
+            r'terrain_dict(_\d{5})?_(\d{5})_.*\.npz')
+
+        terrains = self.parse_regex(file_list, terrain_regex)
+        terrain_dicts = self.parse_regex(file_list, terrain_dict_regex)
+
+        # Convert dictionaries to lists of lists
+        terrain_list = [sorted(terrains[key].items()) for key in sorted(terrains)]
+        terrain_dict_list = [sorted(terrain_dicts[key].items()) for key in sorted(terrain_dicts)]
+
+        # Populate new pipes with copy of current
+        pipes = [pipe.copy() for _ in range(
+            max(len(terrain_dict_list), len(terrain_list)))]
+
+        # Load to create terrain_heap
+        for terrains, pipe in zip(terrain_list, pipes):
+            terrain_heap = pipe.get('terrain_heap', [])
+            for _, filename in terrains:
+                terrain = Terrain.from_numpy(filename)
+                terrain_heap.append(terrain)
+            pipe['terrain_heap'] = terrain_heap
+
+        # Load to create terrain_dict
+        for terrains, pipe in zip(terrain_dict_list, pipes):
+            terrain_dict = pipe.get('terrain_dict', {})
+            for i, filename in terrains:
+                terrain = Terrain.from_numpy(filename)
+                terrain_dict[str(i)] = terrain
+            pipe['terrain_dict'] = terrain_dict
+
+        if not pipes:
+            raise ValueError("Empty pipe")
+        return pipes[0] if len(pipes) == 1 else pipes
+
+    def parse_regex(self, file_list, regex):
+        data = {}
+        for filename in file_list:
+            match = regex.search(filename)
+            if match:
+                file_id = match.group(1) if match.group(1) else ''
+                index = int(match.group(2))
+                data.setdefault(file_id, {})[index] = filename
+
+        return data
+
+    def parse_wildcards(self, file_list):
         # Draft of handling wildcards
         # Not sure how to best handle this systematically
         if '*' in file_list:
@@ -137,22 +134,29 @@ class Load(DataHandler):
         if not isinstance(file_list, list):
             file_list = [file_list]
 
-        # Possibly prepend 'save_dir' if input is neither file nor dir
+        return file_list
+
+    def check_exist_and_possibly_prepend_savedir(self, file_list):
         new_file_list = []
         for filename in file_list:
-            if os.path.isdir(filename):
+            # Check if filename is a file or folder
+            if os.path.isfile(filename):
                 new_file_list.append(filename)
             elif os.path.isdir(filename):
                 new_file_list.append(filename)
             else:
+                # Prepend save_dir if *that* file exists
                 test = os.path.join(self.save_dir, filename)
-                print(f"test:{test}")
-                print(f"os.path.exists(test):{os.path.exists(test)}")
                 if os.path.exists(test):
                     new_file_list.append(os.path.join(self.save_dir, filename))
-        file_list = new_file_list
-        print(f"file_list:{file_list}")
+                else:
+                    # Or raise error
+                    raise FileNotFoundError
 
+        return new_file_list
+
+    def expand_folders_to_get_npz(self, file_list):
+        from utils.utils import get_list_of_files
         # If folder, get all npz files in it
         new_file_list = []
         for filename in file_list:
@@ -164,60 +168,7 @@ class Load(DataHandler):
             else:
                 new_file_list.append(filename)
 
-        # tests
-        parsed_files = []
-        dict_files = {}
-        for filename in new_file_list:
-            basename = os.path.basename(filename)
-            if 'terrain_dict' in basename:
-                split = basename.split('_')
-                # Get digits, or make up
-                if len(split) == 4:
-                    # terrain_dict_0.5_00001.npz
-                    digits = split[3].replace('.npz', '')
-                else:
-                    digits = 'no_digits'
-                # Add to dict
-                if digits in dict_files:
-                    dict_files[digits].append(filename)
-                else:
-                    dict_files[digits] = [filename]
-            else:
-                parsed_files.append(filename)
-                import re
-                if '_' in basename:
-                    digits_match = re.search(r'\d{5}', filename)
-                    digits = digits_match.group() if digits_match is not None else None
-
-        print(f"dict_files:{dict_files}")
-        print(f"parsed_files:{parsed_files}")
-        import itertools
-
-        # Load all terrain-files
-        for filename, (digits, filenames) in itertools.zip_longest(
-                parsed_files, dict_files.items()):
-            from utils.terrains import Terrain
-            new_pipe = pipe.copy()
-            if filename is not None:
-                terrain = Terrain.from_numpy(filename)
-                new_pipe['terrain'] = terrain
-
-            terrain_dict = {}
-            for filename in filenames:
-                name = os.path.basename(filename).split('_')[2]
-                terrain_dict[name] = Terrain.from_numpy(filename)
-
-            new_pipe['terrain_dict'] = terrain_dict
-
-            pipes.append(new_pipe)
-
-        if len(pipes) == 0:
-            raise ValueError("Empty pipe")
-        elif len(pipes) == 1:
-            # Just return pipe
-            return pipes[0]
-        else:
-            return pipes
+        return new_file_list
 
 
 class ClearTerrain(DataHandler):
