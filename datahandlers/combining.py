@@ -93,8 +93,8 @@ class WeightedSum(DataHandler):
 
     @debug_decorator
     def __call__(self, weights=[5, 8, 0.1], terrain_dict={},
-                 call_number=None, call_total=None,
-                 default=None, **pipe):
+                 terrain_heap=[],
+                 default=None, **_):
 
         weights = default if default is not None else weights
         weights = np.array(weights).reshape(-1, 1, 1)
@@ -106,15 +106,9 @@ class WeightedSum(DataHandler):
         terrain = Terrain.from_array(
             array, size=terrains[0].size, extent=terrains[0].extent)
 
-        # Possibly move existing terrain to terrain_heap
-        if 'terrain' in pipe and pipe['terrain'] is not None:
-            if 'terrain_heap' in pipe and isinstance(pipe['terrain_heap'], list):
-                pipe['terrain_heap'].append(pipe['terrain'])
-            else:
-                pipe['terrain_heap'] = [pipe['terrain']]
-        # Reset any terrain_dict
-        pipe['terrain_dict'] = {}
-        # Set the new terrain
-        pipe['terrain'] = terrain
+        terrain_heap.append(terrain)
 
-        return pipe
+        return {
+            'terrain_dict': {},
+            'terrain_heap': terrain_heap,
+            }
