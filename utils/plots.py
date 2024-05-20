@@ -418,21 +418,14 @@ def plot_terrain(terrain, ax=None, fig=None,
     return fig, ax
 
 
-def debug_plot(filename=None, terrain=None, terrain_dict={}, terrain_heap=[], **kwargs):
+def debug_plot(filename=None, terrain_dict={}, terrain_heap=[], **kwargs):
     dict_length = len(terrain_dict)
-    heap_length = len(terrain_heap) + 1
+    heap_length = len(terrain_heap)
 
     max_length = max(dict_length, heap_length)
 
     fig, axs = new_fig(nrows=max_length, ncols=2, figsize=(2.65*3, max_length*3))
     axs = np.array(axs).reshape(max_length, 2)
-
-    # Plot terrain
-    if terrain is not None:
-        ax = axs[heap_length-1, 0]
-        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
-        ax.patch.set_edgecolor('blue')
-        ax.patch.set_linewidth(10)
 
     # Plot heap
     for i, terrain in enumerate(terrain_heap):
@@ -459,7 +452,7 @@ def debug_plot(filename=None, terrain=None, terrain_dict={}, terrain_heap=[], **
 
 
 def debug_plot_horizontal(
-        filename=None, terrain=None, terrain_dict={},
+        filename=None, terrain_dict={},
         terrain_heap=[], **kwargs):
     dict_length = len(terrain_dict)
     heap_length = len(terrain_heap) + 1
@@ -468,13 +461,6 @@ def debug_plot_horizontal(
 
     fig, axs = new_fig(nrows=2, ncols=max_length, figsize=(max_length*3, 3*1.45))
     axs = np.array(axs).reshape(2, max_length)
-
-    # Plot terrain
-    if terrain is not None:
-        ax = axs[0, heap_length-1]
-        fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
-        ax.patch.set_edgecolor('blue')
-        ax.patch.set_linewidth(10)
 
     # Plot heap
     for i, terrain in enumerate(terrain_heap):

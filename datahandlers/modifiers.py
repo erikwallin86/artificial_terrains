@@ -1,38 +1,63 @@
 from datahandlers.data import DataHandler, debug_decorator
 import numpy as np
+import os
+from utils.utils import get_terrains, get_terrain
 
 
 class Negate(DataHandler):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_dict={},
-                 default=None, call_number=None, call_total=None,
-                 last=None, **pipe):
-        if len(terrain_dict) > 0:
-            # Work with the terrain_dict
-            terrains = list(terrain_dict.values())
-        elif 'terrain' in pipe and 'terrain_heap' in pipe:
-            # Work with terrain + terrain-heap
-            terrains = [pipe['terrain']] + pipe['terrain_heap'][::-1]
-            # Possibly only work with last N terrains
-            if last is not None:
-                terrains = terrains[:last]
-            # Remove any used terrains from terrain_heap.
-            pipe['terrain_heap'] = [terrain for terrain in pipe['terrain_heap']
-                                    if terrain not in terrains]
-            if len(pipe['terrain_heap']) > 0:
-                self.info(f"{len(pipe['terrain_heap'])} terrains remaining")
-        elif 'terrain' in pipe:
-            # i.e. no terrain-heap, only a single terrain
-            terrains = [pipe['terrain']]
-
-        # Remove terrain, as this now is first in terrains
-        # pipe['terrain'] = None
+    def __call__(self, terrain_dict={}, terrain_heap=[],
+                 default=None, last=None, **_):
+        terrains = get_terrains(
+            terrain_dict, terrain_heap, last, remove=False)
 
         # Negate the terrains
         for terrain in terrains:
             terrain.array = -terrain.array
+
+
+class Around(DataHandler):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_dict={}, terrain_heap=[],
+                 around=1, default=None, last=None, **_):
+        ''' Move terrain in z to place mean at some value '''
+        # Get value from 'default'
+        around = default if default is not None else around
+
+        terrains = get_terrains(
+            terrain_dict, terrain_heap, last, remove=False)
+
+        # Move to place mean around 1
+        for terrain in terrains:
+            terrain.array = terrain.array + around - np.mean(terrain.array)
+
+
+class Around1(Around):
+    def __call__(self, *args, around=None, **kwargs):
+        super().__call__(*args, around=1, **kwargs)
+
+
+class AsProbability(DataHandler):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_dict={}, terrain_heap=[],
+                 default=None, last=None, **_):
+        ''' Use terrain as a 2d probability '''
+        # Get and remove terrain from dict/heap
+        terrain = get_terrain(
+            terrain_dict, terrain_heap, print_fn=print)
+
+        # Clip to remove negative values
+        terrain.array = np.clip(terrain.array, 0, None)
+        # Normalize
+        terrain.array = terrain.array/np.sum(terrain.array)
+
+        return {'position_probability': terrain}
 
 
 class BezierRemap(DataHandler):

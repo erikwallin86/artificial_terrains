@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import os
+from utils.terrains import Terrain
 
 
 class StoreTuplePair(argparse.Action):
@@ -467,3 +468,49 @@ def add_id(filename, file_id):
     filename = root + file_id + extension
 
     return filename
+
+
+def get_terrains(
+        terrain_dict={}, terrain_heap=[],
+        last=None, print_fn=print, remove=True):
+    ''' Get terrains from dict/heap
+
+    Terrains are removed from the dict/heap in place if `remove` is True.
+    '''
+
+    if last is not None and last > 0:
+        # When e.g. taking the last two, the slice is [-2:]
+        # So here we make sure this is negative
+        last = -last
+
+    if len(terrain_dict) > 0:
+        # Work with the terrain_dict. Trick to slice dict using last
+        keys_to_use = list(terrain_dict.keys())[last:]
+        terrains = [terrain_dict[key] for key in keys_to_use]
+        print_fn(f"Use {len(terrains)}/{len(terrain_dict)} terrains from dict")
+        # Remove any used terrains from the terrain_dict in place
+        if remove:
+            for key in keys_to_use:
+                del terrain_dict[key]
+
+    elif len(terrain_heap) > 0:
+        # Get terrains from heap (if last=None then all are used)
+        terrains = terrain_heap[last:]
+        print_fn(f"Use {len(terrains)}/{len(terrain_heap)} terrains from heap")
+
+        # Remove any used terrains from terrain_heap in place
+        if remove:
+            del terrain_heap[last:]
+    else:
+        raise AttributeError("Both terrain_dict and terrain_heap are empty")
+
+    return terrains
+
+
+def get_terrain(*args, last=None, **kwargs):
+    return get_terrains(*args, last=-1, **kwargs)[0]
+
+
+def draw_from_2d_probability(probability: Terrain):
+    ''' probability. A normalized Terrain (thus with extent) '''
+    pass

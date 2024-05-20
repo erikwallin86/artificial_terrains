@@ -483,6 +483,7 @@ class Random(DataHandler):
             self, number_of_values=3,
             position=[[0, 0]], height=[1], yaw=[0],
             size=None,
+            position_probability=None,
             default=None, **kwargs):
 
         to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg']
@@ -491,11 +492,25 @@ class Random(DataHandler):
 
         if default is not None and isinstance(default, (int, float)):
             number_of_values = default
+        if default is not None and isinstance(default, (str)):
+            to_generate = [default]
+        if default is not None and isinstance(default, list):
+            to_generate = default
+
+        # test. Return weights given Random:weights
+        if default == 'weights' and 'terrain_dict' in kwargs:
+            num_octaves = len(kwargs['terrain_dict'])
+            weights = self.get_weights(num_octaves)
+            return {'weights': weights}
 
         # Generate position
         if 'position' in to_generate:
             pipe['position'] = np.random.uniform(
                 low=-size/2, high=size/2, size=(number_of_values, 2))
+            # Generate from position_probability if given
+            if position_probability is not None:
+                pipe['position'] = self.points_from_probability(
+                    position_probability, number_of_values)
 
         # Generate yaw
         if 'yaw_deg' in to_generate:
@@ -525,6 +540,39 @@ class Random(DataHandler):
         print(f"pipe:{pipe}")
 
         return pipe
+
+    def points_from_probability(self, prob: Terrain, number_of_values):
+        from utils.noise import generate_points_from_2D_prob
+        # Generate integers between (0, 0) and prob.array.shape
+        points = generate_points_from_2D_prob(prob.array, number_of_values)
+        # Add uniform random noise in [0, 1)
+        points = points + np.random.uniform(size=points.shape)
+
+        # Map to extent
+        x = np.interp(points[0], [0, prob.array.shape[0]], prob.extent[:2])
+        y = np.interp(points[1], [0, prob.array.shape[1]], prob.extent[2:4])
+
+        # Merge into combined array again
+        position = np.array([x, y]).T
+
+        return position
+
+    def get_weights(self, num_octaves, start=128, amplitude_start=10,
+                    persistance=0.60, random_amp=0.5, **_):
+        ''' Generate a list of amplitudes '''
+        # Generate amplitude list
+        amplitude_start_log = np.log(amplitude_start)/np.log(persistance)
+        amplitude_end_log = amplitude_start_log+num_octaves-1
+        amplitude_list = np.logspace(amplitude_start_log, amplitude_end_log,
+                                     num_octaves, base=persistance)
+
+        # Possibly multiply amplitudes by random perturbations
+        if random_amp:
+            random_factor = np.random.normal(
+                loc=1.0, scale=random_amp, size=amplitude_list.shape)
+            amplitude_list *= random_factor
+
+        return amplitude_list
 
 
 class LoadObstacles(DataHandler):

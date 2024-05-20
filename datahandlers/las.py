@@ -48,11 +48,15 @@ class MakeLas(DataHandler):
 
     @debug_decorator
     def __call__(self,
-                 terrain=None,
+                 terrain_dict={}, terrain_heap=[],
                  points_per_meter=50,
                  segmentation_array=None,
                  default=None,
                  **_):
+        # Get latest terrain from dict/heap
+        from utils.utils import get_terrain
+        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+
         # Construct an 'interpolator'
         from utils.interpolator import Interpolator
         interpolator = Interpolator(terrain.array, terrain.extent)

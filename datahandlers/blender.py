@@ -2,6 +2,7 @@ from datahandlers.data import DataHandler, debug_decorator
 import os
 import sys
 import numpy as np
+from utils.utils import get_terrain
 
 
 def fix_blender_path():
@@ -32,23 +33,16 @@ class Ground(DataHandler):
 
     @debug_decorator
     def __call__(self, filename=None, default=None,
-                 call_number=None, call_total=None,
-                 ground_material=None, **pipe):
+                 terrain_dict={}, terrain_heap=[],
+                 ground_material=None, **_):
         filename = default if default is not None else filename
         if filename is not None:
             from utils.terrains import Terrain
             # Load data
             terrain = Terrain.from_numpy(filename)
-            # And add to pipe
-            pipe['terrain'] = terrain
-        elif 'terrain' in pipe:
-            terrain = pipe['terrain']
-        elif 'terrain_dict' in pipe and len(pipe['terrain_dict']) > 0:
-            # Pick last from terrain-dict
-            terrain = list(pipe['terrain_dict'].values())[-1]
         else:
-            print('No terrain')
-            exit(0)
+            # Get latest from dict/heap
+            terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
 
         # Make grid from array
         from utils.Blender import grid_from_array
@@ -59,9 +53,7 @@ class Ground(DataHandler):
         if ground_material is not None:
             grid_obj.data.materials.append(ground_material)
 
-        pipe['grid_obj'] = grid_obj,
-
-        return pipe
+        return {'grid_obj': grid_obj}
 
 
 class BasicSetup(DataHandler):
@@ -157,7 +149,7 @@ class Camera(DataHandler):
 
     @debug_decorator
     def __call__(self, camera='top', default=None,
-                 terrain=None,
+                 terrain_dict={}, terrain_heap=[],
                  size=None,
                  ppm=None,
                  resolution=None,
@@ -171,7 +163,9 @@ class Camera(DataHandler):
 
         camera = default if default is not None else camera
         assert camera in ['top', 'angled']
-        assert terrain is not None, 'Run LoadTerrain before'
+
+        # Get latest terrain from dict/heap
+        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
 
         size = terrain.size
         camera_kwargs = {}
@@ -238,11 +232,14 @@ class Depth(DataHandler):
     ''' '''
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
-                 terrain=None,
+                 terrain_dict={}, terrain_heap=[],
                  overwrite=False,
                  **_):
         from utils.Blender import get_depth, render_eevee
         from utils.Blender import setup_render_z
+
+        # Get latest terrain from dict/heap
+        terrain = get_terrain(terrain_dict, terrain_heap)
 
         setup_render_z()
 
@@ -260,8 +257,12 @@ class Depth(DataHandler):
             extent=terrain.extent,  # TODO: take from camera instead
         )
 
+        # TODO: Fix this. Unsure how to handle this when I remove
+        # the 'terrain' attribute
+        terrain_heap = [terrain]
+
         return {
-            'terrain': terrain,
+            'terrain_heap': terrain_heap,
         }
 
 
@@ -315,10 +316,12 @@ class Holdout(DataHandler):
 
     @debug_decorator
     def __call__(self,
-                 terrain=None,
+                 terrain_dict={}, terrain_heap=[],
                  default=None,
                  **_):
+        from utils.utils import get_terrain
         from utils.Blender import add_holdout_plane
+        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
         add_holdout_plane(terrain.array)
 
 
@@ -333,10 +336,13 @@ class AddRocks(DataHandler):
                  width=[10, 5, 3, 1],
                  yaw_deg=[0, 90, 180, 270],
                  pitch_deg=[0, 10, 20, 30],
-                 terrain=None,
+                 terrain_dict={}, terrain_heap=[],
                  size=None,
                  default=None,
                  **_):
+        # Get latest terrain from dict/heap
+        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+
         # Construct 'interpolator'
         if terrain is not None:
             from utils.interpolator import Interpolator
