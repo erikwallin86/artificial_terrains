@@ -4,13 +4,33 @@ A library and script for creating artificial terrains, represented as npz files 
 Terrains can be created by calling the script, or by combining functions in a custom python script.
 The script executes an ordered list of specified 'datahandlers', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
-The repo is still under development. Script names and other names will change.
+The repo is still under development. Script names and other names can/will change.
 
 ## Getting started
 The following command creates a terrain with an overall ground-shape generated from a `WeightedSum` of different simplex noise `Octaves`. `Holes` and `Rocks` of different scale are generated and combined with a `Min` and `Max` operation respectivly. The resultant ground, holes, and rocks are `Combined` with a default Add operation, and the result is `Save`d and `Plot`ted in the folder Result.
 ```
 python run.py --datahandlers Holes Combine:Min Octaves WeightedSum Rocks Combine:Max Combine Save:Result Plot:Result --save-dir Terrains/test_001a/
 ```
+
+Alternativly, the same command can be run by
+```
+python run.py --settings-file settings.yml
+```
+with settings specified in a yaml file,
+```yaml
+save-dir: runs/data_001a
+datahandlers:
+- Holes
+- [Combine, Min]
+- Octaves
+- WeightedSum
+- Rocks
+- [Combine, Max]
+- Combine
+- [Save, Result]
+- [Plot, Result]
+```
+In all runs, a copy of the used settings is saved in `settings.yml`, and commands and prints are appended to `logger.txt`.
 
 ## Datahandlers
 The overall setup for creating a terrain is to create 'terrain basics', and combine them in different ways.
@@ -151,8 +171,30 @@ python -m pip install colorcet
 ```
 
 
-## 
+## Settings file
+The options in the settings can be specified with different formatting. The `datahandlers` is a list of 2-tuples/lists `(datahandler-name, options)`. The following contains 4 examples of equivalent formatting.
+```yaml
+datahandlers
+# Version 1, default formatting
+- - Donut
+  - position:
+    - 10
+    - 10
+    height: 5
 
+# Version 2, position list on one line
+- - Donut
+  - position: [10, 10]
+    height: 5
+
+# Version 3, options as a one line dict
+- - Donut
+  - {position: [10, 10], height: 5}
+
+# Version 4, [name, options] on one line
+- [Donut, {position: [10, 10], height: 5}]
+```
+In each run, the used settings are saved to `<save_dir>/settings.yml`.
 
 
 ## Extending
@@ -174,8 +216,7 @@ The above example takes a `terrain` keyword as input, with the idea of this bein
 [Note that these are the current names and this might/will change after some clean up]
 | Name | Description |
 |-----------|-------------|
-| `terrain` | The latest terrain in the primary heap |
-| `terrain_heap` | The rest of the primary heap, except the latest one |
+| `terrain_heap` | The primary heap |
 | `terrain_dict` | The temporary heap |
 | `position`, `height`, `yaw_deg`, `width`, `aspect`, `pitch_deg` | Parameterisation of generation functions, obstacles etc. in a common interface |
 | `size`, `resolution`, `ppm` | Parameterisation of the terrain size and resolution, determined by specifying two of the three. |
