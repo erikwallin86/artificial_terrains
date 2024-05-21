@@ -3,16 +3,16 @@ import numpy as np
 from utils.terrains import Terrain
 
 
-class Gaussian(DataHandler):
+class Generative(DataHandler):
     create_folder = False
     '''
-    Gaussian hill
+    Generative base
     '''
     @debug_decorator
     def __call__(
-            self, position=[[0, 0]], height=[1], yaw_deg=[0], width=[5],
-            aspect=[1], pitch_deg=[0],
-            function_name='gaussian',
+            self, position=[[0, 0]], height=[], yaw_deg=[], width=[],
+            aspect=[], pitch_deg=[],
+            function_name=None,
             terrain_dict={},
             size=None, resolution=None, ppm=None,
             default=None, **kwargs):
@@ -23,8 +23,12 @@ class Gaussian(DataHandler):
           heights: list of heights, where height is float in [-infty, infty]
           yaws: list of yaw, where yaw is float in [0, 2*np.pi]
         '''
-        print(f"### INTPUT len(terrain_dict):{len(terrain_dict)}")
-        print(f"kwargs:{kwargs}")
+        functions = ['gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
+                     'smoothstep', 'sine']
+        if function_name is None:
+            function_name = np.random.choice(functions)
+
+        assert function_name in functions
 
         # Format arguments
         if np.array(position).ndim == 1:
@@ -98,43 +102,49 @@ class Gaussian(DataHandler):
         #     return {'terrain': terrain}
 
 
-class Step(Gaussian):
+class Gaussian(Generative):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='gaussian', **kwargs)
+
+
+class Step(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='step', **kwargs)
 
 
-class Donut(Gaussian):
+class Donut(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='donut', **kwargs)
 
 
-class Plane(Gaussian):
+class Plane(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='plane', **kwargs)
 
 
-class Sphere(Gaussian):
+class Sphere(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='sphere', **kwargs)
 
 
-class Cube(Gaussian):
+class Cube(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='cube', **kwargs)
 
 
-class SmoothStep(Gaussian):
+class SmoothStep(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='smoothstep', **kwargs)
 
 
-class Sine(Gaussian):
+class Sine(Generative):
     def __call__(self, call_number=None, call_total=None, *args, **kwargs):
         return super().__call__(
             *args, function_name='sine', call_number=call_number,
