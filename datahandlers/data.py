@@ -473,6 +473,29 @@ class MakeEdgy(DataHandler):
             terrain.save(filename.replace('.png', '.npz'))
 
 
+class Set(DataHandler):
+    create_folder = False
+    '''
+    Set a parameter as Set:parameter=value
+    '''
+    @debug_decorator
+    def __call__(self, default, **_):
+        import ast
+
+        # Split the string into key and value
+        key, value = default.split('=')
+        # Use ast.literal_eval to safely evaluate the value
+        try:
+            value = ast.literal_eval(value)
+        except ValueError:
+            pass
+
+        # Create the dictionary
+        result_dict = {key: value}
+
+        return result_dict
+
+
 class Random(DataHandler):
     create_folder = False
     '''
