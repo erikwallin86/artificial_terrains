@@ -2,6 +2,7 @@ import os
 import numpy as np
 from utils.terrains import Terrain
 from utils.debug import debug
+from utils.utils import Distribution
 
 
 def debug_decorator(func):
@@ -496,6 +497,20 @@ class Set(DataHandler):
         return result_dict
 
 
+class SetDistribution(DataHandler):
+    create_folder = False
+    '''
+    Set a distribution as SetDistribution:parameter=distribution(*args)
+    '''
+    @debug_decorator
+    def __call__(self, default, **_):
+        # Parse distribution, and return
+        from utils.utils import parse_and_assign_distribution
+        varname, dist_obj = parse_and_assign_distribution(default)
+
+        return {f'{varname}_distribution': dist_obj}
+
+
 class Random(DataHandler):
     create_folder = False
     '''
@@ -506,19 +521,31 @@ class Random(DataHandler):
             self, number_of_values=3,
             position=[[0, 0]], height=[1], yaw=[0],
             size=None,
+            position_distribution=None,
+            height_distribution=Distribution('uniform', 1, 5),
+            width_distribution=Distribution('uniform', 2, 10),
+            aspect_distribution=Distribution('uniform', 0.5, 1.5),
+            yaw_deg_distribution=Distribution('uniform', 0, 360),
+            pitch_deg_distribution=Distribution('uniform', 0, 30),
             position_probability=None,
             default=None, **kwargs):
 
-        to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg']
+        to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect',
+                       'pitch_deg']
 
         pipe = {}
 
+        # Parse default input
         if default is not None and isinstance(default, (int, float)):
             number_of_values = default
         if default is not None and isinstance(default, (str)):
             to_generate = [default]
         if default is not None and isinstance(default, list):
             to_generate = default
+
+        # Setup distributions that depend on other parameters
+        if position_distribution is None:
+            position_distribution = Distribution('uniform', -size/2, size/2)
 
         # test. Return weights given Random:weights
         if default == 'weights' and 'terrain_dict' in kwargs:
@@ -528,37 +555,32 @@ class Random(DataHandler):
 
         # Generate position
         if 'position' in to_generate:
-            pipe['position'] = np.random.uniform(
-                low=-size/2, high=size/2, size=(number_of_values, 2))
+            pipe['position'] = position_distribution(
+                size=(number_of_values, 2))
             # Generate from position_probability if given
             if position_probability is not None:
                 pipe['position'] = self.points_from_probability(
                     position_probability, number_of_values)
 
-        # Generate yaw
-        if 'yaw_deg' in to_generate:
-            pipe['yaw_deg'] = np.random.uniform(
-                low=0, high=360, size=(number_of_values))
-
-        # Generate pitch
-        if 'pitch_deg' in to_generate:
-            pipe['pitch_deg'] = np.random.uniform(
-                low=0, high=30, size=(number_of_values))
-
         # Generate width
         if 'width' in to_generate:
-            pipe['width'] = np.random.uniform(
-                low=0, high=10, size=(number_of_values))
+            pipe['width'] = width_distribution(size=number_of_values)
 
         # Generate height
         if 'height' in to_generate:
-            pipe['height'] = np.random.uniform(
-                low=0, high=5, size=(number_of_values))
+            pipe['height'] = height_distribution(size=number_of_values)
 
         # Generate aspect
         if 'aspect' in to_generate:
-            pipe['aspect'] = np.random.uniform(
-                low=0.5, high=1.5, size=(number_of_values))
+            pipe['aspect'] = aspect_distribution(size=number_of_values)
+
+        # Generate yaw
+        if 'yaw_deg' in to_generate:
+            pipe['yaw_deg'] = yaw_deg_distribution(size=(number_of_values))
+
+        # Generate pitch
+        if 'pitch_deg' in to_generate:
+            pipe['pitch_deg'] = pitch_deg_distribution(size=(number_of_values))
 
         print(f"pipe:{pipe}")
 

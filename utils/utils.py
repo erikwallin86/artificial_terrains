@@ -432,3 +432,50 @@ def get_terrain(*args, last=None, **kwargs):
 def draw_from_2d_probability(probability: Terrain):
     ''' probability. A normalized Terrain (thus with extent) '''
     pass
+
+
+class Distribution:
+    def __init__(self, dist_name, *params):
+        self.dist_name = dist_name
+        self.params = params
+        self.dist = self._create_distribution()
+
+    def _create_distribution(self):
+        # Map distribution names to numpy.random functions
+        distributions = {
+            'uniform': np.random.uniform,
+            'normal': np.random.normal,
+            'exponential': np.random.exponential,
+            'beta': np.random.beta,
+        }
+
+        if self.dist_name in distributions:
+            return lambda size: distributions[self.dist_name](*self.params, size=size)
+        else:
+            raise ValueError(f"Unsupported distribution: {self.dist_name}")
+
+    def sample(self, size=1):
+        return self.dist(size=size)
+
+    def __call__(self, *args, **kwargs):
+        return self.sample(*args, **kwargs)
+
+    def __repr__(self):
+        return f"<Distribution: {self.dist_name} params={self.params}>"
+
+
+def parse_and_assign_distribution(expression):
+    import re
+    # Replace square parenthesis with soft
+    expression = expression.replace('[', '(').replace(']', ')')
+    print(f"expression:{expression}")
+    match = re.match(r"(\w+)=([\w_]+)\((.*)\)", expression)
+    # match = re.match(r"(\w+):(\w+)=([\w_]+)\((.*)\)", expression)
+    if not match:
+        raise ValueError(f"Invalid expression format: {expression}")
+
+    var_name, dist_name, params_str = match.groups()
+    params = eval(f"({params_str})")
+
+    dist_obj = Distribution(dist_name, *params)
+    return var_name, dist_obj
