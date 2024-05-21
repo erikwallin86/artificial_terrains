@@ -168,9 +168,30 @@ def get_args_combined_with_settings(parser):
     # Create save_dir
     if args.save_dir and not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
+
+    # ## datahandler specific code ###
+    # if not [name, option] pair, (only name)
+    from datahandlers.datahandlers import DATAHANDLERS
+    for i, pair in enumerate(args.datahandlers):
+        if not isinstance(pair, (tuple, list)):
+            key = pair
+            if key in DATAHANDLERS.keys():
+                args.datahandlers[i] = [key, None]
+
     # Save settings
     if args.save_dir is not None:
         filename = os.path.join(args.save_dir, 'settings.yml')
+
+        # ## datahandler specific code ###
+        # Process datahandlers to simplify yaml file
+        # Remove [name, None] and turn to 'name'
+        if 'datahandlers' in settings:
+            # Process settings to remove unnecessary null's
+            processed_datahandlers = [
+                [name, options] if options is not None else
+                name for name, options in settings['datahandlers']]
+            settings['datahandlers'] = processed_datahandlers
+
         with open(filename, 'w') as f:
             yaml.dump(settings, f, sort_keys=False, default_flow_style=None)
 
