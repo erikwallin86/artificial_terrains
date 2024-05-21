@@ -87,6 +87,23 @@ class CombineLast(Combine):
         return super(CombineLast, self).__call__(*args, last=2, **kwargs)
 
 
+class ToPrimary(Combine):
+    ''' Move terrains to primary '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_dict={}, terrain_heap=[],
+                 default=None, last=None, **_):
+        from utils.utils import get_terrains
+        terrain = get_terrains(terrain_dict, terrain_heap, last)
+        terrain_heap.extend(terrain)
+
+        return {
+            'terrain_dict': terrain_dict,
+            'terrain_heap': terrain_heap,
+        }
+
+
 class WeightedSum(DataHandler):
     ''' Weighted sum of basic terrains within a terrain_dict '''
     create_folder = False
