@@ -4,6 +4,15 @@ from datetime import datetime
 import os
 
 
+# Map debug levels to logging levels
+level_map = {
+    0: logging.NOTSET,
+    1: logging.DEBUG,
+    2: logging.INFO,
+    3: logging.WARNING
+}
+
+
 def get_logger(name='logger', save_dir=None, level=logging.INFO):
     '''
     Create logger with stdout- (and possibly file-) handler

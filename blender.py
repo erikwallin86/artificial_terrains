@@ -1,8 +1,7 @@
 import os
-import argparse
-from utils.utils import StoreTuplePair, StoreDict
+from utils.parse_utils import create_parser, get_args_combined_with_settings
 from datahandlers.datahandlers import DATAHANDLERS
-from utils.logging_utils import get_logger
+from utils.logging_utils import get_logger, level_map
 from datahandlers.blender import fix_blender_argv, fix_blender_path
 
 fix_blender_path()
@@ -11,22 +10,8 @@ fix_blender_path()
 def main():
     fix_blender_argv()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--settings', type=str, nargs='+', action=StoreDict,
-        help='Overwrite settings (e.g. use_pid:True control:"torque")'
-    )
-    parser.add_argument(
-        '--datahandlers', type=str, help='Datahandlers to use',
-        nargs='+', action=StoreTuplePair,
-    )
-    parser.add_argument('--settings-file', type=str, default=None,
-                        help='File to load settings from')
-    parser.add_argument('--save-dir', type=str, default=None,
-                        help='where to save data')
-    # Parse arguments
-    args, _ = parser.parse_known_args()
-    print(f"args.datahandlers:{args.datahandlers}")
+    parser = create_parser(specific_args=['datahandlers'])
+    args = get_args_combined_with_settings(parser)
 
     # Create folder if needed
     save_dir = args.save_dir
@@ -35,8 +20,7 @@ def main():
 
     # Add logger
     logger = get_logger(save_dir=save_dir)
-    # import logging
-    # logger.setLevel(logging.DEBUG)
+    logger.setLevel(level_map[args.debug])
 
     # Parse settings
     settings = args.settings if args.settings is not None else {}
