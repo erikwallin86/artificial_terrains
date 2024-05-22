@@ -539,9 +539,10 @@ class Random(DataHandler):
         if default is not None and isinstance(default, (int, float)):
             number_of_values = default
         if default is not None and isinstance(default, (str)):
-            to_generate = [default]
-        if default is not None and isinstance(default, list):
-            to_generate = default
+            if '[' not in default:
+                to_generate = [default]
+            else:
+                to_generate = default
 
         # Setup distributions that depend on other parameters
         if position_distribution is None:
