@@ -519,7 +519,6 @@ class Random(DataHandler):
     @debug_decorator
     def __call__(
             self, number_of_values=3,
-            position=[[0, 0]], height=[1], yaw=[0],
             size=None,
             position_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
