@@ -113,10 +113,14 @@ class ColorMap(DataHandler):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ground_material=None, filename=None, default=None, **_):
+    def __call__(self, ground_material=None, cmap='viridis', default=None, **_):
         from utils.Blender import (colormap_to_colorramp)
         import matplotlib.cm as cm
-        cmap = cm.viridis
+        import colorcet as cc
+
+        if default is not None:
+            cmap = cc.cm[default]
+
         cr = ground_material.node_tree.nodes[
             'Color Ramp'].color_ramp
         colormap_to_colorramp(cr, cmap)
@@ -232,11 +236,24 @@ class Depth(DataHandler):
     ''' '''
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
+                 folder='Depth',
                  terrain_dict={}, terrain_heap=[],
                  overwrite=False,
                  **_):
         from utils.Blender import get_depth, render_eevee
         from utils.Blender import setup_render_z
+
+        # Possibly set folder from 'default'.
+        folder = default if default is not None else folder
+        # Use folder
+        basename = os.path.basename(self.save_dir)
+        if basename != folder:
+            dirname = os.path.dirname(self.save_dir)
+            self.save_dir = os.path.join(dirname, folder)
+
+        # Create folder if needed
+        if not os.path.isdir(self.save_dir):
+            os.makedirs(self.save_dir)
 
         # Get latest terrain from dict/heap
         terrain = get_terrain(terrain_dict, terrain_heap)
@@ -270,11 +287,25 @@ class Render(DataHandler):
     ''' '''
     @debug_decorator
     def __call__(self, filename='render.png', default=None,
+                 folder='Render',
                  overwrite=False,
                  **_):
         from utils.Blender import render_eevee
 
-        filename = default if default is not None else filename
+        # filename = default if default is not None else filename
+
+        # Possibly set folder from 'default'.
+        folder = default if default is not None else folder
+        # Use folder
+        basename = os.path.basename(self.save_dir)
+        if basename != folder:
+            dirname = os.path.dirname(self.save_dir)
+            self.save_dir = os.path.join(dirname, folder)
+
+        # Create folder if needed
+        if not os.path.isdir(self.save_dir):
+            os.makedirs(self.save_dir)
+
         # Render
         render_eevee(save_dir=self.save_dir, filename=filename)
 
