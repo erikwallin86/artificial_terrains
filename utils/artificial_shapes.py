@@ -93,8 +93,8 @@ class GaussianFunction():
     def __init__(self, position=(0, 0), height=2.5, width=5, yaw_deg=0, aspect=1,
                  **_):
         self.pos = position
-        self.r_x = width / np.sqrt(aspect)
-        self.r_y = width * np.sqrt(aspect)
+        self.r_x = 0.5*width / np.sqrt(aspect)
+        self.r_y = 0.5*width * np.sqrt(aspect)
         self.A = height
         self.yaw_deg = yaw_deg
 
@@ -191,8 +191,8 @@ class DonutFunction():
     def __init__(self, position=(0, 0), height=2.5, width=5, yaw_deg=0, aspect=1,
                  **_):
         self.pos = position
-        self.A = height/2
-        self.width = width
+        self.A = height
+        self.radius = width/2
         self.aspect = aspect
         self.yaw_deg = yaw_deg
 
@@ -212,7 +212,7 @@ class DonutFunction():
         # Turn to polar coordinates
         rho, phi = cartesian_to_polar(x, y)
 
-        return self.A * gaussian_1d(rho, mu=self.width, sigma=self.A/2)
+        return self.A * gaussian_1d(rho, mu=self.radius, sigma=self.A/2)
 
 
 class PlaneFunction():
