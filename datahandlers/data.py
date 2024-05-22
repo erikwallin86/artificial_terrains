@@ -526,7 +526,7 @@ class Random(DataHandler):
             aspect_distribution=Distribution('uniform', 0.5, 1.5),
             yaw_deg_distribution=Distribution('uniform', 0, 360),
             pitch_deg_distribution=Distribution('uniform', 0, 30),
-            position_probability=None,
+            position_probability_2d=None,
             default=None, **kwargs):
 
         to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect',
@@ -557,10 +557,10 @@ class Random(DataHandler):
         if 'position' in to_generate:
             pipe['position'] = position_distribution(
                 size=(number_of_values, 2))
-            # Generate from position_probability if given
-            if position_probability is not None:
+            # Generate from position_probability_2d if given
+            if position_probability_2d is not None:
                 pipe['position'] = self.points_from_probability(
-                    position_probability, number_of_values)
+                    position_probability_2d, number_of_values)
 
         # Generate width
         if 'width' in to_generate:

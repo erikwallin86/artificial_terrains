@@ -57,7 +57,7 @@ class AsProbability(DataHandler):
         # Normalize
         terrain.array = terrain.array/np.sum(terrain.array)
 
-        return {'position_probability': terrain}
+        return {'position_probability_2d': terrain}
 
 
 class BezierRemap(DataHandler):
