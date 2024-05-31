@@ -113,13 +113,18 @@ class ColorMap(DataHandler):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ground_material=None, cmap='viridis', default=None, **_):
+    def __call__(self, ground_material=None, cmap_name='viridis', default=None, **_):
         from utils.Blender import (colormap_to_colorramp)
-        import matplotlib.cm as cm
         import colorcet as cc
+        import matplotlib.cm as cm
+        cmap_name = default if default is not None else cmap_name
 
         if default is not None:
-            cmap = cc.cm[default]
+            # Use colorcet as default
+            try:
+                cmap = cc.cm[cmap_name]
+            except KeyError:
+                cmap = cm.get_cmap(cmap_name)
 
         cr = ground_material.node_tree.nodes[
             'Color Ramp'].color_ramp
