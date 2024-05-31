@@ -126,8 +126,13 @@ class ColorMap(DataHandler):
             except KeyError:
                 cmap = cm.get_cmap(cmap_name)
 
-        cr = ground_material.node_tree.nodes[
-            'Color Ramp'].color_ramp
+        try:
+            # blender 4.x
+            cr = ground_material.node_tree.nodes['Color Ramp'].color_ramp
+        except KeyError:
+            # blender 3.x
+            cr = ground_material.node_tree.nodes['ColorRamp'].color_ramp
+
         colormap_to_colorramp(cr, cmap)
 
 
@@ -407,7 +412,12 @@ class AddRocks(DataHandler):
                 import random
                 obj_path = random.choice(rocks)
                 # Import the OBJ file
-                bpy.ops.wm.obj_import(filepath=obj_path)
+                try:
+                    # blender 4.x
+                    bpy.ops.wm.obj_import(filepath=obj_path)
+                except AttributeError:
+                    #  blender 3.0
+                    bpy.ops.import_scene.obj(filepath=obj_path)
 
                 obj = bpy.context.selected_objects[0]
 

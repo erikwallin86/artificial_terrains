@@ -302,7 +302,7 @@ class FindRocks(DataHandler):
 
             # Find the highest point in the island
             highest_point = island_coords[np.argmax(array_2d[labelled_array == island_label])]
-            max_height = array_2d[*highest_point]
+            max_height = array_2d[highest_point[0], highest_point[1]]
 
             # Append the positions to the respective arrays
             positions_central.append(central_point)

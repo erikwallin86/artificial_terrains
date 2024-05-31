@@ -48,21 +48,24 @@ class Combine(DataHandler):
             if len(terrain_heap) > 0:
                 self.info(f"{len(terrain_heap)} terrains remaining")
 
+        # Turn into arrays. Workaround to work in Windows/Ubuntu
+        terrain_arrays = [terrain.array for terrain in terrains]
+
         # Apply any of the operations
         if operation == 'Add':
-            array = np.sum(terrains, axis=0)
+            array = np.sum(terrain_arrays, axis=0)
             terrain = Terrain.from_array(
                 array, size=terrains[0].size, extent=terrains[0].extent)
         elif operation == 'Max':
-            array = np.maximum.reduce(terrains)
+            array = np.maximum.reduce(terrain_arrays)
             terrain = Terrain.from_array(
                 array, size=terrains[0].size, extent=terrains[0].extent)
         elif operation == 'Min':
-            array = np.minimum.reduce(terrains)
+            array = np.minimum.reduce(terrain_arrays)
             terrain = Terrain.from_array(
                 array, size=terrains[0].size, extent=terrains[0].extent)
         elif operation == 'Prod':
-            array = np.prod(terrains, axis=0)
+            array = np.prod(terrain_arrays, axis=0)
             terrain = Terrain.from_array(
                 array, size=terrains[0].size, extent=terrains[0].extent)
         else:
@@ -119,7 +122,9 @@ class WeightedSum(DataHandler):
         self.info(f"Use weights:{weights.squeeze()}")
 
         terrains = list(terrain_dict.values())
-        array = np.sum(np.multiply(terrains, weights), axis=0)
+        terrain_arrays = [terrain.array for terrain in terrains]
+
+        array = np.sum(np.multiply(terrain_arrays, weights), axis=0)
         terrain = Terrain.from_array(
             array, size=terrains[0].size, extent=terrains[0].extent)
 

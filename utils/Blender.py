@@ -196,8 +196,10 @@ def setup_z_coord_shader(material):
 
     # Setup some nodes
     # multiply_node.operation = 'MULTIPLY'
-    # bsdf_node.inputs['Specular'].default_value = 0
-    bsdf_node.inputs['Specular IOR Level'].default_value = 0
+    try:
+        bsdf_node.inputs['Specular IOR Level'].default_value = 0
+    except KeyError:
+        bsdf_node.inputs['Specular'].default_value = 0
 
     # Connect nodes
     node_tree.links.new(texture_node.outputs[0], separate_node.inputs[0])
@@ -210,7 +212,7 @@ def setup_z_coord_shader(material):
 
 def add_grid(
         material,
-        grid_file="models/grid2.png",
+        grid_file=os.path.join("models", "grid2.png"),
 ):
     ''' Insert a mix shader connected to a image node with a grid'''
     # Get material node tree and nodes
@@ -233,6 +235,13 @@ def add_grid(
             node_tree.links.remove(link)
 
     # Setup nodes
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Terrible hack to work in Windows and linux
+    # In Windows, the base is from 'artificial_terrain/utils'
+    # In Arch, the base seem to be 'artificial_terrain'
+    # TODO: Fix this in a descent way...
+    grid_file = os.path.join(script_dir, '../', grid_file)
     image_node.image = bpy.data.images.load(grid_file)
 
     # Make new links

@@ -1,4 +1,15 @@
 import os
+import sys
+try:
+    import bpy
+    # Make sure current dir is in path. A blender py workaround
+    dir = os.path.dirname(bpy.data.filepath)
+    if dir not in sys.path:
+        sys.path.append(dir)
+except Exception:
+    pass
+
+
 from utils.parse_utils import create_parser, get_args_combined_with_settings
 from datahandlers.datahandlers import DATAHANDLERS
 from utils.logging_utils import get_logger, level_map
