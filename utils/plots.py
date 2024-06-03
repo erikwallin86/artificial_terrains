@@ -418,11 +418,14 @@ def plot_terrain(terrain, ax=None, fig=None,
     return fig, ax
 
 
-def debug_plot(filename=None, terrain_dict={}, terrain_heap=[], **kwargs):
-    dict_length = len(terrain_dict)
+def debug_plot(filename=None, terrain_temp=[], terrain_heap=[], **kwargs):
+    temp_length = len(terrain_temp)
     heap_length = len(terrain_heap)
 
-    max_length = max(dict_length, heap_length)
+    max_length = max(temp_length, heap_length)
+
+    if max_length == 0:
+        return
 
     fig, axs = new_fig(nrows=max_length, ncols=2, figsize=(2.65*3, max_length*3))
     axs = np.array(axs).reshape(max_length, 2)
@@ -434,8 +437,8 @@ def debug_plot(filename=None, terrain_dict={}, terrain_heap=[], **kwargs):
         ax.patch.set_edgecolor('red')
         ax.patch.set_linewidth(10)
 
-    # Plot dict
-    for i, (name, terrain) in enumerate(terrain_dict.items()):
+    # Plot temp
+    for i, terrain in enumerate(terrain_temp):
         ax = axs[i, 1]
         fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
         ax.patch.set_edgecolor('green')
@@ -452,12 +455,15 @@ def debug_plot(filename=None, terrain_dict={}, terrain_heap=[], **kwargs):
 
 
 def debug_plot_horizontal(
-        filename=None, terrain_dict={},
+        filename=None, terrain_temp=[],
         terrain_heap=[], **kwargs):
-    dict_length = len(terrain_dict)
+    temp_length = len(terrain_temp)
     heap_length = len(terrain_heap) + 1
 
-    max_length = max(dict_length, heap_length)
+    max_length = max(temp_length, heap_length)
+
+    if max_length == 0:
+        return
 
     fig, axs = new_fig(nrows=2, ncols=max_length, figsize=(max_length*3, 3*1.45))
     axs = np.array(axs).reshape(2, max_length)
@@ -469,8 +475,8 @@ def debug_plot_horizontal(
         ax.patch.set_edgecolor('red')
         ax.patch.set_linewidth(10)
 
-    # Plot dict
-    for i, (name, terrain) in enumerate(terrain_dict.items()):
+    # Plot temp
+    for i, terrain in enumerate(terrain_temp):
         ax = axs[1, i]
         fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
         ax.patch.set_edgecolor('green')

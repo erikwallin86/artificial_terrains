@@ -389,11 +389,11 @@ def add_id(filename, file_id):
 
 
 def get_terrains(
-        terrain_dict={}, terrain_heap=[],
+        terrain_temp=[], terrain_heap=[],
         last=None, print_fn=print, remove=True):
-    ''' Get terrains from dict/heap
+    ''' Get terrains from temp/heap
 
-    Terrains are removed from the dict/heap in place if `remove` is True.
+    Terrains are removed from the temp/heap in place if `remove` is True.
     '''
 
     if last is not None and last > 0:
@@ -401,15 +401,13 @@ def get_terrains(
         # So here we make sure this is negative
         last = -last
 
-    if len(terrain_dict) > 0:
-        # Work with the terrain_dict. Trick to slice dict using last
-        keys_to_use = list(terrain_dict.keys())[last:]
-        terrains = [terrain_dict[key] for key in keys_to_use]
-        print_fn(f"Use {len(terrains)}/{len(terrain_dict)} terrains from dict")
-        # Remove any used terrains from the terrain_dict in place
+    if len(terrain_temp) > 0:
+        # Get terrains from temp (if last=None then all are used)
+        terrains = terrain_temp[last:]
+        print_fn(f"Use {len(terrains)}/{len(terrain_temp)} terrains from temp")
+        # Remove any used terrains from terrain_temp in place
         if remove:
-            for key in keys_to_use:
-                del terrain_dict[key]
+            del terrain_temp[last:]
 
     elif len(terrain_heap) > 0:
         # Get terrains from heap (if last=None then all are used)
@@ -420,7 +418,7 @@ def get_terrains(
         if remove:
             del terrain_heap[last:]
     else:
-        raise AttributeError("Both terrain_dict and terrain_heap are empty")
+        raise AttributeError("Both terrain_temp and terrain_heap are empty")
 
     return terrains
 

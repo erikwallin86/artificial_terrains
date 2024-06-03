@@ -4,14 +4,14 @@ from utils.terrains import Terrain
 
 
 class Combine(DataHandler):
-    ''' Combined basic terrains within a terrain_dict '''
+    ''' Combined terrains '''
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Add', terrain_dict={}, terrain_heap=[],
+    def __call__(self, operation='Add', terrain_temp=[], terrain_heap=[],
                  default=None, last=None, **_):
         '''
-        Combine terrains in terrain_dict (or terrain_heap) using 'operation'
+        Combine terrains in terrain_temp (or terrain_heap) using 'operation'
 
         Args:
           operation (string): What operation to perform
@@ -27,26 +27,10 @@ class Combine(DataHandler):
             # So here we make sure this is negative
             last = -last
 
-        if len(terrain_dict) > 0:
-            # Work with the terrain_dict. Trick to slice dict using last
-            sliced_terrain_dict = dict(list(terrain_dict.items())[last:])
-            terrains = list(sliced_terrain_dict.values())
-
-            # Remove any used terrains from the terrain_dict
-            terrain_dict = {k: v for k, v in terrain_dict.items()
-                            if k not in sliced_terrain_dict}
-
-            self.info(f"{operation} {len(terrains)} terrains from 'dict'")
-        elif len(terrain_heap) > 0:
-            # Get terrains from heap (if last=None then all are used)
-            terrains = terrain_heap[last:]
-            self.info(f"{operation} {len(terrains)} terrains from 'heap'")
-
-            # Remove any used terrains from terrain_heap.
-            terrain_heap = [terrain for terrain in terrain_heap
-                            if terrain not in terrains]
-            if len(terrain_heap) > 0:
-                self.info(f"{len(terrain_heap)} terrains remaining")
+        from utils.utils import get_terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last=last, remove=True,
+            print_fn=self.info)
 
         # Turn into arrays. Workaround to work in Windows/Ubuntu
         terrain_arrays = [terrain.array for terrain in terrains]
@@ -76,7 +60,7 @@ class Combine(DataHandler):
 
         # Return updated heap/dict
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             'terrain_heap': terrain_heap,
         }
 
@@ -95,25 +79,25 @@ class ToPrimary(Combine):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_dict={}, terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_heap=[],
                  default=None, last=None, **_):
         from utils.utils import get_terrains
-        terrain = get_terrains(terrain_dict, terrain_heap, last)
+        terrain = get_terrains(terrain_temp, terrain_heap, last)
         terrain_heap.extend(terrain)
 
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             'terrain_heap': terrain_heap,
         }
 
 
 class WeightedSum(DataHandler):
-    ''' Weighted sum of basic terrains within a terrain_dict '''
+    ''' Weighted sum of terrains '''
     create_folder = False
 
     @debug_decorator
-    def __call__(self, weights=[5, 8, 0.1], terrain_dict={},
-                 terrain_heap=[],
+    def __call__(self, weights=[5, 8, 0.1], terrain_temp=[],
+                 terrain_heap=[], last=None,
                  default=None, **_):
 
         weights = default if default is not None else weights
@@ -121,7 +105,13 @@ class WeightedSum(DataHandler):
 
         self.info(f"Use weights:{weights.squeeze()}")
 
-        terrains = list(terrain_dict.values())
+        # Get terrains
+        from utils.utils import get_terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last=last, remove=True,
+            print_fn=self.info)
+
+        # Get arrays
         terrain_arrays = [terrain.array for terrain in terrains]
 
         array = np.sum(np.multiply(terrain_arrays, weights), axis=0)
@@ -131,6 +121,6 @@ class WeightedSum(DataHandler):
         terrain_heap.append(terrain)
 
         return {
-            'terrain_dict': {},
+            'terrain_temp': terrain_temp,
             'terrain_heap': terrain_heap,
             }

@@ -6,17 +6,18 @@ class Basic(DataHandler):
     create_folder = False
 
     ''' Make basic terrains
-
-    Second version, test new interface
     '''
     @debug_decorator
-    def __call__(self, **kwargs):
+    def __call__(self, terrain_temp=[], scale_list=[400, 32, 0.5],
+                 default=None, **kwargs):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
-        scale_list = [400, 32, 0.5]
-
-        terrain_dict = {}
+        # Possibly replace scaling list from 'default'
+        if isinstance(default, list):
+            scale_list = default
+        elif isinstance(default, (float, int)):
+            scale_list = [default]
 
         info_dict = {}
         for i, x in enumerate(scale_list):
@@ -29,10 +30,10 @@ class Basic(DataHandler):
             )
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
+            terrain_temp.append(terrain)
 
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             }
 
 
@@ -48,6 +49,7 @@ class Octaves(DataHandler):
     '''
     @debug_decorator
     def __call__(self, num_octaves=10, start=128, persistance=0.60,
+                 terrain_temp=[],
                  amplitude_start=10, default=None, random_amp=0.5, **kwargs):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
@@ -72,8 +74,6 @@ class Octaves(DataHandler):
                 loc=1.0, scale=random_amp, size=amplitude_list.shape)
             amplitude_list *= random_factor
 
-        terrain_dict = {}
-
         info_dict = {}
         for i, x in enumerate(scale_list):
             scaling = 1.75/(1+x/68)
@@ -85,10 +85,10 @@ class Octaves(DataHandler):
             )
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
+            terrain_temp.append(terrain)
 
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             # Pass weights, for use in WeightedSum
             'weights': amplitude_list,
             }
@@ -104,6 +104,7 @@ class Rocks(DataHandler):
                  rock_heights=None,
                  fraction=0.8,
                  default=None,
+                 terrain_temp=[],
                  **kwargs):
         rock_size = default if default is not None else rock_size
         if rock_heights is None:
@@ -113,7 +114,6 @@ class Rocks(DataHandler):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
-        terrain_dict = {}
         for i, (x, height) in enumerate(zip(rock_size, rock_heights)):
             info_dict = {}
             scaling = 1.75/(1+x*0.75)
@@ -136,10 +136,10 @@ class Rocks(DataHandler):
             simplex_noise = simplex_noise * height
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
+            terrain_temp.append(terrain)
 
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             }
 
 
@@ -151,13 +151,13 @@ class Holes(DataHandler):
     def __call__(self, size_list=[0.5, 1, 2, 4],
                  fraction=0.8,
                  default=None,
+                 terrain_temp=[],
                  **kwargs):
         size_list = default if default is not None else size_list
 
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
-        terrain_dict = {}
         for i, x in enumerate(size_list):
             info_dict = {}
             scaling = 1.75/(1+x*0.75)
@@ -180,8 +180,8 @@ class Holes(DataHandler):
             simplex_noise = simplex_noise * (x/8)
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_dict[x] = terrain
+            terrain_temp.append(terrain)
 
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             }

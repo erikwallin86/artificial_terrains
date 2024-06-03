@@ -33,7 +33,7 @@ class Ground(DataHandler):
 
     @debug_decorator
     def __call__(self, filename=None, default=None,
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  ground_material=None, **_):
         filename = default if default is not None else filename
         if filename is not None:
@@ -42,7 +42,7 @@ class Ground(DataHandler):
             terrain = Terrain.from_numpy(filename)
         else:
             # Get latest from dict/heap
-            terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+            terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
 
         # Make grid from array
         from utils.Blender import grid_from_array
@@ -163,7 +163,7 @@ class Camera(DataHandler):
 
     @debug_decorator
     def __call__(self, camera='top', default=None,
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  size=None,
                  ppm=None,
                  resolution=None,
@@ -179,7 +179,7 @@ class Camera(DataHandler):
         assert camera in ['top', 'angled']
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
 
         size = terrain.size
         camera_kwargs = {}
@@ -247,7 +247,7 @@ class Depth(DataHandler):
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
                  folder='Depth',
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  overwrite=False,
                  **_):
         from utils.Blender import get_depth, render_eevee
@@ -266,7 +266,7 @@ class Depth(DataHandler):
             os.makedirs(self.save_dir)
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_dict, terrain_heap)
+        terrain = get_terrain(terrain_temp, terrain_heap)
 
         setup_render_z()
 
@@ -357,12 +357,12 @@ class Holdout(DataHandler):
 
     @debug_decorator
     def __call__(self,
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  default=None,
                  **_):
         from utils.utils import get_terrain
         from utils.Blender import add_holdout_plane
-        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
         add_holdout_plane(terrain.array)
 
 
@@ -377,12 +377,12 @@ class AddRocks(DataHandler):
                  width=[10, 5, 3, 1],
                  yaw_deg=[0, 90, 180, 270],
                  pitch_deg=[0, 10, 20, 30],
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  size=None,
                  default=None,
                  **_):
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_dict, terrain_heap, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
 
         # Construct 'interpolator'
         if terrain is not None:

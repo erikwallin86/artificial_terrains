@@ -10,7 +10,7 @@ class Save(DataHandler):
     @debug_decorator
     def __call__(self, folder='Save',
                  default=None,
-                 terrain_dict={}, terrain_heap=[],
+                 terrain_temp=[], terrain_heap=[],
                  overwrite=False,
                  **_):
         # Possibly set folder from 'default'.
@@ -32,9 +32,9 @@ class Save(DataHandler):
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
 
-        # Save from terrain-dict
-        for i, (name, terrain) in enumerate(terrain_dict.items()):
-            filename = f'terrain_dict{self.file_id}_{i:05d}_{name}.npz'
+        # Save from terrain
+        for i, terrain in enumerate(terrain_temp):
+            filename = f'terrain_temp{self.file_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
@@ -73,19 +73,18 @@ class Load(DataHandler):
         from utils.terrains import Terrain
         # Regular expressions to match filenames
         terrain_regex = re.compile(r'terrain(_\d{5})?_(\d{5}).npz')
-        terrain_dict_regex = re.compile(
-            r'terrain_dict(_\d{5})?_(\d{5})_.*\.npz')
+        terrain_temp_regex = re.compile(r'terrain_temp(_\d{5})?_(\d{5}).npz')
 
         terrains = self.parse_regex(file_list, terrain_regex)
-        terrain_dicts = self.parse_regex(file_list, terrain_dict_regex)
+        terrain_temps = self.parse_regex(file_list, terrain_temp_regex)
 
         # Convert dictionaries to lists of lists
         terrain_list = [sorted(terrains[key].items()) for key in sorted(terrains)]
-        terrain_dict_list = [sorted(terrain_dicts[key].items()) for key in sorted(terrain_dicts)]
+        terrain_temp_list = [sorted(terrain_temps[key].items()) for key in sorted(terrain_temps)]
 
         # Populate new pipes with copy of current
         pipes = [pipe.copy() for _ in range(
-            max(len(terrain_dict_list), len(terrain_list)))]
+            max(len(terrain_temp_list), len(terrain_list)))]
 
         # Load to create terrain_heap
         for terrains, pipe in zip(terrain_list, pipes):
@@ -95,13 +94,13 @@ class Load(DataHandler):
                 terrain_heap.append(terrain)
             pipe['terrain_heap'] = terrain_heap
 
-        # Load to create terrain_dict
-        for terrains, pipe in zip(terrain_dict_list, pipes):
-            terrain_dict = pipe.get('terrain_dict', {})
+        # Load to create terrain_temp
+        for terrains, pipe in zip(terrain_temp_list, pipes):
+            terrain_temp = pipe.get('terrain_temp', [])
             for i, filename in terrains:
                 terrain = Terrain.from_numpy(filename)
-                terrain_dict[str(i)] = terrain
-            pipe['terrain_dict'] = terrain_dict
+                terrain_temp.append(terrain)
+            pipe['terrain_temp'] = terrain_temp
 
         if not pipes:
             raise ValueError("Empty pipe")
@@ -227,7 +226,7 @@ class FindRocks(DataHandler):
     ''' Plot terrain '''
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
-                 terrain=None, terrain_dict=None,
+                 terrain=None, terrain_temp=None,
                  exportmode=True, dpi=400,
                  call_number=None, call_total=None, plot=True, **kwargs):
         from utils.plots import plot_terrain
@@ -236,8 +235,8 @@ class FindRocks(DataHandler):
         heights_list = []
         sizes_list = []
 
-        if len(terrain_dict) > 0:
-            terrains = terrain_dict.values()
+        if len(terrain_temp) > 0:
+            terrains = terrain_temp
         else:
             terrains = [terrain]
 
@@ -318,7 +317,7 @@ class Plot(DataHandler):
     ''' Plot terrain '''
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
-                 terrain_dict={}, terrain_heap=[], folder='Plot',
+                 terrain_temp=[], terrain_heap=[], folder='Plot',
                  exportmode=False, dpi=400,
                  call_number=None, call_total=None, **kwargs):
         from utils.plots import plot_terrain, save_all_axes
@@ -346,9 +345,9 @@ class Plot(DataHandler):
                 if exportmode:
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
 
-        # Plot terrain_dict
-        for i, (name, terrain) in enumerate(terrain_dict.items()):
-            filename = f'terrain_dict{self.file_id}_{i:05d}_{name}.png'
+        # Plot terrain_temp
+        for i, terrain in enumerate(terrain_temp):
+            filename = f'terrain_temp{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             if not os.path.exists(filename) or overwrite:
                 fig, ax = plot_terrain(terrain)

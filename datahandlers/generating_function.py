@@ -13,7 +13,7 @@ class Generative(DataHandler):
             self, position=[[0, 0]], height=[], yaw_deg=[], width=[],
             aspect=[], pitch_deg=[],
             function_name=None,
-            terrain_dict={},
+            terrain_temp=[],
             size=None, resolution=None, ppm=None,
             default=None, **kwargs):
         '''
@@ -83,11 +83,11 @@ class Generative(DataHandler):
             terrain = Terrain.from_array(heights_array)
             # desctiption = f'{kwargs.__repr__()}'
             desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
-            terrain_dict[desctiption] = terrain
+            terrain_temp.append(terrain)
 
-        print(f"### OUTPUT len(terrain_dict):{len(terrain_dict)}")
+        print(f"### OUTPUT len(terrain_temp):{len(terrain_temp)}")
         return {
-            'terrain_dict': terrain_dict,
+            'terrain_temp': terrain_temp,
             'position': None,
             'height': None,
             'yaw_deg': None,
@@ -96,8 +96,8 @@ class Generative(DataHandler):
             'pitch_deg': None,
         }
 
-        # if len(terrain_dict) > 1:
-        #     return {'terrain_dict': terrain_dict}
+        # if len(terrain_temp) > 1:
+        #     return {'terrain_temp': terrain_temp}
         # else:
         #     return {'terrain': terrain}
 

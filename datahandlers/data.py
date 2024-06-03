@@ -527,6 +527,7 @@ class Random(DataHandler):
             yaw_deg_distribution=Distribution('uniform', 0, 360),
             pitch_deg_distribution=Distribution('uniform', 0, 30),
             position_probability_2d=None,
+            terrain_temp=[],
             default=None, **kwargs):
 
         to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect',
@@ -548,8 +549,8 @@ class Random(DataHandler):
             position_distribution = Distribution('uniform', -size/2, size/2)
 
         # test. Return weights given Random:weights
-        if default == 'weights' and 'terrain_dict' in kwargs:
-            num_octaves = len(kwargs['terrain_dict'])
+        if default == 'weights':
+            num_octaves = len(terrain_temp)
             weights = self.get_weights(num_octaves)
             return {'weights': weights}
 
