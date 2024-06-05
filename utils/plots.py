@@ -458,7 +458,7 @@ def debug_plot_horizontal(
         filename=None, terrain_temp=[],
         terrain_heap=[], **kwargs):
     temp_length = len(terrain_temp)
-    heap_length = len(terrain_heap) + 1
+    heap_length = len(terrain_heap)
 
     max_length = max(temp_length, heap_length)
 
