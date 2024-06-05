@@ -64,6 +64,7 @@ class BasicSetup(DataHandler):
 
     @debug_decorator
     def __call__(self, default=None, **_):
+        import bpy
         from utils.Blender import (
             get_material, setup_z_coord_shader, add_grid, setup_lights)
         # Remove Cube
@@ -87,9 +88,12 @@ class BasicSetup(DataHandler):
         sun_position = (0, 70, 70)
 
         use_hdri = True
-        light_kwargs = {'level': 10}
+        light_kwargs = {'level': 0}
         setup_lights(use_hdri, sun_position=sun_position, **light_kwargs)
 
+        # Set standard view transform to not distort colors
+        bpy.context.scene.view_settings.view_transform = 'Standard'
+        
         return {
             'ground_material': ground_material,
             }
