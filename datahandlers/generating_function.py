@@ -10,12 +10,12 @@ class Generative(DataHandler):
     '''
     @debug_decorator
     def __call__(
-            self, position=[[0, 0]], height=[], yaw_deg=[], width=[],
-            aspect=[], pitch_deg=[],
-            function_name=None,
-            terrain_temp=[],
+            self, function_name=None, terrain_temp=[], default=None,
+            position=[[0, 0]], height=[], width=[],
+            aspect=[], yaw_deg=[], pitch_deg=[],
             size=None, resolution=None, ppm=None,
-            default=None, **kwargs):
+            reset_input=True,
+            **kwargs):
         '''
 
         Args:
@@ -86,15 +86,20 @@ class Generative(DataHandler):
             terrain_temp.append(terrain)
 
         print(f"### OUTPUT len(terrain_temp):{len(terrain_temp)}")
-        return {
+
+        pipe = {
             'terrain_temp': terrain_temp,
-            'position': None,
-            'height': None,
-            'yaw_deg': None,
-            'width': None,
-            'aspect': None,
-            'pitch_deg': None,
         }
+
+        if reset_input:
+            pipe['position'] = None
+            pipe['height'] = None
+            pipe['yaw_deg'] = None
+            pipe['width'] = None
+            pipe['aspect'] = None
+            pipe['pitch_deg'] = None
+
+        return pipe
 
         # if len(terrain_temp) > 1:
         #     return {'terrain_temp': terrain_temp}
