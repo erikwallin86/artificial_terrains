@@ -85,6 +85,7 @@ class Resolution(DataHandler):
 
         return {
             'ppm': None,
+            'resolution': resolution,
             'N': resolution,
             }
 
