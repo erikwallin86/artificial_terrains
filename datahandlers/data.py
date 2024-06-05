@@ -604,7 +604,7 @@ class Random(DataHandler):
         return position
 
     def get_weights(self, num_octaves, start=128, amplitude_start=10,
-                    persistance=0.60, random_amp=0.5, **_):
+                    persistance=0.60, random_amp=0.5, random_sign=True, **_):
         ''' Generate a list of amplitudes '''
         # Generate amplitude list
         amplitude_start_log = np.log(amplitude_start)/np.log(persistance)
@@ -617,6 +617,9 @@ class Random(DataHandler):
             random_factor = np.random.normal(
                 loc=1.0, scale=random_amp, size=amplitude_list.shape)
             amplitude_list *= random_factor
+        if random_sign:
+            random_sign = np.random.choice([-1, 1], size=amplitude_list.shape)
+            amplitude_list *= random_sign
 
         return amplitude_list
 

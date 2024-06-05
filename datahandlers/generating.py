@@ -48,9 +48,16 @@ class Octaves(DataHandler):
       persistance (float): factor by which amplitude is scaled for each octave
     '''
     @debug_decorator
-    def __call__(self, num_octaves=10, start=128, persistance=0.60,
-                 terrain_temp=[],
-                 amplitude_start=10, default=None, random_amp=0.5, **kwargs):
+    def __call__(
+            self, terrain_temp=[], default=None,
+            num_octaves=10,
+            start=128,
+            persistance=0.60,
+            amplitude_start=10,
+            random_amp=0.5,
+            random_sign=True,
+            **kwargs
+    ):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
@@ -73,6 +80,9 @@ class Octaves(DataHandler):
             random_factor = np.random.normal(
                 loc=1.0, scale=random_amp, size=amplitude_list.shape)
             amplitude_list *= random_factor
+        if random_sign:
+            random_sign = np.random.choice([-1, 1], size=amplitude_list.shape)
+            amplitude_list *= random_sign
 
         info_dict = {}
         for i, x in enumerate(scale_list):
