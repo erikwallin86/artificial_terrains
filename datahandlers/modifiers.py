@@ -18,6 +18,23 @@ class Negate(DataHandler):
             terrain.array = -terrain.array
 
 
+class Scale(DataHandler):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 scale=2,
+                 default=None, last=None, **_):
+        scale = default if default is not None else scale
+
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        # Scale the terrains
+        for terrain in terrains:
+            terrain.array *= scale
+
+
 class Around(DataHandler):
     create_folder = False
 
