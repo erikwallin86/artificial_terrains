@@ -299,6 +299,8 @@ class Depth(DataHandler):
 
 class Render(DataHandler):
     ''' '''
+    create_folder = False
+
     @debug_decorator
     def __call__(self, filename='render.png', default=None,
                  folder='Render',
