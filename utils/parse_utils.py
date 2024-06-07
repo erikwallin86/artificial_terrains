@@ -146,7 +146,12 @@ def get_args_combined_with_settings(parser):
                 # Fix tuple to list
                 args_value = [list(t) for t in args_value]
                 # settings[dash_name] = {args_value[0][0]: args_value[0][1]}
-                settings[dash_name] = args_value
+                # Append to list if already in settings and is a list.
+                if dash_name in settings and isinstance(settings[dash_name], list):
+                    settings[dash_name].extend(args_value)
+                else:
+                    # other wise we just set the value
+                    settings[dash_name] = args_value
             elif action == 'StoreDict':
                 # TODO: Not tested
                 settings[dash_name] = args_value
