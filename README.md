@@ -1,10 +1,9 @@
 # artificial_terrain
 
 A library and script for creating artificial terrains, represented as npz files with a height array and size/extension tuple.
-Terrains can be created by calling the script, or by combining functions in a custom python script.
 The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
-The repo is still under development. Script names and other names can/will change.
+The repo is still under development. Script names and other names can change.
 
 ## Getting started
 The following command creates a terrain with an overall ground-shape generated from a `WeightedSum` of different simplex noise `Octaves`. `Holes` and `Rocks` of different scale are generated and combined with a `Min` and `Max` operation respectivly. The resultant ground, holes, and rocks are `Combined` with a default Add operation, and the result is `Save`d and `Plot`ted in the folder Result.
@@ -283,3 +282,35 @@ Sometimes is can be of use to handle the entire 'pipe' in the module.
 
 ```
 `pipe` is then a dict containing all items in the pipe, except any already specified as input kwargs. If the pipe is later returned, it is of importance that `call_number` and `call_total` are included as arguments, as these otherwise will be passed to the next module which is not the idea (and might/will give rise to error).
+
+
+
+## Ubuntu
+Install blender, and clone the repo.
+Use a virtual environment for python.
+If the virtual environment uses the same version of python as blender does, life will be easier.
+(otherwise the blender script will give some ModuleNotFoundError)
+Install the following python packages
+```
+python -m pip install numpy
+python -m pip install matplotlib
+python -m pip install opensimplex
+python -m pip install colorcet
+python -m pip install PyYaml
+python -m pip install scipy
+```
+
+
+## Windows
+Install git for Windows, install python, and install blender. Clone the repo.
+
+When running blender scripts, this uses a separate python, and the dependencies must be installed there as well.
+This worked by running the following in git-bash in Windows:
+```
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install matplotlib
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install opensimplex
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install colorcet
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install PyYaml
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install scipy
+```
+(There where some problems with scipy though, for unknown reasons)
