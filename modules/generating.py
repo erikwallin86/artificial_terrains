@@ -1,8 +1,8 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import numpy as np
 
 
-class Basic(DataHandler):
+class Basic(Module):
     create_folder = False
 
     ''' Make basic terrains
@@ -37,7 +37,7 @@ class Basic(DataHandler):
             }
 
 
-class Octaves(DataHandler):
+class Octaves(Module):
     create_folder = False
     ''' Make terrain by combining octaves
 
@@ -104,7 +104,7 @@ class Octaves(DataHandler):
             }
 
 
-class Rocks(DataHandler):
+class Rocks(Module):
     create_folder = False
 
     ''' Test to make some rocks '''
@@ -153,7 +153,7 @@ class Rocks(DataHandler):
             }
 
 
-class Holes(DataHandler):
+class Holes(Module):
     create_folder = False
 
     ''' Test to make some rocks '''

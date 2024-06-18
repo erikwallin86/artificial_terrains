@@ -212,7 +212,7 @@ def setup_z_coord_shader(material):
 
 def add_grid(
         material,
-        grid_file=os.path.join("models", "grid2.png"),
+        grid_file=os.path.join("assets", "grid2.png"),
 ):
     ''' Insert a mix shader connected to a image node with a grid'''
     # Get material node tree and nodes

@@ -11,9 +11,9 @@ except Exception:
 
 
 from utils.parse_utils import create_parser, get_args_combined_with_settings
-from datahandlers.datahandlers import DATAHANDLERS
+from modules.modules import MODULES
 from utils.logging_utils import get_logger, level_map
-from datahandlers.blender import fix_blender_argv, fix_blender_path
+from modules.blender import fix_blender_argv, fix_blender_path
 
 fix_blender_path()
 
@@ -21,7 +21,7 @@ fix_blender_path()
 def main():
     fix_blender_argv()
 
-    parser = create_parser(specific_args=['datahandlers'])
+    parser = create_parser(specific_args=['modules'])
     args = get_args_combined_with_settings(parser)
 
     # Create folder if needed
@@ -36,14 +36,14 @@ def main():
     # Parse settings
     settings = args.settings if args.settings is not None else {}
 
-    # Check that all datahandlers exist
-    for key, value in args.datahandlers:
-        if key not in DATAHANDLERS.keys():
-            logger.info(f"Invalid choice {key}. ({DATAHANDLERS.keys()})")
+    # Check that all modules exist
+    for key, value in args.modules:
+        if key not in MODULES.keys():
+            logger.info(f"Invalid choice {key}. ({MODULES.keys()})")
             exit(1)
 
-    # Prepend 'BasicSetup' datahandler
-    args.datahandlers = [('BasicSetup', None)] + args.datahandlers
+    # Prepend 'BasicSetup' module
+    args.modules = [('BasicSetup', None)] + args.modules
 
     pipe = {
         'size': 50,  # default
@@ -57,13 +57,13 @@ def main():
         if type(v) is not dict:
             general_kwargs[k] = v
 
-    # Create and run datahandlers
-    for datahandler, options in args.datahandlers:
-        # Skip if no datahandlers
-        if datahandler is None:
+    # Create and run modules
+    for module, options in args.modules:
+        # Skip if no modules
+        if module is None:
             continue
-        datahandler_class = DATAHANDLERS[datahandler]
-        datahandler_obj = datahandler_class(save_dir, logger)
+        module_class = MODULES[module]
+        module_obj = module_class(save_dir, logger)
         # Extract possible settings kwargs
         if isinstance(options, dict):
             kwargs = options
@@ -74,11 +74,11 @@ def main():
             kwargs = {'default': options}
 
         new_pipes = []
-        # Run datahandler for each pipe
+        # Run module for each pipe
         for i, pipe in enumerate(pipes):
 
-            # Run datahandler object, with different inputs, and settings dict
-            returned_data = datahandler_obj(
+            # Run module object, with different inputs, and settings dict
+            returned_data = module_obj(
                 call_number=i,
                 call_total=len(pipes),
                 **{**pipe, **general_kwargs, **kwargs},

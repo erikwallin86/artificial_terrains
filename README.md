@@ -2,14 +2,14 @@
 
 A library and script for creating artificial terrains, represented as npz files with a height array and size/extension tuple.
 Terrains can be created by calling the script, or by combining functions in a custom python script.
-The script executes an ordered list of specified 'datahandlers', to create and combine terrain buidling blocks to (more or less) realistic terrains.
+The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
 The repo is still under development. Script names and other names can/will change.
 
 ## Getting started
 The following command creates a terrain with an overall ground-shape generated from a `WeightedSum` of different simplex noise `Octaves`. `Holes` and `Rocks` of different scale are generated and combined with a `Min` and `Max` operation respectivly. The resultant ground, holes, and rocks are `Combined` with a default Add operation, and the result is `Save`d and `Plot`ted in the folder Result.
 ```
-python run.py --datahandlers Holes Combine:Min Octaves WeightedSum Rocks Combine:Max Combine Save:Result Plot:Result --save-dir Terrains/test_001a/
+python run.py --modules Holes Combine:Min Octaves WeightedSum Rocks Combine:Max Combine Save:Result Plot:Result --save-dir Terrains/test_001a/
 ```
 
 Alternativly, the same command can be run by
@@ -19,7 +19,7 @@ python run.py --settings-file settings.yml
 with settings specified in a yaml file,
 ```yaml
 save-dir: runs/data_001a
-datahandlers:
+modules:
 - Holes
 - [Combine, Min]
 - Octaves
@@ -32,21 +32,21 @@ datahandlers:
 ```
 In all runs, a copy of the used settings is saved in `settings.yml`, and commands and prints are appended to `logger.txt`.
 
-## Datahandlers
+## Modules
 The overall setup for creating a terrain is to create 'terrain basics', and combine them in different ways.
 
-We can split the datahandlers in some main categories. Two fundamental such is 'generating' and 'combining'. The 'generating' generate 'terrain basics', and the 'combining' combine these basics into more complex terrains. Some datahandlers alter the general 'settings' (e.g. size and resolution), and some do 'input/output' (e.g. save terrains and plot).
+We can split the modules in some main categories. Two fundamental such is 'generating' and 'combining'. The 'generating' generate 'terrain basics', and the 'combining' combine these basics into more complex terrains. Some modules alter the general 'settings' (e.g. size and resolution), and some do 'input/output' (e.g. save terrains and plot).
 
 ### Pipes
-Datahandlers are called in order, and the output of one datahandler is passed as input to the next, as if connected along a 'pipe'. This makes it possible to generate a multitude of terrain of different types and complexities using basic building blocks.
+Modules are called in order, and the output of one module is passed as input to the next, as if connected along a 'pipe'. This makes it possible to generate a multitude of terrain of different types and complexities using basic building blocks.
 
 It is also possible to run parallel pipes to generate a number of terrains.
 
 ### 'Primary' and 'temporary' terrain heaps
 In order to combine basic building blocks to more complex results, and in turn combine these and so on, we utilize two entities for storing sub-results, the 'primary heap' and the 'temporary heap'.
 Generated terrain basics are placed in the `temporary heap`. 
-If a 'combining' datahandler is run, it primarily operates on the content of the 'temporary heap', with the result appended to the 'primary heap'.
-If the 'temporary heap' is empty, the 'combining' datahandler operates on the 'primary heap' instead.
+If a 'combining' module is run, it primarily operates on the content of the 'temporary heap', with the result appended to the 'primary heap'.
+If the 'temporary heap' is empty, the 'combining' module operates on the 'primary heap' instead.
 
 ### Generating from noise
 | Technique | Description | Input arguments| Output |
@@ -73,7 +73,7 @@ If the 'temporary heap' is empty, the 'combining' datahandler operates on the 'p
 | **Resolution** | Set the 'resolution', the number of values in each dimension (the size and resolution is determined by two of the three parameters [size, resolution, point-per-meter]) | |
 | **PPM** | 'points-per-meter'. (the size and resolution is determined by two of the three parameters [size, resolution, point-per-meter]) | |
 | **Seed** | Set random seed | |
-| **Folder** | Set folder, affects eg. 'Save' and 'Plot' and other datahandlers where a 'folder' is given as input | |
+| **Folder** | Set folder, affects eg. 'Save' and 'Plot' and other modules where a 'folder' is given as input | |
 | **Set** | Set parameter value as `Set:parameter=value` | |
 | **SetDistribution** | Set distribution as `SetDistribution:parameter=distribution[*args]`. Both square and rounded parenthesis can be used. In bash, rounded parameter must either be 'escaped' (as  `SetDistribution:parameter=distribution\(*args\)`), or placed within quotation marks (as `SetDistribution:'parameter=distribution(*args)'` | |
 
@@ -105,7 +105,7 @@ If the 'temporary heap' is empty, the 'combining' datahandler operates on the 'p
 ### Modifiers
 | Technique | Description | Image |
 |-----------|-------------|-------|
-|**BezierRemap**| Modify heights using a nonlinear mapping. Like the 'combining' datahandlers, it operates primarily on the 'temporary heap', secondarily on the 'primary heap', and can take a `last` parameter to limit itself to the last X terrains. ||
+|**BezierRemap**| Modify heights using a nonlinear mapping. Like the 'combining' modules, it operates primarily on the 'temporary heap', secondarily on the 'primary heap', and can take a `last` parameter to limit itself to the last X terrains. ||
 |**Negate**| Negate ||
 
 
@@ -130,9 +130,9 @@ If the 'temporary heap' is empty, the 'combining' datahandler operates on the 'p
 
 
 ### Examples
-Examples of different combinations of datahandlers and the resultant terrains. Only the relevant datahandlers are listed in the table, and not the full command to generate the terrain/rendered images. However, these commands can be found below the table. In some cases, alternative (equivalent or almost equivalent) formatting are shown. Most of the terrains/images are generated by a single command, but some might require two or more.
+Examples of different combinations of modules and the resultant terrains. Only the relevant modules are listed in the table, and not the full command to generate the terrain/rendered images. However, these commands can be found below the table. In some cases, alternative (equivalent or almost equivalent) formatting are shown. Most of the terrains/images are generated by a single command, but some might require two or more.
 
-| #| Description | Datahandlers | Output |
+| #| Description | Modules | Output |
 |-|------------|-------|-------|
 | 1 | Sloped plane with grooves. Adding an angled plane to a sine plane | `Set:width=10 Sine Random:1 Plane Combine` **or** <br /> `Sine:"dict(width=10)" Plane:"dict(pitch_deg=10)" Combine:Add` |  <img src="readme/images/02_angled_sine_plane_fixed.png" > |
 | 2|  Walls along the perimiter. Negating a large cube. | `Set:width=45 Cube Negate` **or** <br /> `Cube:"dict(width=45)" Negate`| <img src="readme/images/01_wall_fixed.png"> |
@@ -147,45 +147,45 @@ Examples of different combinations of datahandlers and the resultant terrains. O
 #### Full commands to make terrains, plot, and save as numpy npz files
 ```
 # 1
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers Sine:"dict(width=10)" Plane:"dict(pitch_deg=10)" Combine:Add Folder:02_angled_sine_plane Plot Save
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules Sine:"dict(width=10)" Plane:"dict(pitch_deg=10)" Combine:Add Folder:02_angled_sine_plane Plot Save
 # 2
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers Set:width=45 Cube Negate Folder:01_wall Plot Save
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules Set:width=45 Cube Negate Folder:01_wall Plot Save
 
 # 6
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers Octaves WeightedSum Random:2 Step Combine:Max Combine:Add Folder:06_terrain_with_step Plot Save
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules Octaves WeightedSum Random:2 Step Combine:Max Combine:Add Folder:06_terrain_with_step Plot Save
 # 7
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers PPM:10 Octaves Save:Octaves
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers Load:runs/data_030/Octaves Random:weights WeightedSum Folder:07_generate_and_load Plot Save
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules PPM:10 Octaves Save:Octaves
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules Load:runs/data_030/Octaves Random:weights WeightedSum Folder:07_generate_and_load Plot Save
 # 8
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Load:runs/data_030/Octaves Random:weights WeightedSum Ground Basic Combine:Add AsProbability Random:10 AddRocks Folder:08_unevenly_spaced_rocks PPM:10 Camera:top Depth Save
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Load:runs/data_030/Octaves Random:weights WeightedSum Ground Basic Combine:Add AsProbability Random:10 AddRocks Folder:08_unevenly_spaced_rocks PPM:10 Camera:top Depth Save
 ```
 
 
 #### Full commands to make the above rendered images
 ```
 # 1
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Sine:"dict(width=10)" Plane:"dict(pitch_deg=10)" Combine:Add Folder:02_angled_sine_plane Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render Exit
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Sine:"dict(width=10)" Plane:"dict(pitch_deg=10)" Combine:Add Folder:02_angled_sine_plane Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render Exit
 # 2
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Set:width=45 Cube Negate Folder:01_wall Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render Exit
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Set:width=45 Cube Negate Folder:01_wall Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render Exit
 
 # 6
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Octaves WeightedSum Random:2 Step Combine:Max Combine:Add Folder:06_terrain_with_step Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Octaves WeightedSum Random:2 Step Combine:Max Combine:Add Folder:06_terrain_with_step Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
 # 7
-python run.py --save-dir runs/data_030 --settings overwrite:True --datahandlers PPM:10 Octaves Save:Octaves
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Load:runs/data_030/Octaves Random:weights WeightedSum Folder:07_generate_and_load Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
+python run.py --save-dir runs/data_030 --settings overwrite:True --modules PPM:10 Octaves Save:Octaves
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Load:runs/data_030/Octaves Random:weights WeightedSum Folder:07_generate_and_load Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
 # 8
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Load:runs/data_030/Octaves Random:weights WeightedSum Ground Basic Combine:Add AsProbability Random:10 AddRocks Folder:08_unevenly_spaced_rocks PPM:10 Camera:top Depth Save
-blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --datahandlers Load:runs/data_030/08_unevenly_spaced_rocks/terrain_00000.npz Ground Folder:08_unevenly_spaced_rocksb Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Load:runs/data_030/Octaves Random:weights WeightedSum Ground Basic Combine:Add AsProbability Random:10 AddRocks Folder:08_unevenly_spaced_rocks PPM:10 Camera:top Depth Save
+blender --python blender.py -- --save-dir runs/data_030 --settings overwrite:True --modules Load:runs/data_030/08_unevenly_spaced_rocks/terrain_00000.npz Ground Folder:08_unevenly_spaced_rocksb Plot Save Ground ColorMap:dimgray Camera:angled Holdout Render
 ```
 
 
 
 
 ### Blender
-The script `blender.py` enables using blender via its python interface. All the above datahandlers work with this script as well, and additionally a number of specific datahandlers, listed below.
+The script `blender.py` enables using blender via its python interface. All the above modules work with this script as well, and additionally a number of specific modules, listed below.
 To run the blender script, the following command is used in place of `python run.py`: `blender --python blender.py --`. Note the final `--`, which states that any following arguments are passed to the script `blender.py` (and not the actual blender software). An example run, producing an angled plane with sine grooves:
 ```
-blender --python blender.py -- --save-dir runs/data_001/ --datahandlers Sine Random Plane Combine Ground
+blender --python blender.py -- --save-dir runs/data_001/ --modules Sine Random Plane Combine Ground
 ```
 
 | Technique | Description | Input | Output |
@@ -200,7 +200,7 @@ blender --python blender.py -- --save-dir runs/data_001/ --datahandlers Sine Ran
 | **Camera** | Setup camera. Takes either 'angled' or 'top' as input  |   | `... Depth:top` <br /> <img src="readme/images/depth_top.png" height="75"> | 
 | **GenericCamera** |   |   |   | 
 | **Holdout** | Add a large 'holdout plane' at height -100 m, which gives a transparent background in generated images.  |   |   | 
-| **BasicSetup** | Clean and setup basic blender scene. NOTE: Runs by default as the first datahandler.  |   |   | 
+| **BasicSetup** | Clean and setup basic blender scene. NOTE: Runs by default as the first module.  |   |   | 
 
 
 
@@ -219,9 +219,9 @@ python -m pip install colorcet
 
 
 ## Settings file
-The options in the settings can be specified with different formatting. The `datahandlers` is a list of 2-tuples/lists `(datahandler-name, options)`. The following contains 4 examples of equivalent formatting.
+The options in the settings can be specified with different formatting. The `modules` is a list of 2-tuples/lists `(module-name, options)`. The following contains 4 examples of equivalent formatting.
 ```yaml
-datahandlers
+modules
 # Version 1, default formatting
 - - Donut
   - position:
@@ -245,21 +245,21 @@ In each run, the used settings are saved to `<save_dir>/settings.yml`.
 
 
 ## Extending
-The setup is modular and new 'datahandlers' can easiliy be added, as e.g.
+The setup is modular and new 'modules' can easiliy be added, as e.g.
 ```
-class NewDatahandler(DataHandler):
-    ''' A new datahandler '''
+class NewModule(Module):
+    ''' A new module '''
     @debug_decorator
     def __call__(self, terrain=None,
                  default=None,
                  overwrite=False,
                  **_):
 ```
-This inherits from the `DataHandler` base class, which sets up e.g. logging and `self.save_dir`. The latter is a folder given by appending the datalogger name to the  `--save-dir` arg. The new datahandler is setup by defining the `__call__` method. As a datahandler is run, this method is executed, with the `pipe` given as keyword arguments. The `default` argument is special. If a single value/string is passed as options for the datahandler, e.g. `Random:10` or `Load:folder/terrain.npz`, then this is passed as the 'default' value. 
-Two other special arguments are `call_number` and `call_total` which are important if there are multiple parallel pipes, where each datahandler will be called multiple times.
-Otherwise the keyword arguments are given py the pipe, or by specifying a dict input to the datahandler, as e.g. `Gaussian:"dict(position=[10,10],height=3,width=10)"`
+This inherits from the `Module` base class, which sets up e.g. logging and `self.save_dir`. The latter is a folder given by appending the datalogger name to the  `--save-dir` arg. The new module is setup by defining the `__call__` method. As a module is run, this method is executed, with the `pipe` given as keyword arguments. The `default` argument is special. If a single value/string is passed as options for the module, e.g. `Random:10` or `Load:folder/terrain.npz`, then this is passed as the 'default' value. 
+Two other special arguments are `call_number` and `call_total` which are important if there are multiple parallel pipes, where each module will be called multiple times.
+Otherwise the keyword arguments are given py the pipe, or by specifying a dict input to the module, as e.g. `Gaussian:"dict(position=[10,10],height=3,width=10)"`
 
-The above example takes a `terrain` keyword as input, with the idea of this being passed in the 'pipe' from a previous datahandler, e.g. `Load` or some 'generating' datahandler. Anything can be passed between datahandlers in this way, and the names are arbitrary. Some special are the following,
+The above example takes a `terrain` keyword as input, with the idea of this being passed in the 'pipe' from a previous module, e.g. `Load` or some 'generating' module. Anything can be passed between modules in this way, and the names are arbitrary. Some special are the following,
 [Note that these are the current names and this might/will change after some clean up]
 | Name | Description |
 |-----------|-------------|
@@ -269,10 +269,10 @@ The above example takes a `terrain` keyword as input, with the idea of this bein
 | `size`, `resolution`, `ppm` | Parameterisation of the terrain size and resolution, determined by specifying two of the three. |
 | `weights` | A list of weights, which is currently used by `WeightedSum` to combine different basics to a terrain |
 
-The `return` from a datahandler is collected, in order to allow passing information between datahandlers. The typical return type is a `dict`. It is used to update the pipe, after which any `None` type values are removed from the pipe. If a `list` (of pipes) is the return, then this extends to 'split' into multiple parallel pipes. On the other hand, passing the string `'remove'` removes the pipe, and can e.g. be used when merging multiple pipes into one.
+The `return` from a module is collected, in order to allow passing information between modules. The typical return type is a `dict`. It is used to update the pipe, after which any `None` type values are removed from the pipe. If a `list` (of pipes) is the return, then this extends to 'split' into multiple parallel pipes. On the other hand, passing the string `'remove'` removes the pipe, and can e.g. be used when merging multiple pipes into one.
 
 
-Sometimes is can be of use to handle the entire 'pipe' in the datahandler.
+Sometimes is can be of use to handle the entire 'pipe' in the module.
 ```
     def __call__(self, operation='Add', terrain_dict={},
                  default=None, call_number=None, call_total=None,
@@ -282,4 +282,4 @@ Sometimes is can be of use to handle the entire 'pipe' in the datahandler.
 	return pipe
 
 ```
-`pipe` is then a dict containing all items in the pipe, except any already specified as input kwargs. If the pipe is later returned, it is of importance that `call_number` and `call_total` are included as arguments, as these otherwise will be passed to the next datahandler which is not the idea (and might/will give rise to error).
+`pipe` is then a dict containing all items in the pipe, except any already specified as input kwargs. If the pipe is later returned, it is of importance that `call_number` and `call_total` are included as arguments, as these otherwise will be passed to the next module which is not the idea (and might/will give rise to error).

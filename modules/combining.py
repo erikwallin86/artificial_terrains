@@ -1,9 +1,9 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import numpy as np
 from utils.terrains import Terrain
 
 
-class Combine(DataHandler):
+class Combine(Module):
     ''' Combined terrains '''
     create_folder = False
 
@@ -91,7 +91,7 @@ class ToPrimary(Combine):
         }
 
 
-class WeightedSum(DataHandler):
+class WeightedSum(Module):
     ''' Weighted sum of terrains '''
     create_folder = False
 

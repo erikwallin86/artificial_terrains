@@ -1,4 +1,4 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import os
 import sys
 import numpy as np
@@ -27,7 +27,7 @@ def fix_blender_argv():
     sys.argv = ['blender.py'] + argv
 
 
-class Ground(DataHandler):
+class Ground(Module):
     ''' Print array info '''
     create_folder = False
 
@@ -56,7 +56,7 @@ class Ground(DataHandler):
         return {'grid_obj': grid_obj}
 
 
-class BasicSetup(DataHandler):
+class BasicSetup(Module):
     '''
     Basic setup of blender scene. Remove cube and add hrdi lights
     '''
@@ -99,7 +99,7 @@ class BasicSetup(DataHandler):
             }
 
 
-class ImageTexture(DataHandler):
+class ImageTexture(Module):
     ''' Add image texture to ground'''
     create_folder = False
 
@@ -112,7 +112,7 @@ class ImageTexture(DataHandler):
         use_image_texture(ground_material, filename, **image_texture_kwargs)
 
 
-class ColorMap(DataHandler):
+class ColorMap(Module):
     ''' Add image colormap'''
     create_folder = False
 
@@ -140,7 +140,7 @@ class ColorMap(DataHandler):
         colormap_to_colorramp(cr, cmap)
 
 
-class GenericCamera(DataHandler):
+class GenericCamera(Module):
     ''' Setup camera'''
     create_folder = False
 
@@ -161,7 +161,7 @@ class GenericCamera(DataHandler):
         }
 
 
-class Camera(DataHandler):
+class Camera(Module):
     ''' Setup camera'''
     create_folder = False
 
@@ -197,7 +197,7 @@ class Camera(DataHandler):
         set_view_to_camera()
 
 
-class AnimateCube(DataHandler):
+class AnimateCube(Module):
     ''' '''
     create_folder = False
 
@@ -228,7 +228,7 @@ class AnimateCube(DataHandler):
         bpy.context.scene.render.filepath = filename
 
 
-class Tube(DataHandler):
+class Tube(Module):
     ''' '''
     create_folder = False
 
@@ -246,7 +246,7 @@ class Tube(DataHandler):
         tube_obj.location.z += -4
 
 
-class Depth(DataHandler):
+class Depth(Module):
     ''' '''
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
@@ -297,7 +297,7 @@ class Depth(DataHandler):
         }
 
 
-class Render(DataHandler):
+class Render(Module):
     ''' '''
     create_folder = False
 
@@ -326,7 +326,7 @@ class Render(DataHandler):
         render_eevee(save_dir=self.save_dir, filename=filename)
 
 
-class RenderSegmentation(DataHandler):
+class RenderSegmentation(Module):
     '''
     Uniform color for 'Rock's and 'Ground'. Render and get array
     '''
@@ -348,7 +348,7 @@ class RenderSegmentation(DataHandler):
         return {'segmentation_array': array}
 
 
-class Exit(DataHandler):
+class Exit(Module):
     ''' '''
     create_folder = False
 
@@ -357,7 +357,7 @@ class Exit(DataHandler):
         exit(0)
 
 
-class Holdout(DataHandler):
+class Holdout(Module):
     ''' '''
     create_folder = False
 
@@ -372,7 +372,7 @@ class Holdout(DataHandler):
         add_holdout_plane(terrain.array)
 
 
-class AddRocks(DataHandler):
+class AddRocks(Module):
     ''' '''
     create_folder = False
 
@@ -408,11 +408,11 @@ class AddRocks(DataHandler):
             if width > 0.29:
                 print(f"position:{position}")
                 rocks = [
-                    'models/Rocks/agx_data_models/convex_rock2.obj',
-                    # 'models/Rocks/agx_data_models/convex_rock3.obj',
-                    # 'models/Rocks/agx_data_models/convex_rock4.obj',
-                    # 'models/Rocks/agx_data_models/convex_rock5.obj',
-                    # 'models/Rocks/agx_data_models/convex_rock6.obj',
+                    'assets/Rocks/agx_data_models/convex_rock2.obj',
+                    # 'assets/Rocks/agx_data_models/convex_rock3.obj',
+                    # 'assets/Rocks/agx_data_models/convex_rock4.obj',
+                    # 'assets/Rocks/agx_data_models/convex_rock5.obj',
+                    # 'assets/Rocks/agx_data_models/convex_rock6.obj',
                 ]
 
                 import random

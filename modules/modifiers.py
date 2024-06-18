@@ -1,10 +1,10 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import numpy as np
 import os
 from utils.utils import get_terrains, get_terrain
 
 
-class Negate(DataHandler):
+class Negate(Module):
     create_folder = False
 
     @debug_decorator
@@ -18,7 +18,7 @@ class Negate(DataHandler):
             terrain.array = -terrain.array
 
 
-class Scale(DataHandler):
+class Scale(Module):
     create_folder = False
 
     @debug_decorator
@@ -34,7 +34,7 @@ class Scale(DataHandler):
             terrain.array *= factor
 
 
-class Around(DataHandler):
+class Around(Module):
     create_folder = False
 
     @debug_decorator
@@ -57,7 +57,7 @@ class Around1(Around):
         super().__call__(*args, around=1, **kwargs)
 
 
-class AsProbability(DataHandler):
+class AsProbability(Module):
     create_folder = False
 
     @debug_decorator
@@ -76,7 +76,7 @@ class AsProbability(DataHandler):
         return {'position_probability_2d': terrain}
 
 
-class AsFactor(DataHandler):
+class AsFactor(Module):
     create_folder = False
 
     @debug_decorator
@@ -90,7 +90,7 @@ class AsFactor(DataHandler):
         return {'factor': terrain.array}
 
 
-class BezierRemap(DataHandler):
+class BezierRemap(Module):
     ''' Nonlinear remapping of values using bezier curves
 
     Uses a 3rd order bezier curve, with p0=(0, 0) and p3=(1, 1).

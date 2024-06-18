@@ -1,9 +1,9 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import numpy as np
 from utils.terrains import Terrain
 
 
-class Generative(DataHandler):
+class Generative(Module):
     create_folder = False
     '''
     Generative base

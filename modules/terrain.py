@@ -1,9 +1,9 @@
-from datahandlers.data import DataHandler, debug_decorator
+from modules.data import Module, debug_decorator
 import os
 import numpy as np
 
 
-class Save(DataHandler):
+class Save(Module):
     create_folder = False
 
     ''' Save numpy terrain '''
@@ -40,7 +40,7 @@ class Save(DataHandler):
                 terrain.save(filename)
 
 
-class Load(DataHandler):
+class Load(Module):
     ''' Load terrains '''
     create_folder = False
 
@@ -170,7 +170,7 @@ class Load(DataHandler):
         return new_file_list
 
 
-class ClearTerrain(DataHandler):
+class ClearTerrain(Module):
     @debug_decorator
     def __call__(self,
                  hf_array=None, hf_info_dict=None,
@@ -178,7 +178,7 @@ class ClearTerrain(DataHandler):
         return pipe
 
 
-class CombinePipes(DataHandler):
+class CombinePipes(Module):
     ''' Combine terrains from different pipes '''
     create_folder = False
 
@@ -222,7 +222,7 @@ class CombinePipes(DataHandler):
         }
 
 
-class FindRocks(DataHandler):
+class FindRocks(Module):
     ''' Plot terrain '''
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
@@ -311,7 +311,7 @@ class FindRocks(DataHandler):
         return np.array(positions_highest), np.array(heights_max), np.array(sizes)
 
 
-class Plot(DataHandler):
+class Plot(Module):
     create_folder = False
 
     ''' Plot terrain '''

@@ -26,9 +26,9 @@ def create_parser(parser=None, specific_args=[], positional=[]):
 
     # Handle specific arguments
     for name in specific_args:
-        if name == 'datahandlers':
+        if name == 'modules':
             parser.add_argument(
-                '--datahandlers', type=str, help='Datahandlers to use',
+                '--modules', type=str, help='Modules to use',
                 action=StoreTuplePair,
                 default=(None,), nargs='+', required=False,
             )
@@ -174,28 +174,28 @@ def get_args_combined_with_settings(parser):
     if args.save_dir and not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    # ## datahandler specific code ###
+    # ## module specific code ###
     # if not [name, option] pair, (only name)
-    from datahandlers.datahandlers import DATAHANDLERS
-    for i, pair in enumerate(args.datahandlers):
+    from modules.modules import MODULES
+    for i, pair in enumerate(args.modules):
         if not isinstance(pair, (tuple, list)):
             key = pair
-            if key in DATAHANDLERS.keys():
-                args.datahandlers[i] = [key, None]
+            if key in MODULES.keys():
+                args.modules[i] = [key, None]
 
     # Save settings
     if args.save_dir is not None:
         filename = os.path.join(args.save_dir, 'settings.yml')
 
-        # ## datahandler specific code ###
-        # Process datahandlers to simplify yaml file
+        # ## module specific code ###
+        # Process modules to simplify yaml file
         # Remove [name, None] and turn to 'name'
-        if 'datahandlers' in settings:
+        if 'modules' in settings:
             # Process settings to remove unnecessary null's
-            processed_datahandlers = [
+            processed_modules = [
                 [name, options] if options is not None else
-                name for name, options in settings['datahandlers']]
-            settings['datahandlers'] = processed_datahandlers
+                name for name, options in settings['modules']]
+            settings['modules'] = processed_modules
 
         with open(filename, 'w') as f:
             yaml.dump(settings, f, sort_keys=False, default_flow_style=None)

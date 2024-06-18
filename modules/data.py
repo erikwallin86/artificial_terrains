@@ -34,7 +34,7 @@ def debug_decorator(func):
     return wrapper
 
 
-class DataHandler():
+class Module():
     create_folder = True
     '''
     Args:
@@ -64,7 +64,7 @@ class DataHandler():
         return self.__class__.__name__
 
 
-class Print(DataHandler):
+class Print(Module):
     ''' Print array info '''
     create_folder = False
 
@@ -73,7 +73,7 @@ class Print(DataHandler):
         print(f"kwargs:{kwargs}")
 
 
-class Resolution(DataHandler):
+class Resolution(Module):
     ''' Test '''
     create_folder = False
 
@@ -90,7 +90,7 @@ class Resolution(DataHandler):
             }
 
 
-class Size(DataHandler):
+class Size(Module):
     ''' Test '''
     create_folder = False
 
@@ -107,7 +107,7 @@ class Size(DataHandler):
             }
 
 
-class PPM(DataHandler):
+class PPM(Module):
     ''' Test '''
     create_folder = False
 
@@ -125,7 +125,7 @@ class PPM(DataHandler):
             }
 
 
-class Seed(DataHandler):
+class Seed(Module):
     ''' Test '''
     create_folder = False
 
@@ -142,7 +142,7 @@ class Seed(DataHandler):
             }
 
 
-class Folder(DataHandler):
+class Folder(Module):
     ''' Set 'folder', affecting e.g Save, and Plot '''
     create_folder = False
 
@@ -159,7 +159,7 @@ class Folder(DataHandler):
             }
 
 
-class DebugPlot(DataHandler):
+class DebugPlot(Module):
     ''' Do debug plot '''
     create_folder = False
 
@@ -172,7 +172,7 @@ class DebugPlot(DataHandler):
         debug_plot_horizontal(filename, **kwargs)
 
 
-class Hypercube(DataHandler):
+class Hypercube(Module):
     ''' '''
     create_folder = False
 
@@ -208,7 +208,7 @@ class Hypercube(DataHandler):
             return pipes
 
 
-class Y(DataHandler):
+class Y(Module):
     ''' '''
     create_folder = False
 
@@ -233,7 +233,7 @@ class Y(DataHandler):
         return pipe
 
 
-class MakeObstacles(DataHandler):
+class MakeObstacles(Module):
     ''' Make basic terrains '''
     @debug_decorator
     def __call__(self, resolution=None, size=None, ppm=None, **kwargs):
@@ -272,7 +272,7 @@ class MakeObstacles(DataHandler):
         return pipe
 
 
-class PlotObstacles(DataHandler):
+class PlotObstacles(Module):
     ''' Plot obstacles '''
     @debug_decorator
     def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
@@ -299,7 +299,7 @@ class PlotObstacles(DataHandler):
         plot_obstacles(obstacles, filename, xlim=extent[:2], ylim=extent[:-2])
 
 
-class SaveObstacles(DataHandler):
+class SaveObstacles(Module):
     ''' Save obstacles '''
     @debug_decorator
     def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
@@ -323,7 +323,7 @@ class SaveObstacles(DataHandler):
         obstacles.save_numpy(filename)
 
 
-class Set(DataHandler):
+class Set(Module):
     create_folder = False
     '''
     Set a parameter as Set:parameter=value
@@ -346,7 +346,7 @@ class Set(DataHandler):
         return result_dict
 
 
-class SetDistribution(DataHandler):
+class SetDistribution(Module):
     create_folder = False
     '''
     Set a distribution as SetDistribution:parameter=distribution(*args)
@@ -360,7 +360,7 @@ class SetDistribution(DataHandler):
         return {f'{varname}_distribution': dist_obj}
 
 
-class Random(DataHandler):
+class Random(Module):
     create_folder = False
     '''
     Set random position, height, width, yaw, etc.
@@ -473,7 +473,7 @@ class Random(DataHandler):
         return amplitude_list
 
 
-class LoadObstacles(DataHandler):
+class LoadObstacles(Module):
     ''' '''
     create_folder = False
 
@@ -493,7 +493,7 @@ class LoadObstacles(DataHandler):
         pick = (obstacles.height > 0.29).squeeze()
         obstacles = obstacles[pick]
 
-        # Add to pipe, in same manner as the 'Random' datahandler does
+        # Add to pipe, in same manner as the 'Random' module does
 
         pipe['position'] = obstacles.position.T
         # For these, we remove one dimension
