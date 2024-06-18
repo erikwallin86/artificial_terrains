@@ -23,16 +23,15 @@ class Scale(DataHandler):
 
     @debug_decorator
     def __call__(self, terrain_temp=[], terrain_heap=[],
-                 scale=2,
-                 default=None, last=None, **_):
-        scale = default if default is not None else scale
+                 factor=2, default=None, last=None, **_):
+        factor = default if default is not None else factor
 
         terrains = get_terrains(
             terrain_temp, terrain_heap, last, remove=False)
 
         # Scale the terrains
         for terrain in terrains:
-            terrain.array *= scale
+            terrain.array *= factor
 
 
 class Around(DataHandler):
@@ -75,6 +74,20 @@ class AsProbability(DataHandler):
         terrain.array = terrain.array/np.sum(terrain.array)
 
         return {'position_probability_2d': terrain}
+
+
+class AsFactor(DataHandler):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 default=None, last=None, **_):
+        ''' Use terrain as a 2d factor '''
+        # Get and remove terrain from dict/heap
+        terrain = get_terrain(
+            terrain_temp, terrain_heap, print_fn=print, remove=True)
+
+        return {'factor': terrain.array}
 
 
 class BezierRemap(DataHandler):
