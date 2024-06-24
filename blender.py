@@ -47,7 +47,7 @@ def main():
 
     pipe = {
         'size': 50,  # default
-        'resolution': 100,  # default
+        'ppm': 2,  # default
     }
     pipes = [pipe]
 
