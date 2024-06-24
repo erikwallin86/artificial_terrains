@@ -85,8 +85,6 @@ class Generative(Module):
             desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
             terrain_temp.append(terrain)
 
-        print(f"### OUTPUT len(terrain_temp):{len(terrain_temp)}")
-
         pipe = {
             'terrain_temp': terrain_temp,
         }
@@ -100,11 +98,6 @@ class Generative(Module):
             pipe['pitch_deg'] = None
 
         return pipe
-
-        # if len(terrain_temp) > 1:
-        #     return {'terrain_temp': terrain_temp}
-        # else:
-        #     return {'terrain': terrain}
 
 
 class Gaussian(Generative):
