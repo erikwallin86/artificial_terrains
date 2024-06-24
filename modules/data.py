@@ -368,8 +368,9 @@ class Random(Module):
     @debug_decorator
     def __call__(
             self, number_of_values=3,
-            size=None,
-            position_distribution=None,
+            size=None, resolution=None, ppm=None,
+            position_x_distribution=None,
+            position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
             width_distribution=Distribution('uniform', 2, 10),
             aspect_distribution=Distribution('uniform', 0.5, 1.5),
@@ -393,9 +394,15 @@ class Random(Module):
             else:
                 to_generate = default
 
+        from utils.artificial_shapes import determine_size_and_resolution
+        size_x, size_y, N_x, N_y = determine_size_and_resolution(
+            ppm, size, resolution)
+
         # Setup distributions that depend on other parameters
-        if position_distribution is None:
-            position_distribution = Distribution('uniform', -size/2, size/2)
+        if position_x_distribution is None:
+            position_x_distribution = Distribution('uniform', -size_x/2, size_x/2)
+        if position_y_distribution is None:
+            position_y_distribution = Distribution('uniform', -size_y/2, size_y/2)
 
         # test. Return weights given Random:weights
         if default == 'weights':
@@ -405,8 +412,10 @@ class Random(Module):
 
         # Generate position
         if 'position' in to_generate:
-            pipe['position'] = position_distribution(
-                size=(number_of_values, 2))
+            pos_x = position_x_distribution(size=number_of_values)
+            pos_y = position_y_distribution(size=number_of_values)
+            pipe['position'] = np.stack([pos_x, pos_y], axis=-1)
+
             # Generate from position_probability_2d if given
             if position_probability_2d is not None:
                 pipe['position'] = self.points_from_probability(
