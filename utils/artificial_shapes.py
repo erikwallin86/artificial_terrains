@@ -8,7 +8,7 @@ def get_meshgrid(size_x, size_y, N_x, N_y):
     # Generating the x and y coordinates
     x = np.linspace(-size_x/2, size_x/2, N_x)
     y = np.linspace(-size_y/2, size_y/2, N_y)
-    X, Y = np.meshgrid(x, y)
+    X, Y = np.meshgrid(x, y, indexing='ij')
 
     return X, Y
 
@@ -101,8 +101,8 @@ class GaussianFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.pos[1]
-        y = y - self.pos[0]
+        x = x - self.pos[0]
+        y = y - self.pos[1]
 
         # Rotate
         x, y = rotate_meshgrid(x, y, self.yaw_deg)
@@ -128,8 +128,8 @@ class SphereFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.pos[1]
-        y = y - self.pos[0]
+        x = x - self.pos[0]
+        y = y - self.pos[1]
 
         # Rotate
         x, y = rotate_meshgrid(x, y, self.yaw_deg)
@@ -156,8 +156,8 @@ class StepFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.pos[1]
-        y = y - self.pos[0]
+        x = x - self.pos[0]
+        y = y - self.pos[1]
 
         x, y = rotate_meshgrid(x, y, self.yaw_deg)
 
@@ -174,8 +174,8 @@ class SmoothStepFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.pos[1]
-        y = y - self.pos[0]
+        x = x - self.pos[0]
+        y = y - self.pos[1]
 
         # Rotate
         x, y = rotate_meshgrid(x, y, self.yaw_deg)
@@ -199,8 +199,8 @@ class DonutFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.pos[1]
-        y = y - self.pos[0]
+        x = x - self.pos[0]
+        y = y - self.pos[1]
 
         # Rotate
         x, y = rotate_meshgrid(x, y, self.yaw_deg)
@@ -255,8 +255,8 @@ class CubeFunction():
     def __call__(self, x, y):
         # Adjust position
         # NOTE: 'shifted, maybe due to our 'transpose' habit
-        x = x - self.position[1]
-        y = y - self.position[0]
+        x = x - self.position[0]
+        y = y - self.position[1]
 
         # Rotate
         x, y = rotate_meshgrid(x, y, self.yaw_deg)

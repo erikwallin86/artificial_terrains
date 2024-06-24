@@ -80,7 +80,7 @@ class Generative(Module):
             heights_array = function_callable(X, Y)
 
             # Make terrain, and add to dict
-            terrain = Terrain.from_array(heights_array)
+            terrain = Terrain.from_array(heights_array, size=[size_x, size_y])
             # desctiption = f'{kwargs.__repr__()}'
             desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
             terrain_temp.append(terrain)
