@@ -4,10 +4,10 @@ import sys
 import inspect
 
 
-def get_meshgrid(size_x, size_y, N_x, N_y):
+def get_meshgrid(extent, N_x, N_y):
     # Generating the x and y coordinates
-    x = np.linspace(-size_x/2, size_x/2, N_x)
-    y = np.linspace(-size_y/2, size_y/2, N_y)
+    x = np.linspace(extent[0], extent[1], N_x, endpoint=False)
+    y = np.linspace(extent[2], extent[3], N_y, endpoint=False)
     X, Y = np.meshgrid(x, y, indexing='ij')
 
     return X, Y
@@ -78,6 +78,22 @@ def determine_size_and_resolution(ppm=None, size=None, N=None):
         N_y = int(size_y * ppm_y)
 
     return size_x, size_y, N_x, N_y
+
+
+def determine_extent_and_resolution(ppm=None, size=None, N=None, extent=None):
+    # Update parameters from any tuple input
+    if ppm is not None:
+        if isinstance(ppm, list):
+            ppm_x, ppm_y = ppm
+        else:
+            ppm_x, ppm_y = (ppm, ppm)
+
+    from utils.terrains import extent_to_size
+    [size_x, size_y] = extent_to_size(extent)
+    N_x = int(size_x * ppm_x)
+    N_y = int(size_y * ppm_y)
+
+    return extent, [N_x, N_y]
 
 
 def gaussian_1d(x, mu=0, sigma=1):

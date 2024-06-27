@@ -48,6 +48,7 @@ def main():
     pipe = {
         'size': 50,  # default
         'ppm': 2,  # default
+        'extent': [-25, 25, -25, 25],  # default
     }
     pipes = [pipe]
 

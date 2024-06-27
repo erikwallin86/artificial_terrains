@@ -8,6 +8,7 @@ import modules.generating
 import modules.generating_function
 import modules.combining
 import modules.other
+import modules.pipes
 import modules.las
 
 MODULES = {}
@@ -47,6 +48,12 @@ for (k, v) in clsmembers_pairs:
 # other
 clsmembers_pairs = inspect.getmembers(
     sys.modules[modules.other.__name__], inspect.isclass)
+for (k, v) in clsmembers_pairs:
+    MODULES[k] = v
+
+# (multi) pipes
+clsmembers_pairs = inspect.getmembers(
+    sys.modules[modules.pipes.__name__], inspect.isclass)
 for (k, v) in clsmembers_pairs:
     MODULES[k] = v
 

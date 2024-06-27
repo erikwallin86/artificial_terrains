@@ -10,10 +10,10 @@ class Generative(Module):
     '''
     @debug_decorator
     def __call__(
-            self, function_name=None, terrain_temp=[], default=None,
+            self, function_name=None, terrain_temp=None, default=None,
             position=[[0, 0]], height=[], width=[],
             aspect=[], yaw_deg=[], pitch_deg=[],
-            size=None, resolution=None, ppm=None,
+            size=None, resolution=None, ppm=None, extent=None,
             reset_input=True,
             **kwargs):
         '''
@@ -23,6 +23,7 @@ class Generative(Module):
           heights: list of heights, where height is float in [-infty, infty]
           yaws: list of yaw, where yaw is float in [0, 2*np.pi]
         '''
+        terrain_temp = [] if terrain_temp is None else terrain_temp
         functions = ['gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
                      'smoothstep', 'sine']
         if function_name is None:
@@ -45,10 +46,10 @@ class Generative(Module):
             pitch_deg = [pitch_deg]
 
         # Setup sizes etc.
-        from utils.artificial_shapes import determine_size_and_resolution
+        from utils.artificial_shapes import determine_extent_and_resolution
         # Get size and resolution from any two tuples: ppm, size, resolution
-        size_x, size_y, N_x, N_y = determine_size_and_resolution(
-            ppm, size, resolution)
+        extent, (N_x, N_y) = determine_extent_and_resolution(
+            ppm, size, resolution, extent)
 
         properties = {
             'position': position,
@@ -74,13 +75,13 @@ class Generative(Module):
             function_callable = FUNCTIONS[function_name](**kwargs)
 
             # Get meshgrid
-            X, Y = get_meshgrid(size_x, size_y, N_x, N_y)
+            X, Y = get_meshgrid(extent, N_x, N_y)
 
             # Get heights from function callable
             heights_array = function_callable(X, Y)
 
             # Make terrain, and add to dict
-            terrain = Terrain.from_array(heights_array, size=[size_x, size_y])
+            terrain = Terrain.from_array(heights_array, extent=extent)
             # desctiption = f'{kwargs.__repr__()}'
             desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
             terrain_temp.append(terrain)

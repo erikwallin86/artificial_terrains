@@ -100,10 +100,18 @@ class Size(Module):
         # och göra det här automatiskt
         size = default if default is not None else size
 
+        if isinstance(size, list):
+            size_x, size_y = size
+        else:
+            size_x, size_y = (size, size)
+
+        size = [size_x, size_y]
+
         self.info(f"Set size:{size} [m]")
 
         return {
             'size': size,
+            'extent': [-size[0]/2, size[0]/2, -size[1]/2, size[1]/2],  # test
             }
 
 
@@ -368,7 +376,7 @@ class Random(Module):
     @debug_decorator
     def __call__(
             self, number_of_values=3,
-            size=None, resolution=None, ppm=None,
+            size=None, resolution=None, ppm=None, extent=None,
             position_x_distribution=None,
             position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
@@ -398,15 +406,16 @@ class Random(Module):
             else:
                 to_generate = default
 
-        from utils.artificial_shapes import determine_size_and_resolution
-        size_x, size_y, N_x, N_y = determine_size_and_resolution(
-            ppm, size, resolution)
+        # from utils.artificial_shapes import determine_size_and_resolution
+        from utils.artificial_shapes import determine_extent_and_resolution
+        extent, (N_x, N_y) = determine_extent_and_resolution(
+            ppm, size, resolution, extent)
 
         # Setup distributions that depend on other parameters
         if position_x_distribution is None:
-            position_x_distribution = Distribution('uniform', -size_x/2, size_x/2)
+            position_x_distribution = Distribution('uniform', extent[0], extent[1])
         if position_y_distribution is None:
-            position_y_distribution = Distribution('uniform', -size_y/2, size_y/2)
+            position_y_distribution = Distribution('uniform', extent[2], extent[3])
 
         # test. Return weights given Random:weights
         if default == 'weights':

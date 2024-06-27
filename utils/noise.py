@@ -25,10 +25,9 @@ def get_simplex(Nx=100, Ny=100, scale_x=50, scale_y=50, seed=None):
     return noise2array(y, x)
 
 
-def get_simplex2(ppm_x=2, ppm_y=2, size_x=50, size_y=50, N_x=None, N_y=None,
-                 ppm=None, size=None, N=None,
-                 scale_x=50, scale_y=50, dx=0, dy=0, seed=None,
-                 center=True,
+def get_simplex2(ppm=None, size=None, N=None, resolution=None,
+                 scale_x=50, scale_y=50, seed=None,
+                 extent=None,
                  info_dict=None,
                  logger_fn=None, **_):
     '''
@@ -38,77 +37,35 @@ def get_simplex2(ppm_x=2, ppm_y=2, size_x=50, size_y=50, N_x=None, N_y=None,
     Tuple input overrides individual values
 
     Args:
-      Nx: (int) grid points in x
-      Ny: (int) grid points in y
-      scale_x:
-      scale_y:
-      dx: (float) displacement in x-diretion, in [0, 1]
-      dy: (float) displacement in y-diretion, in [0, 1]
     '''
     if seed is None:
         opensimplex.random_seed()
     else:
         opensimplex.seed(seed)
 
-    # Update parameters from any tuple input
-    if ppm is not None:
-        if isinstance(ppm, list):
-            ppm_x, ppm_y = ppm
-        else:
-            ppm_x, ppm_y = (ppm, ppm)
-    if size is not None:
-        if isinstance(size, list):
-            size_x, size_y = size
-        else:
-            size_x, size_y = (size, size)
-    if N is not None:
-        if isinstance(N, list):
-            N_x, N_y = N
-        else:
-            N_x, N_y = (N, N)
+    # Setup sizes etc.
+    from utils.artificial_shapes import determine_extent_and_resolution
+    extent, (N_x, N_y) = determine_extent_and_resolution(
+        ppm, size, resolution, extent)
 
-    if N_x is None:
-        N_x = int(size_x * ppm_x)
-    if N_y is None:
-        N_y = int(size_y * ppm_y)
-
-    f_x = size_x/scale_x
-    f_y = size_y/scale_y
-
-    # calculate
-    dx_ = dx*f_x
-    dy_ = dy*f_y
+    size_x = extent[1] - extent[0]
+    size_y = extent[3] - extent[2]
 
     if info_dict is not None:
         # Add to the info-dict if provided
-        if center:
-            info_dict['simplex_extent'] = [-f_x/2+dx_, f_x/2+dx_, -f_y/2+dy_, f_y/2+dy_]
-            info_dict['extent'] = [-size_x/2, size_x/2, -size_y/2, size_y/2]
-        else:
-            info_dict['simplex_extent'] = [dx_, f_x+dx_, dy_, f_y+dy_]
-            info_dict['extent'] = [0, size_x, 0, size_y]
-
-        info_dict['simplex_size'] = [f_x, f_y]
+        info_dict['extent'] = extent
         info_dict['opensimplex_seed'] = opensimplex.get_seed()
         info_dict['N'] = (N_x, N_y)
         info_dict['size'] = (size_x, size_y)
-        info_dict['ppm'] = (ppm_x, ppm_y)
-        info_dict['center'] = (dx*size_x, dy*size_y)
 
     if logger_fn is not None:
-        info = f"scale:{info_dict['simplex_size']}, " +\
-            f"points:{info_dict['N']}, " +\
+        info = f"points:{info_dict['N']}, " +\
             f"extent:{info_dict['extent']}, " +\
             f"seed:{info_dict['opensimplex_seed']}"
         logger_fn(info)
 
-    if center:
-        x = np.linspace(-f_x/2+dx_, f_x/2+dx_, num=N_x)
-        y = np.linspace(-f_y/2+dy_, f_y/2+dy_, num=N_y)
-    else:
-        # Legacy setting
-        x = np.linspace(0+dx_, f_x+dx_, num=N_x)
-        y = np.linspace(0+dy_, f_y+dy_, num=N_y)
+    x = np.linspace(extent[0]/scale_x, extent[1]/scale_x, num=N_x, endpoint=False)
+    y = np.linspace(extent[2]/scale_y, extent[3]/scale_y, num=N_y, endpoint=False)
 
     # 'shift' indices due to noise2array definition
     return noise2array(y, x)

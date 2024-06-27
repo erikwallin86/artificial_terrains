@@ -108,3 +108,76 @@ def load_hf(filename):
                 info_dict[key] = loaded_data[key]
 
         return array, info_dict
+
+
+def extent_to_size(extent):
+    return [extent[1]-extent[0], extent[3]-extent[2]]
+
+
+def merge_terrain_blocks(index_to_terrain_list):
+    """
+    Merges terrain arrays from a dictionary of indexed terrain lists into larger terrain arrays.
+
+    Args:
+        index_to_terrain_list (dict): A dictionary where keys are tuple indices (i, j) and 
+                                      values are lists of Terrain objects at those indices.
+
+    Returns:
+        list: A list of merged Terrain objects, each representing a layer of the input terrain arrays.
+    """
+    # Determine the number of terrain layers and grid dimensions
+    num_layers = len(next(iter(index_to_terrain_list.values())))
+    last_index = list(index_to_terrain_list.keys())[-1]
+    grid_rows = last_index[0] + 1
+    grid_cols = last_index[1] + 1
+
+    # Determine new extent of the merged terrain
+    extent_start = list(index_to_terrain_list.values())[0][0].extent
+    extent_end = list(index_to_terrain_list.values())[-1][0].extent
+    merged_extent = [extent_start[0], extent_end[1], extent_start[2], extent_end[3]]
+
+    # Prepare a 3D list to store terrain arrays
+    terrain_layers = [[[None for _ in range(grid_cols)] for _ in range(grid_rows)] for _ in range(num_layers)]
+
+    # Populate the 3D list with terrain arrays
+    for (row, col), terrain_list in index_to_terrain_list.items():
+        for layer_idx, terrain in enumerate(terrain_list):
+            terrain_layers[layer_idx][row][col] = terrain.array
+
+    # Convert the arrays to the desired format
+    merged_terrain_list = []
+    for layer_arrays in terrain_layers:
+        # Merge blocks into a single array
+        merged_array = np.block(layer_arrays)
+        # Create a Terrain object
+        merged_terrain = Terrain.from_array(merged_array, extent=merged_extent)
+        merged_terrain_list.append(merged_terrain)
+
+    return merged_terrain_list
+
+
+def split_terrain_blocks(terrain_list, num_splits_row, num_splits_col):
+    """
+    Splits a given array into sub-arrays over two dimensions.
+
+    Args:
+        array (np.ndarray): The input array to be split into blocks.
+        num_splits_row (int): The number of splits along the row dimension.
+        num_splits_col (int): The number of splits along the column dimension.
+
+    Returns:
+        list: A list of lists, where each inner list contains sub-arrays split along the column dimension.
+    """
+    list_of_blocks = []
+
+    for terrain in terrain_list:
+        array = terrain.array
+        # Split the array into sub-arrays along the row dimension
+        row_splits = np.array_split(array, num_splits_row, axis=0)
+        # Split each of the row sub-arrays into sub-arrays along the column dimension
+        blocks = [np.array_split(row_split, num_splits_col, axis=1) for row_split in row_splits]
+        list_of_blocks.append(blocks)
+
+    blocks = np.array(list_of_blocks)
+
+    return blocks

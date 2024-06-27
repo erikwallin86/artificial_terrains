@@ -9,7 +9,7 @@ class Basic(Module):
     '''
     @debug_decorator
     def __call__(self, terrain_temp=None, scale_list=[400, 32, 0.5],
-                 default=None, **kwargs):
+                 default=None, seed=None, **kwargs):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
@@ -27,9 +27,13 @@ class Basic(Module):
             simplex_noise = 1/scaling * get_simplex2(
                 **kwargs,
                 scale_x=x, scale_y=x,
-                center=True, info_dict=info_dict,
+                info_dict=info_dict,
                 logger_fn=self.info,
+                seed=seed,
             )
+
+            if seed is not None:
+                seed += 1
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
             terrain_temp.append(terrain)
