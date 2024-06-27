@@ -8,7 +8,7 @@ class Combine(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Add', terrain_temp=[], terrain_heap=[],
+    def __call__(self, operation='Add', terrain_temp=None, terrain_heap=None,
                  default=None, last=None, **_):
         '''
         Combine terrains in terrain_temp (or terrain_heap) using 'operation'
@@ -18,6 +18,10 @@ class Combine(Module):
           last (int): Use last N terrains. If None, then all are used
 
         '''
+        # Initialize lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_heap = [] if terrain_heap is None else terrain_heap
+
         operations = ['Add', 'Max', 'Min', 'Prod']
         operation = default if default is not None else operation
         assert operation in operations, f'operation not in {operations}'
