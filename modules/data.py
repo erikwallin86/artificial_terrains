@@ -378,10 +378,14 @@ class Random(Module):
             pitch_deg_distribution=Distribution('uniform', 0, 30),
             position_probability_2d=None,
             terrain_temp=[],
+            seed=None,
             default=None, **kwargs):
 
         to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect',
                        'pitch_deg']
+
+        if seed is not None:
+            np.random.seed(seed=seed)
 
         pipe = {}
 
