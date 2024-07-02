@@ -8,10 +8,12 @@ class Basic(Module):
     ''' Make basic terrains
     '''
     @debug_decorator
-    def __call__(self, terrain_temp=[], scale_list=[400, 32, 0.5],
+    def __call__(self, terrain_temp=None, scale_list=[400, 32, 0.5],
                  default=None, **kwargs):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
 
         # Possibly replace scaling list from 'default'
         if isinstance(default, list):
@@ -49,7 +51,7 @@ class Octaves(Module):
     '''
     @debug_decorator
     def __call__(
-            self, terrain_temp=[], default=None,
+            self, terrain_temp=None, default=None,
             num_octaves=10,
             start=128,
             persistance=0.60,
@@ -60,6 +62,8 @@ class Octaves(Module):
     ):
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
 
         # Get number of octaves from possible default input
         num_octaves = default if default is not None else num_octaves
@@ -114,12 +118,14 @@ class Rocks(Module):
                  rock_heights=None,
                  fraction=0.8,
                  default=None,
-                 terrain_temp=[],
+                 terrain_temp=None,
                  **kwargs):
         rock_size = default if default is not None else rock_size
         if rock_heights is None:
             rock_heights = np.divide(rock_size, 2)
             # [0.25, 0.5, 1, 2],
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
 
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
@@ -161,9 +167,11 @@ class Holes(Module):
     def __call__(self, size_list=[0.5, 1, 2, 4],
                  fraction=0.8,
                  default=None,
-                 terrain_temp=[],
+                 terrain_temp=None,
                  **kwargs):
         size_list = default if default is not None else size_list
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
 
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
