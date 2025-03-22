@@ -50,6 +50,8 @@ class Module():
             if not os.path.isdir(self.save_dir):
                 os.makedirs(self.save_dir)
 
+        self.loop_generator_instance = self.loop_generator()
+
     def __call__(
             self, **kwargs):
         # Return kwargs which are not 'input'/'data'
@@ -62,6 +64,18 @@ class Module():
     @property
     def name(self):
         return self.__class__.__name__
+
+    def loop_generator(self, **kwargs):
+        """
+        Default-beteende: returnera bara en gång, samma som __call_
+        """
+        yield self.__call__(**kwargs)
+
+    def __iter__(self):
+        """
+        Gör modulen itererbar
+        """
+        return self.loop_generator_instance
 
 
 class Print(Module):
