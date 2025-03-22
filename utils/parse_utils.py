@@ -30,7 +30,7 @@ def create_parser(parser=None, specific_args=[], positional=[]):
             parser.add_argument(
                 '--modules', type=str, help='Modules to use',
                 action=StoreTuplePair,
-                default=(None,), nargs='+', required=False,
+                default=(None,), nargs='+', required=True,
             )
 
     return parser
