@@ -100,9 +100,13 @@ class WeightedSum(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, weights=[5, 8, 0.1], terrain_temp=[],
-                 terrain_heap=[], last=None,
+    def __call__(self, weights=[5, 8, 0.1], terrain_temp=None,
+                 terrain_heap=None, last=None,
                  default=None, **_):
+
+        # Initialize lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_heap = [] if terrain_heap is None else terrain_heap
 
         weights = default if default is not None else weights
         weights = np.array(weights).reshape(-1, 1, 1)
