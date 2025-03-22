@@ -85,18 +85,20 @@ def recursive_module_call(
     logger.debug(f"  kwargs: {kwargs}")
     logger.debug(f"  pipe: {pipe}")
 
-    for returned_data in module_obj(**kwargs, **pipe):
+    for returned_data in module_obj.loop_generator(**kwargs, **pipe):
+        print(f"returned_data:{returned_data}")
+        print(f"type(returned_data):{type(returned_data)}")
         if isinstance(returned_data, dict):
             pipe = {**pipe, **returned_data}
 
-        return_from_right = recursive_module_call(
+        recursive_module_call(
             list_of_modules_kwargs_tuples, index+1, pipe, logger)
-        # Update pipe, with data from the module to 'the right'
-        if isinstance(return_from_right, dict):
-            pipe = {**pipe, **return_from_right}
+        # # Update pipe, with data from the module to 'the right'
+        # if isinstance(return_from_right, dict):
+        #     pipe = {**pipe, **return_from_right}
 
-    # When we return something here, it will be given to the module on the left
-    return pipe
+    # # When we return something here, it will be given to the module on the left
+    # return pipe
 
 
 if __name__ == "__main__":

@@ -51,6 +51,7 @@ class Module():
                 os.makedirs(self.save_dir)
 
         self.loop_generator_instance = self.loop_generator()
+        print(f"self.loop_generator_instance:{self.loop_generator_instance}")
 
     def __call__(
             self, **kwargs):
@@ -69,7 +70,10 @@ class Module():
         """
         Default-beteende: returnera bara en gång, samma som __call_
         """
-        yield self.__call__(**kwargs)
+        result = self.__call__(**kwargs)
+        print(f"result:{result}")
+
+        yield result
 
     def __iter__(self):
         """
