@@ -85,7 +85,8 @@ def recursive_module_call(
     logger.debug(f"  kwargs: {kwargs}")
     logger.debug(f"  pipe: {pipe}")
 
-    for returned_data in module_obj.loop_generator(**kwargs, **pipe):
+    module_obj.start(**kwargs, **pipe)
+    for returned_data in module_obj:
         print(f"returned_data:{returned_data}")
         print(f"type(returned_data):{type(returned_data)}")
         if isinstance(returned_data, dict):

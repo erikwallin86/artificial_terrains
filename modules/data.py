@@ -50,9 +50,6 @@ class Module():
             if not os.path.isdir(self.save_dir):
                 os.makedirs(self.save_dir)
 
-        self.loop_generator_instance = self.loop_generator()
-        print(f"self.loop_generator_instance:{self.loop_generator_instance}")
-
     def __call__(
             self, **kwargs):
         # Return kwargs which are not 'input'/'data'
@@ -62,15 +59,24 @@ class Module():
         ''' 'Shorter' method for logger.info, with indent. '''
         self.logger.info(f"  {info_string}")
 
+    def start(self, **kwargs):
+        print("  # Start")
+        print(f"kwargs:{kwargs}")
+        # Store kwargs
+        self.kwargs = kwargs
+        # Initialize loop generator
+        self.loop_generator_instance = self.loop_generator()
+        print(f"self.loop_generator_instance:{self.loop_generator_instance}")
+
     @property
     def name(self):
         return self.__class__.__name__
 
-    def loop_generator(self, **kwargs):
+    def loop_generator(self):
         """
         Default-beteende: returnera bara en gång, samma som __call_
         """
-        result = self.__call__(**kwargs)
+        result = self.__call__(**self.kwargs)
         print(f"result:{result}")
 
         yield result
