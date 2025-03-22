@@ -60,32 +60,37 @@ def main():
         # combine with general kwargs
         kwargs = {**general_kwargs, **kwargs}
         # Add to list
+        print(f"(module_obj, kwargs):{(module_obj, kwargs)}")
         list_of_modules_kwargs_tuples.append((module_obj, kwargs))
 
     # Start recursive call of modules
     recursive_module_call(
-        list_of_modules_kwargs_tuples, pipe=pipe,
+        list_of_modules_kwargs_tuples, pipe=pipe, logger=logger,
     )
 
 
 def recursive_module_call(
-        list_of_modules_kwargs_tuples, index=0, pipe={}):
+        list_of_modules_kwargs_tuples, index=0, pipe={}, logger=None):
     '''
     Call next level recursivly
     '''
+    logger.debug(f"### index: {index}")
     # Base case: reached the end of the module list
     if index >= len(list_of_modules_kwargs_tuples):
         return None
 
     # Get module and kwargs
     module_obj, kwargs = list_of_modules_kwargs_tuples[index]
+    logger.debug(f"  module_obj: {module_obj}")
+    logger.debug(f"  kwargs: {kwargs}")
+    logger.debug(f"  pipe: {pipe}")
 
     for returned_data in module_obj(**kwargs, **pipe):
         if isinstance(returned_data, dict):
             pipe = {**pipe, **returned_data}
 
         return_from_right = recursive_module_call(
-            list_of_modules_kwargs_tuples, index+1, pipe)
+            list_of_modules_kwargs_tuples, index+1, pipe, logger)
         # Update pipe, with data from the module to 'the right'
         if isinstance(return_from_right, dict):
             pipe = {**pipe, **return_from_right}
