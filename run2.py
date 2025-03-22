@@ -60,7 +60,6 @@ def main():
         # combine with general kwargs
         kwargs = {**general_kwargs, **kwargs}
         # Add to list
-        print(f"(module_obj, kwargs):{(module_obj, kwargs)}")
         list_of_modules_kwargs_tuples.append((module_obj, kwargs))
 
     # Start recursive call of modules
@@ -87,8 +86,6 @@ def recursive_module_call(
 
     module_obj.start(**kwargs, **pipe)
     for returned_data in module_obj:
-        print(f"returned_data:{returned_data}")
-        print(f"type(returned_data):{type(returned_data)}")
         if isinstance(returned_data, dict):
             pipe = {**pipe, **returned_data}
 

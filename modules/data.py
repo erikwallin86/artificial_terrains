@@ -60,13 +60,10 @@ class Module():
         self.logger.info(f"  {info_string}")
 
     def start(self, **kwargs):
-        print("  # Start")
-        print(f"kwargs:{kwargs}")
         # Store kwargs
         self.kwargs = kwargs
         # Initialize loop generator
         self.loop_generator_instance = self.loop_generator()
-        print(f"self.loop_generator_instance:{self.loop_generator_instance}")
 
     @property
     def name(self):
@@ -76,10 +73,7 @@ class Module():
         """
         Default-beteende: returnera bara en gång, samma som __call_
         """
-        result = self.__call__(**self.kwargs)
-        print(f"result:{result}")
-
-        yield result
+        yield self.__call__(**self.kwargs)
 
     def __iter__(self):
         """
