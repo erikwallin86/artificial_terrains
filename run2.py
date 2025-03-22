@@ -30,6 +30,8 @@ def main():
         'size': 50,  # default
         'ppm': 2,  # default
         'extent': [-25, 25, -25, 25],  # default
+        'call_number': 0,
+        'call_total': 1,
     }
 
     # Extract general settings (not given by dicts)
