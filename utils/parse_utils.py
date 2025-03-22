@@ -11,7 +11,7 @@ def create_parser(parser=None, specific_args=[], positional=[]):
 
     # Common arguments
     parser.add_argument(
-        '--save-dir', type=str, default=None,
+        '--save-dir', type=str, default=None, required=True,
         help='Explicit save dir')
     parser.add_argument(
         '--settings-file', type=str, default=None,
