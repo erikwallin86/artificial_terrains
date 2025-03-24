@@ -21,6 +21,10 @@ class Basic(Module):
         elif isinstance(default, (float, int)):
             scale_list = [default]
 
+        # Make sure scale_list is a list
+        if isinstance(scale_list, (float, int)):
+            scale_list = [scale_list]
+
         info_dict = {}
         for i, x in enumerate(scale_list):
             scaling = 1.75/(1+x/68)

@@ -1,5 +1,7 @@
 from modules.data import Module
 import numpy as np
+from itertools import zip_longest
+
 
 
 class Loop(Module):
@@ -7,9 +9,24 @@ class Loop(Module):
     create_folder = False
 
     def start(self, default=None, n_loops=2, loop_id=None, call_total=None,
-              call_number=None, **kwargs):
-        # Length of the loop
-        self.n_loops = default if default is not None else n_loops
+              call_number=None, parameter=None, expression=None, values=None,
+              **kwargs):
+
+        # Handle if default is given a parameter=expression
+        if isinstance(default, str) and '=' in default:
+            parameter, expression = default.split('=')
+            values = eval(expression)
+            self.n_loops = len(values)
+        elif isinstance(default, int):
+            # Length of the loop
+            self.n_loops = default if default is not None else n_loops
+        else:
+            pass
+
+        # Store any parameter or values
+        self.parameter = parameter
+        self.values = values if values is not None else []
+
         # Create a instance of the generator
         self.loop_generator_instance = self.loop_generator()
 
@@ -22,7 +39,7 @@ class Loop(Module):
         self.call_number = call_number
 
     def loop_generator(self):
-        for call_number in range(self.n_loops):
+        for call_number, value in zip_longest(range(self.n_loops), self.values):
             # Custom print, as the debug_decorator prints don't work for the
             # generator setup. Also, here we loop over 'self.n_loops'
             self.logger.info(f"Run {self.name} {call_number+1}/{self.n_loops}")
@@ -39,4 +56,8 @@ class Loop(Module):
                 'call_number': call_number + self.call_number*self.n_loops,
                 'loop_id': loop_id,
             }
+
+            if self.parameter is not None and value is not None:
+                return_dict[self.parameter] = value
+
             yield return_dict
