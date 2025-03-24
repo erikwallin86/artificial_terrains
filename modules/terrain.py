@@ -1,7 +1,7 @@
 from modules.data import Module, debug_decorator
 import os
 import numpy as np
-
+import yaml
 
 class Save(Module):
     create_folder = False
@@ -21,6 +21,8 @@ class Save(Module):
             dirname = os.path.dirname(self.save_dir)
             self.save_dir = os.path.join(dirname, folder)
 
+        list_of_filenames = []
+
         # Create folder if needed
         if not os.path.isdir(self.save_dir):
             os.makedirs(self.save_dir)
@@ -29,6 +31,7 @@ class Save(Module):
         for i, terrain in enumerate(terrain_heap):
             filename = f'terrain{self.file_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
+            list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
 
@@ -36,8 +39,13 @@ class Save(Module):
         for i, terrain in enumerate(terrain_temp):
             filename = f'terrain_temp{self.file_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
+            list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
                 terrain.save(filename)
+
+        return {
+            'save_filenames': list_of_filenames
+            }
 
 
 class Load(Module):
@@ -325,6 +333,8 @@ class Plot(Module):
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
 
+        list_of_filenames = []
+
         # Use folder
         basename = os.path.basename(self.save_dir)
         if basename != folder:
@@ -339,6 +349,7 @@ class Plot(Module):
         for i, terrain in enumerate(terrain_heap):
             filename = f'terrain{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
+            list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
                 fig, ax = plot_terrain(terrain)
                 fig.savefig(filename, dpi=dpi)
@@ -349,8 +360,49 @@ class Plot(Module):
         for i, terrain in enumerate(terrain_temp):
             filename = f'terrain_temp{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
+            list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
                 fig, ax = plot_terrain(terrain)
                 fig.savefig(filename, dpi=dpi)
                 if exportmode:
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+
+        return {
+            'plot_filenames': list_of_filenames
+            }
+
+
+class SaveYaml(Module):
+    ''' Plot terrain '''
+    @debug_decorator
+    def __call__(self, default=None, overwrite=False,
+                 call_number=None, call_total=None,
+                 terrain_temp=[], terrain_heap=[],
+                 **kwargs):
+
+        extent = kwargs['extent']
+        print(f"type(extent):{type(extent)}")
+
+        # Initialize
+        if call_number == 0:
+            self.list_of_kwargs = []
+
+        # Collect data
+        self.list_of_kwargs.append(
+            {**kwargs,
+             'call_total': call_total,
+             'call_number': call_number,
+             })
+
+        # Return, except on last call
+        if call_number+1 != call_total:
+            return
+
+        # Save
+        filename = 'data.yml'
+        filename = os.path.join(self.save_dir, filename)
+        with open(filename, 'w') as outfile:
+            yaml.dump(
+                self.list_of_kwargs, outfile,
+                default_flow_style=None,
+                allow_unicode=True,)
