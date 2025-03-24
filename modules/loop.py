@@ -8,19 +8,18 @@ class Loop(Module):
 
     def start(self, default=None, n_loops=2, loop_id=None, call_total=None,
               call_number=None, **kwargs):
+        # Length of the loop
         self.n_loops = default if default is not None else n_loops
+        # Create a instance of the generator
         self.loop_generator_instance = self.loop_generator()
 
+        # Initialize a 'loop_id', and number of digits to use in it
         self.loop_id = "" if loop_id is None else loop_id
         self.digits = int(2 + np.log10(self.n_loops))
 
         # We save the raw input
         self.call_total = call_total
         self.call_number = call_number
-
-        self.logger.info(f"INIT {self.name}")
-        print(f"##### self.call_total:{self.call_total}")
-        print(f"##### self.call_number:{self.call_number}")
 
     def loop_generator(self):
         for call_number in range(self.n_loops):
