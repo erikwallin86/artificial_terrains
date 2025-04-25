@@ -171,6 +171,7 @@ class Camera(Module):
                  size=None,
                  ppm=None,
                  resolution=None,
+                 angle=45,
                  **_):
         from utils.artificial_shapes import determine_size_and_resolution
         size_x, size_y, N_x, N_y = determine_size_and_resolution(
@@ -179,8 +180,12 @@ class Camera(Module):
         from utils.Blender import (
             setup_top_camera, set_view_to_camera, setup_angled_camera)
 
-        camera = default if default is not None else camera
-        assert camera in ['top', 'angled']
+        if isinstance(default, str):
+            camera = default if default is not None else camera
+            assert camera in ['top', 'angled']
+        elif isinstance(default, (int, float)):
+            camera = 'angled'
+            angle = default
 
         # Get latest terrain from dict/heap
         terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
@@ -193,6 +198,7 @@ class Camera(Module):
         elif camera == 'angled':
             middle_z = terrain.array[int(terrain.array.shape[0]/2), int(terrain.array.shape[1]/2)]
             camera = setup_angled_camera(
+                angle=angle,
                 center=[0, 0, middle_z], distance=size[0]*2, **camera_kwargs)
         set_view_to_camera()
 
