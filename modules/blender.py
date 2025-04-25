@@ -317,7 +317,11 @@ class Render(Module):
         # filename = default if default is not None else filename
 
         # Possibly set folder from 'default'.
-        folder = default if default is not None else folder
+        if default is not None and '.' in default:
+            filename = default
+        elif default is not None:
+            folder = default
+
         # Use folder
         basename = os.path.basename(self.save_dir)
         if basename != folder:
