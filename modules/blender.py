@@ -380,6 +380,8 @@ class Holdout(Module):
         from utils.Blender import add_holdout_plane
         terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
         add_holdout_plane(terrain.array)
+        import bpy
+        bpy.context.scene.render.film_transparent = True
 
 
 class AddRocks(Module):
