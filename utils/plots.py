@@ -403,7 +403,7 @@ def plot_hf(hf_array, extent, ax=None, fig=None,
 
 def plot_terrain(terrain, ax=None, fig=None,
                  cmap=cc.cm.dimgray,
-                 label='Height (m)', **_):
+                 label='Height (m)', **kwargs):
     '''
     plot hf
     '''
@@ -412,7 +412,7 @@ def plot_terrain(terrain, ax=None, fig=None,
 
     # Plot image
     im = ax.imshow(terrain.array.T, origin='lower', extent=terrain.extent,
-                   cmap=cmap)
+                   cmap=cmap, **kwargs)
     fig.colorbar(im, label=label)
 
     return fig, ax

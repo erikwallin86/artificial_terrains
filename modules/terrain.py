@@ -327,6 +327,7 @@ class Plot(Module):
     def __call__(self, default=None, overwrite=False,
                  terrain_temp=[], terrain_heap=[], folder='Plot',
                  exportmode=False, dpi=400,
+                 vmin=None, vmax=None,
                  call_number=None, call_total=None, **kwargs):
         from utils.plots import plot_terrain, save_all_axes
 
@@ -351,7 +352,7 @@ class Plot(Module):
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
-                fig, ax = plot_terrain(terrain)
+                fig, ax = plot_terrain(terrain, vmin=vmin, vmax=vmax)
                 fig.savefig(filename, dpi=dpi)
                 if exportmode:
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
@@ -362,7 +363,7 @@ class Plot(Module):
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
-                fig, ax = plot_terrain(terrain)
+                fig, ax = plot_terrain(terrain, vmin=vmin, vmax=vmax)
                 fig.savefig(filename, dpi=dpi)
                 if exportmode:
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
