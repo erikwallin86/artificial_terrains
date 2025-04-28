@@ -102,6 +102,7 @@ class WeightedSum(Module):
     @debug_decorator
     def __call__(self, weights=[5, 8, 0.1], terrain_temp=None,
                  terrain_heap=None, last=None,
+                 overwrite=False,
                  default=None, **_):
 
         # Initialize lists
