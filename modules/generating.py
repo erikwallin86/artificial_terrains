@@ -172,19 +172,24 @@ class Holes(Module):
 
     ''' Test to make some rocks '''
     @debug_decorator
-    def __call__(self, size_list=[0.5, 1, 2, 4],
+    def __call__(self,
+                 size_list=[0.5, 1, 2, 4],
+                 heights=None,
                  fraction=0.8,
                  default=None,
                  terrain_temp=None,
                  **kwargs):
         size_list = default if default is not None else size_list
 
+        if heights is None:
+            heights = np.divide(size_list, 4)
+
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
         from utils.noise import get_simplex2
         from utils.terrains import Terrain
 
-        for i, x in enumerate(size_list):
+        for i, (x, height) in enumerate(zip(size_list, heights)):
             info_dict = {}
             scaling = 1.75/(1+x*0.75)
             simplex_noise = 1/scaling * get_simplex2(
@@ -203,7 +208,7 @@ class Holes(Module):
                 simplex_noise - min_value*fraction, -min_value*(1-fraction))
             simplex_noise[pick] = 0
             # Scale heights
-            simplex_noise = simplex_noise * (x/8)
+            simplex_noise = simplex_noise * height
 
             terrain = Terrain.from_array(simplex_noise, **info_dict)
             terrain_temp.append(terrain)
