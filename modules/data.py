@@ -463,7 +463,22 @@ class Random(Module):
         # Loop through parameters, and run their distribution function
         for name, distribution in name_to_distribution_mapping.items():
             if name in to_generate:
-                pipe[name] = distribution(size=number_of_values)
+                lookup_name = f'{name}_lookup_function'
+                if lookup_name in kwargs:
+                    # Get values using lookup array and list of positions
+                    print(f"lookup_name:{lookup_name}")
+                    from utils.interpolator import Interpolator
+                    terrain = kwargs[lookup_name]
+                    interpolator = Interpolator(terrain.array, terrain.extent)
+                    position = pipe['position']
+                    print(f"position.shape:{position.shape}")
+                    sampled_values = interpolator.interpolator(position)
+                    pipe[name] = sampled_values
+                    # z = interpolator.interpolator(np.array([x, y]).T)
+
+                else:
+                    # Simply call the distribution
+                    pipe[name] = distribution(size=number_of_values)
 
         return pipe
 
