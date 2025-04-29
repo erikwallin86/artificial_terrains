@@ -84,6 +84,9 @@ class AsLookupFor(Module):
                  parameter='width',
                  default=None, last=None, **_):
         ''' Use terrain as function f(x, y) to sample values given positions '''
+        # Use default input for the parameter
+        parameter = default if default is not None else parameter
+
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
             terrain_temp, terrain_heap, print_fn=print)

@@ -466,15 +466,12 @@ class Random(Module):
                 lookup_name = f'{name}_lookup_function'
                 if lookup_name in kwargs:
                     # Get values using lookup array and list of positions
-                    print(f"lookup_name:{lookup_name}")
                     from utils.interpolator import Interpolator
                     terrain = kwargs[lookup_name]
                     interpolator = Interpolator(terrain.array, terrain.extent)
                     position = pipe['position']
-                    print(f"position.shape:{position.shape}")
                     sampled_values = interpolator.interpolator(position)
                     pipe[name] = sampled_values
-                    # z = interpolator.interpolator(np.array([x, y]).T)
 
                 else:
                     # Simply call the distribution
