@@ -452,27 +452,18 @@ class Random(Module):
                 pipe['position'] = self.points_from_probability(
                     position_probability_2d, number_of_values)
 
-        # Generate width
-        if 'width' in to_generate:
-            pipe['width'] = width_distribution(size=number_of_values)
+        name_to_distribution_mapping = {
+            'width': width_distribution,
+            'height': height_distribution,
+            'aspect': aspect_distribution,
+            'yaw_deg': yaw_deg_distribution,
+            'pitch_deg': pitch_deg_distribution,
+        }
 
-        # Generate height
-        if 'height' in to_generate:
-            pipe['height'] = height_distribution(size=number_of_values)
-
-        # Generate aspect
-        if 'aspect' in to_generate:
-            pipe['aspect'] = aspect_distribution(size=number_of_values)
-
-        # Generate yaw
-        if 'yaw_deg' in to_generate:
-            pipe['yaw_deg'] = yaw_deg_distribution(size=(number_of_values))
-
-        # Generate pitch
-        if 'pitch_deg' in to_generate:
-            pipe['pitch_deg'] = pitch_deg_distribution(size=(number_of_values))
-
-        print(f"pipe:{pipe}")
+        # Loop through parameters, and run their distribution function
+        for name, distribution in name_to_distribution_mapping.items():
+            if name in to_generate:
+                pipe[name] = distribution(size=number_of_values)
 
         return pipe
 
