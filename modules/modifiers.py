@@ -76,6 +76,21 @@ class AsProbability(Module):
         return {'position_probability_2d': terrain}
 
 
+class AsLookupFor(Module):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 parameter='width',
+                 default=None, last=None, **_):
+        ''' Use terrain as function f(x, y) to sample values given positions '''
+        # Get and remove terrain from dict/heap
+        terrain = get_terrain(
+            terrain_temp, terrain_heap, print_fn=print)
+
+        return {f'{parameter}_lookup_function': terrain}
+
+
 class AsFactor(Module):
     create_folder = False
 
