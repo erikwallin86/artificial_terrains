@@ -53,7 +53,7 @@ class Load(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, file_list=None, default=None,
+    def __call__(self, file_list=None, default=None, overwrite=False,
                  call_number=None, call_total=None, **pipe):
         """
         Load terrain files into structured lists.
