@@ -91,12 +91,10 @@ class Generative(Module):
         }
 
         if reset_input:
-            pipe['position'] = None
-            pipe['height'] = None
-            pipe['yaw_deg'] = None
-            pipe['width'] = None
-            pipe['aspect'] = None
-            pipe['pitch_deg'] = None
+            for parameter in ['position', 'height', 'yaw_deg',
+                              'width', 'aspect', 'pitch_deg']:
+                if parameter in pipe:
+                    pipe[parameter] = None
 
         return pipe
 
