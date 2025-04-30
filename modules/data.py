@@ -4,7 +4,7 @@ from utils.terrains import Terrain
 from utils.debug import debug
 from utils.utils import Distribution
 from utils.plots import save_all_axes
-
+import colorcet as cc
 
 def debug_decorator(func):
     '''
@@ -324,7 +324,10 @@ class PlotObstacles(Module):
 
         extent = [-size/2, size/2, -size/2, size/2]  # TODO: Temporary fix
 
-        fig, ax = plot_obstacles(obstacles, xlim=extent[:2], ylim=extent[:-2])
+        fig, ax = plot_obstacles(
+            obstacles, xlim=extent[:2], ylim=extent[:-2],
+            color=obstacles.height, cmap=cc.cm.coolwarm,
+        )
         fig.savefig(filename)
         if exportmode:
             save_all_axes(fig, filename, delta=0.0, dpi=dpi)

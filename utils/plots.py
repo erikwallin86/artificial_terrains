@@ -249,6 +249,9 @@ def plot_obstacles(
         filename=None, fig_ax=None,
         xlim=None, ylim=None,
         dpi=400, color='radius',
+        cmap=cc.cm.rainbow,
+        cbar_label='Height (m)',
+        symmetric_vlims=True,
 ):
     '''
     Plot obstacles from arrays of position and radius
@@ -283,6 +286,13 @@ def plot_obstacles(
     else:
         c = color
 
+    kwargs = {}
+    if symmetric_vlims:
+        vbound = max(np.max(color), -np.min(color))  # ensures 0 is in the center
+        vmin, vmax = -vbound, vbound
+        kwargs['vmin'] = vmin
+        kwargs['vmax'] = vmax
+
     # Draw canvas to be able to get size
     xlim = ax.get_xlim()
     ax.set_aspect(1)
@@ -292,7 +302,8 @@ def plot_obstacles(
     # Plot points
     factor = ((2 * ax.get_window_extent().width/ax_width * 72./fig.dpi) ** 2)
     s = factor * radius**2
-    ax.scatter(*position, edgecolor='none', s=s, cmap=cc.cm.rainbow, c=c)
+    sc = ax.scatter(*position, edgecolor='none', s=s, cmap=cmap, c=c, alpha=0.9, **kwargs)
+    fig.colorbar(sc, ax=ax, label=cbar_label)
 
     if filename is not None:
         fig.savefig(filename, dpi=dpi)
