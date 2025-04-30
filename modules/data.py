@@ -3,6 +3,7 @@ import numpy as np
 from utils.terrains import Terrain
 from utils.debug import debug
 from utils.utils import Distribution
+from utils.plots import save_all_axes
 
 
 def debug_decorator(func):
@@ -304,10 +305,11 @@ class PlotObstacles(Module):
     def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
                  width=[5], aspect=[1], pitch_deg=[0],
                  filename='obstacles.png', default=None,
+                 exportmode=False, dpi=200,
                  **kwargs):
         # Setup filename
         filename = default if default is not None else filename
-        filename = os.path.join(self.save_dir_original, filename)
+        filename = os.path.join(self.save_dir, filename)
 
         from utils.obstacles import Obstacles
         from utils.plots import plot_obstacles
@@ -322,7 +324,10 @@ class PlotObstacles(Module):
 
         extent = [-size/2, size/2, -size/2, size/2]  # TODO: Temporary fix
 
-        plot_obstacles(obstacles, filename, xlim=extent[:2], ylim=extent[:-2])
+        fig, ax = plot_obstacles(obstacles, xlim=extent[:2], ylim=extent[:-2])
+        fig.savefig(filename)
+        if exportmode:
+            save_all_axes(fig, filename, delta=0.0, dpi=dpi)
 
 
 class SaveObstacles(Module):
