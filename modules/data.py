@@ -539,11 +539,17 @@ class LoadObstacles(Module):
                  default=None,
                  call_number=None,
                  call_total=None,
+                 exportmode=None,
+                 overwrite=False,
                  **pipe):
         filename = default if default is not None else filename
 
         from utils.obstacles import Obstacles
-        obstacles = Obstacles.from_numpy(filename)
+
+        if 'yaml' in filename:
+            obstacles = Obstacles.from_yaml(filename)            
+        else:
+            obstacles = Obstacles.from_numpy(filename)
 
         # Filter
         pick = (obstacles.height > 0.29).squeeze()

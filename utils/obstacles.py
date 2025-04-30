@@ -1,4 +1,5 @@
 import numpy as np
+import yaml
 
 
 class Obstacles:
@@ -182,6 +183,24 @@ class Obstacles:
             return cls.from_arrays(dict_of_arrays)
 
     @classmethod
+    def from_yaml(cls, filename):
+        with open(filename, 'r') as f:
+            dict_of_lists = yaml.safe_load(f)
+
+        # Convert lists back to NumPy arrays with the expected shapes
+        dict_of_arrays = {
+            # transpose back to shape (2, N)
+            'position': np.array(dict_of_lists['position']).T,
+            'width': np.array(dict_of_lists['width']).reshape(1, -1),
+            'height': np.array(dict_of_lists['height']).reshape(1, -1),
+            'yaw_deg': np.array(dict_of_lists['yaw_deg']).reshape(1, -1),
+            'aspect': np.array(dict_of_lists['aspect']).reshape(1, -1),
+            'pitch_deg': np.array(dict_of_lists['pitch_deg']).reshape(1, -1),
+        }
+
+        return cls.from_arrays(dict_of_arrays)
+
+    @classmethod
     def from_limits(cls, *args, **kwargs):
         ''' Return Obstacles given a terrain class '''
         obstacles_obj = cls()
@@ -211,7 +230,6 @@ class Obstacles:
             'aspect': self.aspect.flatten().tolist(),
             'pitch_deg': self.pitch_deg.flatten().tolist(),
         }
-        import yaml
         with open(filename, 'w') as f:
             yaml.dump(dict_of_lists, f, sort_keys=False)
 
