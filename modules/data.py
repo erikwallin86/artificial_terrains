@@ -552,8 +552,8 @@ class LoadObstacles(Module):
             obstacles = Obstacles.from_numpy(filename)
 
         # Filter
-        pick = (obstacles.height > 0.29).squeeze()
-        obstacles = obstacles[pick]
+        # pick = (obstacles.height > 0.29).squeeze()
+        # obstacles = obstacles[pick]
 
         # Add to pipe, in same manner as the 'Random' module does
 
