@@ -146,3 +146,55 @@ class Sine(Generative):
         return super().__call__(
             *args, function_name='sine', call_number=call_number,
             call_total=call_total, **kwargs)
+
+
+class Function(Module):
+    create_folder = False
+    '''
+    Execute given x, y function
+    '''
+    @debug_decorator
+    def __call__(
+            self,
+            expression='x',
+            terrain_temp=None, default=None, overwrite=None,
+            size=None, resolution=None, ppm=None, extent=None,
+            **kwargs):
+        '''
+        '''
+        expression = default if default is not None else expression
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+
+        # Setup sizes etc.
+        from utils.artificial_shapes import determine_extent_and_resolution
+        # Get size and resolution from any two tuples: ppm, size, resolution
+        extent, (N_x, N_y) = determine_extent_and_resolution(
+            ppm, size, resolution, extent)
+
+        from utils.artificial_shapes import get_meshgrid
+
+        # Get meshgrid
+        X, Y = get_meshgrid(extent, N_x, N_y)
+
+        safe_locals = {
+            'x': X,
+            'y': Y,
+            'np': np  # Optional: allow np.sin, np.sqrt, etc.
+        }
+
+        # Evaluate the expression
+        heights_array = eval(expression, {"__builtins__": {}}, safe_locals)
+
+        terrain = Terrain.from_array(heights_array, extent=extent)
+        # desctiption = f'{kwargs.__repr__()}'
+        desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
+        terrain_temp.append(terrain)
+
+        pipe = {
+            'terrain_temp': terrain_temp,
+        }
+
+        return pipe
+
+
