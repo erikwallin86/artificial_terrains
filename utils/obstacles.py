@@ -201,6 +201,20 @@ class Obstacles:
 
         np.savez(filename, **dict_of_arrays)
 
+    def save_yaml(self, filename):
+        # Convert numpy arrays to lists so they can be serialized to YAML
+        dict_of_lists = {
+            'position': self.position.T.tolist(),  # transpose back to original shape
+            'width': self.width.flatten().tolist(),
+            'height': self.height.flatten().tolist(),
+            'yaw_deg': self.yaw_deg.flatten().tolist(),
+            'aspect': self.aspect.flatten().tolist(),
+            'pitch_deg': self.pitch_deg.flatten().tolist(),
+        }
+        import yaml
+        with open(filename, 'w') as f:
+            yaml.dump(dict_of_lists, f, sort_keys=False)
+
     def save_pickle(self, filename, append=False):
         raise NotImplementedError
 

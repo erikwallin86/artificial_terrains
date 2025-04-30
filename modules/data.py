@@ -331,10 +331,15 @@ class SaveObstacles(Module):
     def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
                  width=[5], aspect=[1], pitch_deg=[0],
                  filename='obstacles.npz', default=None,
+                 overwrite=False,
                  **kwargs):
         # Setup filename
         filename = default if default is not None else filename
         filename = os.path.join(self.save_dir, filename)
+
+        # Skip if already exists, unless 'overwrite'
+        if os.path.exists(filename) and not overwrite:
+            return
 
         from utils.obstacles import Obstacles
         obstacles = Obstacles()
@@ -346,7 +351,10 @@ class SaveObstacles(Module):
         obstacles.aspect = np.array(aspect).reshape(1, -1)
         obstacles.pitch_deg = np.array(pitch_deg).reshape(1, -1)
 
-        obstacles.save_numpy(filename)
+        if '.yaml' in filename:
+            obstacles.save_yaml(filename)
+        else:
+            obstacles.save_numpy(filename)
 
 
 class Set(Module):
