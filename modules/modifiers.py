@@ -34,6 +34,38 @@ class Scale(Module):
             terrain.array *= factor
 
 
+class Add(Module):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 term=1, default=None, last=None, **_):
+        term = default if default is not None else term
+
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        # Scale the terrains
+        for terrain in terrains:
+            terrain.array += term
+
+
+class Absolute(Module):
+    ''' Apply the absolute operation on the terrain '''
+
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 default=None, last=None, **_):
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        # Scale the terrains
+        for terrain in terrains:
+            terrain.array = np.absolute(terrain.array)
+
+
 class Around(Module):
     create_folder = False
 
