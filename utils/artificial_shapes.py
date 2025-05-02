@@ -232,9 +232,11 @@ class DonutFunction():
 
 
 class PlaneFunction():
-    def __init__(self, pitch_deg=0, yaw_deg=0, **_):
+    def __init__(self, position=(0, 0), pitch_deg=0, yaw_deg=0, **_):
         self.pitch_deg = pitch_deg
         self.yaw_deg = yaw_deg
+        self.pos = position
+        # TODO: Fixa så att planet går igenom punkten!
 
     def __call__(self, x, y):
         # Rotate
