@@ -342,10 +342,27 @@ class RenderSegmentation(Module):
     '''
     @debug_decorator
     def __call__(self, filename='render.png', default=None,
-                 overwrite=False,
+                 overwrite=False, folder='RenderSegmentation',
                  **_):
         from utils.Blender import render_eevee, get_depth
         from utils.Blender import setup_segmentation_render
+
+        # Possibly set folder from 'default'.
+        if default is not None and '.' in default:
+            filename = default
+        elif default is not None:
+            folder = default
+
+        # Use folder
+        basename = os.path.basename(self.save_dir)
+        if basename != folder:
+            dirname = os.path.dirname(self.save_dir)
+            self.save_dir = os.path.join(dirname, folder)
+
+        # Create folder if needed
+        if not os.path.isdir(self.save_dir):
+            os.makedirs(self.save_dir)
+
         setup_segmentation_render()
 
         # Render. This can be skipped
