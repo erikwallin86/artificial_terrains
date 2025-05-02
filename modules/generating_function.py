@@ -180,6 +180,7 @@ class Function(Module):
         safe_locals = {
             'x': X,
             'y': Y,
+            'r': np.sqrt(np.square(X) + np.square(Y)),
             'np': np  # Optional: allow np.sin, np.sqrt, etc.
         }
 
