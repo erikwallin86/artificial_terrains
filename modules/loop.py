@@ -72,7 +72,7 @@ class Unloop(Module):
     ''' Test... '''
     create_folder = False
 
-    def start(self, default=None, call_total=None, loop_id=None,
+    def start(self, default=None, call_total=None, loop_id=None, loop_id_r=None,
               call_number=None, parameter=None, expression=None, values=None,
               **kwargs):
 
@@ -80,25 +80,12 @@ class Unloop(Module):
         self.call_total = call_total
         self.call_number = call_number
         self.loop_id = loop_id
-
-        print(f"(loop_id, call_number, call_total):{(loop_id, call_number, call_total)}")
-
-        # Create a instance of the generator
-        # if call_number < 2:
-        #     self.loop_generator_instance = self.no_loop()
-        # else:
-        #     self.loop_generator_instance = self.loop_generator()
+        self.loop_id_r = loop_id_r
 
         self.loop_generator_instance = self.loop_generator()
 
-    def no_loop(self):
-        print("Running, but not yielding anything")
-        return
-        yield "Hack, as this is never reached"
-
-
     def loop_generator(self):
-        print(f"(self.loop_id, self.call_number, self.call_total):{(self.loop_id, self.call_number, self.call_total)}")
+        print(f"{(self.loop_id, self.loop_id_r, self.call_number, self.call_total)}")
         if self.call_number < 3:
             print("## Return")
             return
