@@ -8,7 +8,7 @@ class Loop(Module):
     ''' Basic loop '''
     create_folder = False
 
-    def start(self, default=None, n_loops=2, loop_id=None, call_total=None,
+    def start(self, default=None, n_loops=2, loop_id=None, loop_id_r=None, call_total=None,
               call_number=None, parameter=None, expression=None, values=None,
               **kwargs):
 
@@ -32,6 +32,8 @@ class Loop(Module):
 
         # Initialize a 'loop_id', and number of digits to use in it
         self.loop_id = "" if loop_id is None else loop_id
+        # 'reverse' loop_id, showing remaining calls
+        self.loop_id_r = "" if loop_id_r is None else loop_id_r
         self.digits = int(2 + np.log10(self.n_loops))
 
         # We save the raw input
@@ -47,6 +49,8 @@ class Loop(Module):
             # Update loop-id, to be used in filenames
             loop_id = self.loop_id + f"_{call_number:0{self.digits}d}"
 
+            loop_id_r = self.loop_id_r + f"_{self.n_loops - call_number - 1:0{self.digits}d}"
+
             # Construct return_dict, and fix the call_total and call_number
             # in case of several loops.
             # call_total: multiply with length of the number of loops in this
@@ -55,6 +59,7 @@ class Loop(Module):
                 'call_total': self.call_total * self.n_loops,
                 'call_number': call_number + self.call_number*self.n_loops,
                 'loop_id': loop_id,
+                'loop_id_r': loop_id_r,
             }
 
             if self.parameter is not None and value is not None:
