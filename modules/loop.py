@@ -72,18 +72,43 @@ class Unloop(Module):
     ''' Test... '''
     create_folder = False
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Create a dict which will be used to merge the pipes from the
+        # 'collected loops'
+        self.new_pipe = {}
+
     def start(self, default=None, call_total=None, loop_id=None, loop_id_r=None,
               call_number=None, parameter=None, expression=None, values=None,
+              merge_function=None,  # TODO: Implement?
               **kwargs):
 
         # We save the raw input
         self.call_total = call_total
-        self.call_number = call_number
+
         self.loop_id = loop_id
         self.loop_id_r = loop_id_r
 
         self.loop_generator_instance = self.loop_generator()
 
+        # We 'restart' with the call-number
+        self.call_number = 0
+
+        # Merge data
+        for k, v in kwargs.items():
+            if k == 'terrain_temp':
+                if 'terrain_temp' in self.new_pipe:
+                    self.new_pipe['terrain_temp'].extend(v)
+                else:
+                    self.new_pipe['terrain_temp'] = v
+            elif k == 'terrain_heap':
+                if 'terrain_heap' in self.new_pipe:
+                    self.new_pipe['terrain_heap'].extend(v)
+                else:
+                    self.new_pipe['terrain_heap'] = v
+            else:
+                self.new_pipe[k] = v
+  
     def loop_generator(self):
         remaining_on_last_loop = int(self.loop_id_r.split("_")[-1])
 
@@ -96,11 +121,30 @@ class Unloop(Module):
             # all the collected data, and (finally) pass control along to the next module
             return
         else:
-            # Update the followng
-            self.info(f"#### self.call_number:{self.call_number}")
-            self.info(f"self.call_total:{self.call_total}")
+            # Calculate 'remaining' loop id
+            loop_id = self.loop_id.rsplit('_', maxsplit=1)[0]
+            loop_id_r = self.loop_id_r.rsplit('_', maxsplit=1)[0]
+
+            # Construct a list of remaining iterations in each loop
+            remaining = [int(id_r) for id_r in loop_id_r.split("_") if id_r]
+            # Use this to calculated the remaining number of calls: call_total
+            if len(remaining) > 0:
+                call_total = np.prod(np.array(remaining)) + 1
+            else:
+                call_total = 1
+
             result = {
-                'loop_id': self.loop_id.rsplit('_', maxsplit=1)[0],
-                'loop_id_r': self.loop_id_r.rsplit('_', maxsplit=1)[0],
+                'loop_id': loop_id,
+                'loop_id_r': loop_id_r,
+                'call_number': self.call_number,
+                'call_total': call_total,
             }
+
+            self.call_number += 1
+
+            # Update result, and reset 'new_pipe'
+            result = {**self.new_pipe, **result}
+            # Reset
+            self.new_pipe = {}
+
             yield result
