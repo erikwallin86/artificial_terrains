@@ -85,7 +85,6 @@ class Unloop(Module):
         self.loop_generator_instance = self.loop_generator()
 
     def loop_generator(self):
-        print(f"{(self.loop_id, self.loop_id_r, self.call_number, self.call_total)}")
         remaining_on_last_loop = int(self.loop_id_r.split("_")[-1])
 
         if remaining_on_last_loop != 0:
@@ -98,8 +97,8 @@ class Unloop(Module):
             return
         else:
             # Update the followng
-            print(f"#### self.call_number:{self.call_number}")
-            print(f"self.call_total:{self.call_total}")
+            self.info(f"#### self.call_number:{self.call_number}")
+            self.info(f"self.call_total:{self.call_total}")
             result = {
                 'loop_id': self.loop_id.rsplit('_', maxsplit=1)[0],
                 'loop_id_r': self.loop_id_r.rsplit('_', maxsplit=1)[0],
