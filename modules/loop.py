@@ -87,7 +87,12 @@ class Unloop(Module):
     def loop_generator(self):
         print(f"{(self.loop_id, self.loop_id_r, self.call_number, self.call_total)}")
         if self.call_number < 3:
-            print("## Return")
+            # Return, i.e. don't be iterated over.
+            # The effect is that the 'next module' will not be called,
+            # and instead we return to the previous 'loop' module.
+            # The idea is that we do this to 'collect' data, until the
+            # last value from the loop. Then, we somehow 'merge'
+            # all the collected data, and (finally) pass control along to the next module
             return
         else:
             yield {}
