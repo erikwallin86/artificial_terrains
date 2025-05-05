@@ -86,7 +86,9 @@ class Unloop(Module):
 
     def loop_generator(self):
         print(f"{(self.loop_id, self.loop_id_r, self.call_number, self.call_total)}")
-        if self.call_number < 3:
+        remaining_on_last_loop = int(self.loop_id_r.split("_")[-1])
+
+        if remaining_on_last_loop != 0:
             # Return, i.e. don't be iterated over.
             # The effect is that the 'next module' will not be called,
             # and instead we return to the previous 'loop' module.
@@ -95,4 +97,11 @@ class Unloop(Module):
             # all the collected data, and (finally) pass control along to the next module
             return
         else:
-            yield {}
+            # Update the followng
+            print(f"#### self.call_number:{self.call_number}")
+            print(f"self.call_total:{self.call_total}")
+            result = {
+                'loop_id': self.loop_id.rsplit('_', maxsplit=1)[0],
+                'loop_id_r': self.loop_id_r.rsplit('_', maxsplit=1)[0],
+            }
+            yield result
