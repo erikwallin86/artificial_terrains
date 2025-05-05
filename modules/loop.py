@@ -61,3 +61,41 @@ class Loop(Module):
                 return_dict[self.parameter] = value
 
             yield return_dict
+
+
+class Unloop(Module):
+    ''' Test... '''
+    create_folder = False
+
+    def start(self, default=None, call_total=None, loop_id=None,
+              call_number=None, parameter=None, expression=None, values=None,
+              **kwargs):
+
+        # We save the raw input
+        self.call_total = call_total
+        self.call_number = call_number
+        self.loop_id = loop_id
+
+        print(f"(loop_id, call_number, call_total):{(loop_id, call_number, call_total)}")
+
+        # Create a instance of the generator
+        # if call_number < 2:
+        #     self.loop_generator_instance = self.no_loop()
+        # else:
+        #     self.loop_generator_instance = self.loop_generator()
+
+        self.loop_generator_instance = self.loop_generator()
+
+    def no_loop(self):
+        print("Running, but not yielding anything")
+        return
+        yield "Hack, as this is never reached"
+
+
+    def loop_generator(self):
+        print(f"(self.loop_id, self.call_number, self.call_total):{(self.loop_id, self.call_number, self.call_total)}")
+        if self.call_number < 3:
+            print("## Return")
+            return
+        else:
+            yield {}
