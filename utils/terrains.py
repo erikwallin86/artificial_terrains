@@ -194,3 +194,16 @@ def split_terrain_blocks(terrain_list, num_splits_row, num_splits_col):
     blocks = np.array(list_of_blocks)
 
     return blocks
+
+
+def assign_grid_indices(terrains):
+    centers = [t.position for t in terrains]
+    x_coords = sorted(set(x for x, _ in centers))
+    y_coords = sorted(set(y for _, y in centers), reverse=False)
+
+    x_map = {x: i for i, x in enumerate(x_coords)}
+    y_map = {y: j for j, y in enumerate(y_coords)}
+
+    grid_indices = [(x_map[x], y_map[y]) for x, y in centers]
+
+    return grid_indices

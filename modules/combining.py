@@ -133,3 +133,48 @@ class WeightedSum(Module):
             'terrain_temp': terrain_temp,
             'terrain_heap': terrain_heap,
             }
+
+
+class Stack(Module):
+    ''' Place terrains side by side '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=None, terrain_heap=None,
+                 default=None, last=None, **_):
+        '''
+        Operates on the 'most recent' list. 
+        '''
+        # Initialize lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_heap = [] if terrain_heap is None else terrain_heap
+
+        if last is not None and last > 0:
+            # When e.g. taking the last two, the slice is [-2:]
+            # So here we make sure this is negative
+            last = -last
+
+        from utils.utils import get_terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last=last, remove=True,
+            print_fn=self.info)
+
+        from utils.terrains import assign_grid_indices
+        from utils.terrains import merge_terrain_blocks
+
+        # Construct grid-indices from terrain extents
+        grid_indices = assign_grid_indices(terrains)
+        index_to_terrain = {}
+        for grid_index, terrain in zip(grid_indices, terrains):
+            index_to_terrain[grid_index] = [terrain]
+
+        # Add the merged terrain to the primary list
+        merged_terrain_list = merge_terrain_blocks(index_to_terrain)
+        terrain_heap.extend(merged_terrain_list)
+
+        # We need to return these in case we have emptited some list
+        # (made it a new list?), as then the existing list is not 'updated'
+        return {
+            'terrain_temp': terrain_temp,
+            'terrain_heap': terrain_heap,
+        }

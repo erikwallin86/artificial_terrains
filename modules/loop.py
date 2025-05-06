@@ -105,9 +105,9 @@ class Unloop(Module):
 
     def start(self, default=None, call_total=None, loop_id=None, loop_id_r=None,
               call_number=None, parameter=None, expression=None, values=None,
+              overwrite=False,  # just to keep it from entering 'pipe'
               merge_function=None,  # TODO: Implement?
               **kwargs):
-
         # We save the raw input
         self.call_total = call_total
 
