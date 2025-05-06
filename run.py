@@ -7,11 +7,12 @@ try:
     if dir not in sys.path:
         sys.path.append(dir)
 except Exception:
-    pass
+    using_blender = False
 else:
     from modules.blender import fix_blender_argv, fix_blender_path
     fix_blender_path()
     fix_blender_argv()
+    using_blender = True
 
 from utils.parse_utils import create_parser, get_args_combined_with_settings
 from modules.modules import MODULES
@@ -39,6 +40,10 @@ def main():
         if key not in MODULES.keys():
             logger.info(f"Invalid choice {key}. ({MODULES.keys()})")
             exit(1)
+
+    if using_blender:
+        # Prepend 'BasicSetup' module
+        args.modules = [('BasicSetup', None)] + args.modules
 
     pipe = {
         'size': 50,  # default
