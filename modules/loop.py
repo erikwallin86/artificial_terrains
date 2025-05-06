@@ -20,6 +20,23 @@ class Loop(Module):
         elif isinstance(default, int):
             # Length of the loop
             self.n_loops = default if default is not None else n_loops
+        elif isinstance(default, str) and 'x' in default:
+            try:
+                a, b = map(int, default.lower().split('x'))
+                self.n_loops = a * b
+            except ValueError:
+                raise ValueError(f"Invalid format for default: {default}. Expected format like '2x3'.")
+            else:
+                # Construct a list of extent 'edges'
+                x_min, x_max, y_min, y_max = kwargs['extent']
+                x_split = np.linspace(x_min, x_max, a+1).astype(float).tolist()
+                y_split = np.linspace(y_min, y_max, b+1).astype(float).tolist()
+                # Construct a list of new extents
+                self.list_of_new_extents = []
+                for i in range(a):
+                    for j in range(b):
+                        extent = x_split[i:i+2] + y_split[j:j+2]
+                        self.list_of_new_extents.append(extent)
         else:
             pass
 
@@ -61,6 +78,14 @@ class Loop(Module):
                 'loop_id': loop_id,
                 'loop_id_r': loop_id_r,
             }
+
+            # Possibly take new extent etc. from list
+            try:
+                extent = self.list_of_new_extents[call_number]
+                return_dict['extent'] = extent
+                return_dict['size'] = [extent[1] - extent[0], extent[3] - extent[2]]
+            except AttributeError:
+                pass
 
             if self.parameter is not None and value is not None:
                 return_dict[self.parameter] = value
