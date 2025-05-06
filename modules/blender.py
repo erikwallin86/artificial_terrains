@@ -48,7 +48,7 @@ class Ground(Module):
         from utils.Blender import grid_from_array
 
         name = 'Ground' + self.file_id
-        grid_obj = grid_from_array(terrain.array, name=name, size=terrain.size)
+        grid_obj = grid_from_array(terrain.array, name=name, size=terrain.size, center=terrain.position)
 
         if ground_material is not None:
             grid_obj.data.materials.append(ground_material)
