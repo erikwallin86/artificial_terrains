@@ -71,6 +71,19 @@ class Terrain():
             np.savez(f, size=size_array, extent=extent, heights=self.array,
                      **self.kwargs, **kwargs)
 
+    @property
+    def position(self):
+        '''Return the (x, y) center of the terrain from its extent'''
+        x_min, x_max, y_min, y_max = self.extent
+        return [(x_min + x_max) / 2, (y_min + y_max) / 2]
+
+    # TODO: Use this instead of setting self.size etc.
+    # @property
+    # def size(self):
+    #     '''Return (width, height) of the terrain from extent'''
+    #     x_min, x_max, y_min, y_max = self.extent
+    #     return [x_max - x_min, y_max - y_min]
+
     def __repr__(self):
         return f'Terrain(array={self.array.shape}, size={self.size}, extent={self.extent})'
 
