@@ -172,6 +172,8 @@ class Camera(Module):
                  ppm=None,
                  resolution=None,
                  angle=45,
+                 center=None,
+                 distance=None,
                  **_):
         from utils.artificial_shapes import determine_size_and_resolution
         size_x, size_y, N_x, N_y = determine_size_and_resolution(
@@ -196,10 +198,14 @@ class Camera(Module):
         if camera == 'top':
             camera = setup_top_camera(terrain.array, (N_x, N_y), size)
         elif camera == 'angled':
-            middle_z = terrain.array[int(terrain.array.shape[0]/2), int(terrain.array.shape[1]/2)]
+            if center is None:
+                middle_z = terrain.array[int(terrain.array.shape[0]/2), int(terrain.array.shape[1]/2)]
+                center = [0, 0, middle_z]
+            if distance is None:
+                distance = size[0]*2
             camera = setup_angled_camera(
                 angle=angle,
-                center=[0, 0, middle_z], distance=size[0]*2, **camera_kwargs)
+                center=center, distance=distance, **camera_kwargs)
         set_view_to_camera()
 
 
