@@ -153,16 +153,23 @@ class PPM(Module):
 
 
 class Seed(Module):
-    ''' Test '''
+    """
+    Sets a seed
+
+    If `default` is an integer, it overrides `seed`.
+    If `default` is 'persistent_random', a random seed is generated once and reused.
+
+    Returns:
+        dict: {'seed': resolved seed value}
+    """
     create_folder = False
 
     @debug_decorator
     def __call__(self, seed=0, default=None, **kwargs):
-        # göra så att 'default' parametern alltid står först
-        # och göra det här automatiskt
-        seed = default if default is not None else seed
-
-        if default == 'persistent_random':
+        # Override with default if specified
+        if default is not None and isinstance(default, int):
+            seed = default
+        elif default == 'persistent_random':
             try:
                 seed = self.seed
             except AttributeError:
@@ -170,11 +177,9 @@ class Seed(Module):
                 seed = random.randint(0, 2**32 - 1)
                 self.seed = seed
 
-        self.info(f"Set seed:{seed}")
+        self.info(f"Set seed: {seed}")
 
-        return {
-            'seed': seed,
-            }
+        return {'seed': seed}
 
 
 class Folder(Module):
