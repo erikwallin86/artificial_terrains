@@ -162,6 +162,14 @@ class Seed(Module):
         # och göra det här automatiskt
         seed = default if default is not None else seed
 
+        if default == 'persistent_random':
+            try:
+                seed = self.seed
+            except AttributeError:
+                import random
+                seed = random.randint(0, 2**32 - 1)
+                self.seed = seed
+
         self.info(f"Set seed:{seed}")
 
         return {
