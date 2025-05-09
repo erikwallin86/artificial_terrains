@@ -77,6 +77,21 @@ class Terrain():
         x_min, x_max, y_min, y_max = self.extent
         return [(x_min + x_max) / 2, (y_min + y_max) / 2]
 
+    @property
+    def resolution(self):
+        """
+        Return the resolution (dx, dy) of the terrain.
+
+        dx = (x_max - x_min) / (width - 1)
+        dy = (y_max - y_min) / (height - 1)
+        """
+        x_min, x_max, y_min, y_max = self.extent
+        height, width = self.array.shape
+        dx = (x_max - x_min) / (width - 0)
+        dy = (y_max - y_min) / (height - 0)
+
+        return (dx, dy)
+
     # TODO: Use this instead of setting self.size etc.
     # @property
     # def size(self):
