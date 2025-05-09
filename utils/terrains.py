@@ -207,3 +207,26 @@ def assign_grid_indices(terrains):
     grid_indices = [(x_map[x], y_map[y]) for x, y in centers]
 
     return grid_indices
+
+
+def distances_to_extent(points, extent):
+    """
+    Calculate the shortest distance from each point to a rectangular extent.
+
+    Parameters:
+    - points: (N, 2) array of (x, y) coordinates
+    - xmin, xmax: float, horizontal bounds of the extent
+    - ymin, ymax: float, vertical bounds of the extent
+
+    Returns:
+    - distances: (N,) array of Euclidean distances to the rectangle
+    """
+    xmin, xmax, ymin, ymax = extent
+
+    x = points[:, 0]
+    y = points[:, 1]
+
+    dx = np.where(x < xmin, xmin - x, np.where(x > xmax, x - xmax, 0))
+    dy = np.where(y < ymin, ymin - y, np.where(y > ymax, y - ymax, 0))
+
+    return np.sqrt(dx**2 + dy**2)

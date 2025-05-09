@@ -552,6 +552,7 @@ class LoadObstacles(Module):
     @debug_decorator
     def __call__(self,
                  filename='obstacles.npz',
+                 extent=None,
                  default=None,
                  call_number=None,
                  call_total=None,
@@ -582,3 +583,43 @@ class LoadObstacles(Module):
         pipe['pitch_deg'] = obstacles.pitch_deg[0, :]
 
         return pipe
+
+
+class CleanDistantObstacles(Module):
+    """
+    Filter obstacles based on their distance
+
+    Parameters:
+    - distance_limit (float): The maximum distance an obstacle can be from
+      the extent to be kept. Obstacles beyond this limit are removed.
+    - extent (list): A list or tuple defining the bounds of the region in
+      which obstacles should be kept. Should be in the format [xmin, xmax, ymin, ymax].
+    - default (optional): If set, it overrides the default distance_limit.
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self,
+                 distance_limit=100,
+                 extent=None,
+                 default=None,
+                 **pipe):
+        from utils.terrains import distances_to_extent
+        # Use the provided default distance_limit if set, otherwise use the
+        # given value for distance_limit.
+        distance_limit = default if default is not None else distance_limit
+
+        # Calculate the closest distance to the extent for all positions
+        distances = distances_to_extent(pipe['position'], extent)
+
+        # Determine which obstacles are within the distance limit
+        keep = (distances <= distance_limit)
+
+        result = {}
+        # Filter the obstacle data based on the 'keep' boolean mask
+        for name in [
+                'position', 'width', 'height',
+                'yaw_deg', 'aspect', 'pitch_deg']:
+            result[name] = pipe[name][keep]
+
+        return result
