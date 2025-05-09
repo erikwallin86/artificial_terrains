@@ -89,7 +89,12 @@ class Print(Module):
 
     @debug_decorator
     def __call__(self, **kwargs):
-        print(f"kwargs:{kwargs}")
+        for key, value in kwargs.items():
+            # if isinstance(value, np.ndarray):
+            #     print(f"len(value):{len(value)}")
+
+            # Print
+            self.info(f"{key}: {value}")
 
 
 class Resolution(Module):
