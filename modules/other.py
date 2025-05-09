@@ -17,6 +17,12 @@ class Slope(Module):
         terrains = get_terrains(
             terrain_temp, terrain_heap, last, remove=False)
 
+        results = {
+            'slope_deg_max': [],
+            'slope_deg_mean': [],
+            'slope_deg_std': [],
+        }
+
         # Loop and calculate slope statistics for each terrain
         for i, terrain in enumerate(terrains):
             height = terrain.array
@@ -30,3 +36,9 @@ class Slope(Module):
             self.info(f"  Max slope:  {slope_deg.max():6.2f}°")
             self.info(f"  Mean slope: {slope_deg.mean():6.2f}°")
             self.info(f"  Std slope:  {slope_deg.std():6.2f}°")
+
+            results['slope_deg_max'].append(slope_deg.max())
+            results['slope_deg_mean'].append(slope_deg.mean())
+            results['slope_deg_std'].append(slope_deg.std())
+
+        return results
