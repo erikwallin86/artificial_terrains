@@ -121,19 +121,33 @@ class Unloop(Module):
 
         # Merge data
         for k, v in kwargs.items():
-            if k == 'terrain_temp':
-                if 'terrain_temp' in self.new_pipe:
-                    self.new_pipe['terrain_temp'].extend(v)
-                else:
-                    self.new_pipe['terrain_temp'] = v
-            elif k == 'terrain_heap':
-                if 'terrain_heap' in self.new_pipe:
-                    self.new_pipe['terrain_heap'].extend(v)
-                else:
-                    self.new_pipe['terrain_heap'] = v
+            self.merge_data(k, v)
+
+    def merge_data(self, key, value):
+        """
+        Merges the data into self.new_pipe[key]. If the key already exists,
+        it appends or concatenates the values accordingly.
+        """
+        data_to_merge = [
+            'terrain_temp', 'terrain_heap',
+            'position', 'width', 'height',
+            'aspect', 'yaw_deg', 'pitch_deg'
+        ]
+
+        if key in self.new_pipe and key in data_to_merge:
+            if isinstance(self.new_pipe[key], np.ndarray) and isinstance(value, np.ndarray):
+                # Use np.append() for numpy arrays
+                self.new_pipe[key] = np.append(self.new_pipe[key], value, axis=0)
+            elif isinstance(self.new_pipe[key], list) and isinstance(value, list):
+                # Use list's extend() for lists
+                self.new_pipe[key].extend(value)
             else:
-                self.new_pipe[k] = v
-  
+                # For other types, just replace
+                self.new_pipe[key] = value
+        else:
+            # If the key doesn't exist, simply assign the value
+            self.new_pipe[key] = value
+
     def loop_generator(self):
         remaining_on_last_loop = int(self.loop_id_r.split("_")[-1])
 
