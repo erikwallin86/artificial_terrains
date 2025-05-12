@@ -105,7 +105,8 @@ def recursive_module_call(
     logger.debug(f"  kwargs: {kwargs}")
     logger.debug(f"  pipe: {pipe}")
 
-    module_obj.start(**kwargs, **pipe)
+    # Test: kwargs overrides pipe in input?
+    module_obj.start(**{**pipe, **kwargs})
     for returned_data in module_obj:
         if isinstance(returned_data, dict):
             pipe = {**pipe, **returned_data}
