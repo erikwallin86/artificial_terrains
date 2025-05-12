@@ -442,7 +442,7 @@ class Distribution:
         self.dist = self._create_distribution()
 
     def _create_distribution(self):
-        # Map distribution names to numpy.random functions
+        # Random distributions from numpy
         random_distributions = {
             'uniform': np.random.uniform,
             'normal': np.random.normal,
@@ -450,17 +450,21 @@ class Distribution:
             'beta': np.random.beta,
         }
 
+        regular_distributions = {
+            'arange': np.arange,
+            'linspace': np.linspace,
+            'logspace': np.logspace,
+        }
+
         if self.dist_name in random_distributions:
-            return lambda size: random_distributions[self.dist_name](*self.params, size=size)
-        elif self.dist_name == 'arange':
-            self._sequence = np.arange(*self.params)
-        elif self.dist_name == 'linspace':
-            self._sequence = np.linspace(*self.params)
+            return lambda size: random_distributions[self.dist_name](
+                *self.params, size=size)
+        elif self.dist_name in regular_distributions:
+            self._sequence = regular_distributions[self.dist_name](*self.params)
+            self._sequence_iter = cycle(self._sequence)
+            return self._sample_from_sequence
         else:
             raise ValueError(f"Unsupported distribution: {self.dist_name}")
-
-        self._sequence_iter = cycle(self._sequence)
-        return self._sample_from_sequence
 
     def _sample_from_sequence(self, size=1):
         return np.array(list(islice(self._sequence_iter, size)))
@@ -473,6 +477,7 @@ class Distribution:
 
     def __repr__(self):
         return f"<Distribution: {self.dist_name} params={self.params}>"
+
 
 def parse_and_assign_distribution(expression):
     import re
