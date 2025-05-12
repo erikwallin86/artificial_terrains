@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import os
 from utils.terrains import Terrain
+from itertools import cycle, islice
 
 
 def calc_y(array, ha=1.0):
@@ -436,21 +437,33 @@ class Distribution:
     def __init__(self, dist_name, *params):
         self.dist_name = dist_name
         self.params = params
+        self._sequence = None
+        self._sequence_iter = None
         self.dist = self._create_distribution()
 
     def _create_distribution(self):
         # Map distribution names to numpy.random functions
-        distributions = {
+        random_distributions = {
             'uniform': np.random.uniform,
             'normal': np.random.normal,
             'exponential': np.random.exponential,
             'beta': np.random.beta,
         }
 
-        if self.dist_name in distributions:
-            return lambda size: distributions[self.dist_name](*self.params, size=size)
+        if self.dist_name in random_distributions:
+            return lambda size: random_distributions[self.dist_name](*self.params, size=size)
+        elif self.dist_name == 'arange':
+            self._sequence = np.arange(*self.params)
+        elif self.dist_name == 'linspace':
+            self._sequence = np.linspace(*self.params)
         else:
             raise ValueError(f"Unsupported distribution: {self.dist_name}")
+
+        self._sequence_iter = cycle(self._sequence)
+        return self._sample_from_sequence
+
+    def _sample_from_sequence(self, size=1):
+        return np.array(list(islice(self._sequence_iter, size)))
 
     def sample(self, size=1):
         return self.dist(size=size)
@@ -460,7 +473,6 @@ class Distribution:
 
     def __repr__(self):
         return f"<Distribution: {self.dist_name} params={self.params}>"
-
 
 def parse_and_assign_distribution(expression):
     import re
@@ -474,6 +486,10 @@ def parse_and_assign_distribution(expression):
 
     var_name, dist_name, params_str = match.groups()
     params = eval(f"({params_str})")
+
+    # Make sure params is a tuple
+    if not isinstance(params, tuple):
+        params = (params,)
 
     dist_obj = Distribution(dist_name, *params)
     return var_name, dist_obj
