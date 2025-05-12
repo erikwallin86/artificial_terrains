@@ -79,3 +79,39 @@ class Histograms(Module):
         plt.close(fig)
 
         return {'histogram_path': save_path}
+
+
+class PlotLine(Module):
+    """
+    Plot line
+
+    Parameters:
+    - slope_deg_mean (list or array): List of slope values in degrees.
+    """
+    create_folder = True
+
+    @debug_decorator
+    def __call__(self, slope_deg_mean=None,
+                 default=None, last=None, **_):
+
+        print(f"len(slope_deg_mean): {len(slope_deg_mean)}")
+
+        if slope_deg_mean is None or len(slope_deg_mean) == 0:
+            print("No slope data provided.")
+            return
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(slope_deg_mean)
+        # ax.hist(slope_deg_mean, bins=30, color='steelblue', edgecolor='black')
+        ax.set_title("Histogram of Mean Slope (degrees)")
+        ax.set_xlabel("x-value (a.u)")
+        ax.set_ylabel("Mean slope degree")
+        fig.tight_layout()
+
+        # Save the figure
+        save_path = os.path.join(self.save_dir, f"slope_plot_{self.file_id}.png")
+        fig.savefig(save_path)
+        plt.close(fig)
+
+        return {'histogram_path': save_path}
+    
