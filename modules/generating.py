@@ -66,6 +66,7 @@ class Octaves(Module):
             amplitude_start=10,
             random_amp=0.5,
             random_sign=True,
+            only_generate_weights=False,
             **kwargs
     ):
         from utils.noise import get_simplex2
@@ -96,18 +97,19 @@ class Octaves(Module):
             random_sign = np.random.choice([-1, 1], size=amplitude_list.shape)
             amplitude_list *= random_sign
 
-        info_dict = {}
-        for i, x in enumerate(scale_list):
-            scaling = 1.75/(1+x/68)
-            simplex_noise = 1/scaling * get_simplex2(
-                **kwargs,
-                scale_x=x, scale_y=x,
-                center=True, info_dict=info_dict,
-                logger_fn=self.info,
-            )
+        if not only_generate_weights:
+            info_dict = {}
+            for i, x in enumerate(scale_list):
+                scaling = 1.75/(1+x/68)
+                simplex_noise = 1/scaling * get_simplex2(
+                    **kwargs,
+                    scale_x=x, scale_y=x,
+                    center=True, info_dict=info_dict,
+                    logger_fn=self.info,
+                )
 
-            terrain = Terrain.from_array(simplex_noise, **info_dict)
-            terrain_temp.append(terrain)
+                terrain = Terrain.from_array(simplex_noise, **info_dict)
+                terrain_temp.append(terrain)
 
         return {
             'terrain_temp': terrain_temp,
