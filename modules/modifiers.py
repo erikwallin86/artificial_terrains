@@ -232,3 +232,29 @@ class BezierRemap(Module):
         points = [p0.squeeze(), p1.squeeze(), p2.squeeze(), p3.squeeze()]
 
         return np.array(xp), np.array(fp), np.array(points)
+
+
+class Smooth(Module):
+    """
+    Perform Gaussian smoothing
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 default=None, last=None, sigma_meter=5, **_):
+        from scipy.ndimage import gaussian_filter
+
+        # Possibly set sigma (m) using default value
+        sigma_meter = default if default is not None else sigma_meter
+
+        # Get terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        # Loop the terrains, and perform Gaussian smoothing
+        for terrain in terrains:
+            resolution = terrain.resolution  # (dy, dx)
+            sigma_grid = np.divide(sigma_meter, resolution)
+
+            terrain.array = gaussian_filter(terrain.array, sigma=sigma_grid)
