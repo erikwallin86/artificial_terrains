@@ -245,3 +245,46 @@ def distances_to_extent(points, extent):
     dy = np.where(y < ymin, ymin - y, np.where(y > ymax, y - ymax, 0))
 
     return np.sqrt(dx**2 + dy**2)
+
+
+def get_surface_normal(hf_array, size):
+    '''
+    Get surface normal from array
+
+    Args:
+      hf_array:
+      size: physical size (float, float)
+
+    Return: array with surface normals
+    '''
+    # https://stackoverflow.com/questions/53350391/surface-normal-calculation-from-depth-map-in-python
+    spacing = np.divide(size, hf_array.shape)
+
+    zy, zx = np.gradient(hf_array, *spacing)
+    normal = np.dstack((-zx, -zy, np.ones_like(hf_array)))
+    n = np.linalg.norm(normal, axis=2)
+    normal[:, :, 0] /= n
+    normal[:, :, 1] /= n
+    normal[:, :, 2] /= n
+
+    return normal
+
+
+def calculate_surface_area(heightmap: np.ndarray, resolution: tuple[float, float]) -> float:
+    """
+    Estimate the surface area of a terrain heightmap.
+
+    Parameters:
+    - heightmap: 2D numpy array of shape (H, W), representing elevation values.
+    - resolution: tuple (dy, dx), the spacing between pixels in y and x directions (in meters).
+
+    Returns:
+    - surface_area: float, estimated 3D surface area in square meters.
+    """
+    dy, dx = resolution
+    dz_dy, dz_dx = np.gradient(heightmap, dy, dx)
+
+    # Local area element from the surface normal magnitude approximation
+    area_elements = np.sqrt(1 + dz_dx**2 + dz_dy**2) * dx * dy
+
+    return np.sum(area_elements)

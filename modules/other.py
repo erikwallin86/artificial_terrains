@@ -1,6 +1,11 @@
-from modules.data import Module, debug_decorator
 import numpy as np
+import matplotlib.pyplot as plt
+import os
+from scipy.ndimage import gaussian_filter
+
+from modules.data import Module, debug_decorator
 from utils.utils import get_terrains, get_terrain
+from utils.terrains import get_surface_normal
 
 
 class Slope(Module):
@@ -44,8 +49,52 @@ class Slope(Module):
         return results
 
 
-import matplotlib.pyplot as plt
-import os
+
+class Roughness(Module):
+    """
+    Calculate terrain roughness by comparing the surface area of the original
+    terrain to a smoothed version of the terrain.
+
+    Roughness is computed as:
+        roughness = original_surface_area / smoothed_surface_area
+
+    Parameters:
+    - sigma_meter (float): The smoothing length in meters (default: 5).
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 default=None, last=None, sigma_meter=5, **_):
+
+        from utils.terrains import calculate_surface_area
+
+        # Possibly set sigma (m) using default value
+        sigma_meter = default if default is not None else sigma_meter
+
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        results = {'roughness': []}
+
+        for i, terrain in enumerate(terrains):
+            resolution = terrain.resolution  # (dy, dx)
+            sigma_grid = np.divide(sigma_meter, resolution)
+
+            # Apply Gaussian smoothing
+            smoothed_array = gaussian_filter(terrain.array, sigma=sigma_grid)
+
+            # Compute surface normals
+            area_orig = calculate_surface_area(terrain.array, terrain.resolution)
+            area_smooth = calculate_surface_area(smoothed_array, terrain.resolution)
+
+            roughness = area_orig / area_smooth if area_smooth > 0 else np.nan
+
+            self.info(f"Terrain {i}: roughness = {roughness:.4f}")
+            results['roughness'].append(roughness)
+
+        return results
+
 
 class Histograms(Module):
     """
