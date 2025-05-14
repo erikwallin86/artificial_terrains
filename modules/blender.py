@@ -47,7 +47,13 @@ class Ground(Module):
         # Make grid from array
         from utils.Blender import grid_from_array
 
-        name = 'Ground' + self.file_id
+        # name = 'Ground' + self.file_id + #hash
+        import hashlib
+        # Generate a short hash from the terrain array
+        array_bytes = terrain.array.tobytes()
+        hash_digest = hashlib.sha1(array_bytes).hexdigest()[:6]  # Short hash
+        name = f"Ground{self.file_id}_{hash_digest}"
+
         grid_obj = grid_from_array(terrain.array, name=name, size=terrain.size, center=terrain.position)
 
         if ground_material is not None:
