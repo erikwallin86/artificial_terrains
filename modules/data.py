@@ -420,6 +420,23 @@ class SetDistribution(Module):
         return {f'{varname}_distribution': dist_obj}
 
 
+class Sample(Module):
+    create_folder = False
+    '''
+    Sample a parameter from a distribution
+    '''
+    @debug_decorator
+    def __call__(self, default, **kwargs):
+        import ast
+        print(f"default:{default}")
+        parameter_name = default
+
+        # Get corresponding distribution
+        distribution = kwargs[f'{parameter_name}_distribution']
+
+        return {parameter_name: distribution(size=1)}
+
+
 class Random(Module):
     create_folder = False
     '''
