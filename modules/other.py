@@ -130,6 +130,57 @@ class Histograms(Module):
         return {'histogram_path': save_path}
 
 
+class CombineRoughness(Module):
+    """
+    Test to combine roughness values in some heuristic way
+
+    """
+    list_or_results = []
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, roughness=None, weights=0,
+                 default=None, last=None, **kwargs):
+
+        # Calculate 'combined roughness'
+        result = 1
+        for r, w_r in zip(roughness, weights):
+            result += (np.sqrt(r)-1)*np.absolute(w_r)
+
+        self.info(f"heuristic_combined_roughness:{result}")
+
+        if 'heuristic_combined_roughness' in kwargs:
+            print("###################################")
+            kwargs['heuristic_combined_roughness'].append(result)
+        else:
+            return {'heuristic_combined_roughness': [result]}
+
+
+class PlotRoughness(Module):
+    """
+    Plot roughness comparison
+
+    """
+    create_folder = True
+
+    @debug_decorator
+    def __call__(self, roughness=None, heuristic_combined_roughness=None,
+                 default=None, last=None, **_):
+
+        from utils.plots import new_fig
+        
+        fig, ax = new_fig()
+        ax.plot(slope_deg_mean)
+        # ax.hist(slope_deg_mean, bins=30, color='steelblue', edgecolor='black')
+        ax.set_title("Histogram of Mean Slope (degrees)")
+        ax.set_xlabel("x-value (a.u)")
+        ax.set_ylabel("Mean slope degree")
+        fig.tight_layout()
+
+        # Save the figure
+        save_path = os.path.join(self.save_dir, f"slope_plot_{self.file_id}.png")
+        fig.savefig(save_path)
+        plt.close(fig)
 class PlotLine(Module):
     """
     Plot line
