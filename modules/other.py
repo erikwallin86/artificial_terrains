@@ -283,7 +283,7 @@ class SetRoughness2(Module):
         #     R(λ) = 1 + sum_i (sqrt(r_i) - 1) * w_i * r_i^λ
         # For lambda=0 this is the proxy roughness, otherwise it's a scaled one?
         def proxy_roughness(lambda_):
-            scaled = weights * base_r**lambda_
+            scaled = np.absolute(weights) * base_r**lambda_
             return 1 + np.sum(delta_r * scaled)
 
         # Define root-finding function: f(λ) = R(λ) - target_roughness
