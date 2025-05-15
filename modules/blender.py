@@ -105,6 +105,34 @@ class BasicSetup(Module):
             }
 
 
+class ClearScene(Module):
+    """
+    Removes all objects from the current Blender scene.
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, **_):
+        import bpy
+
+        # Select all objects in the scene
+        # bpy.ops.object.select_all(action='SELECT')
+
+        # Delete selected objects
+        # bpy.ops.object.delete()
+
+        # Optionally clear unused data blocks (meshes, materials, etc.)
+        # This helps free memory and avoid clutter
+        # for data_collection in [bpy.data.meshes, bpy.data.materials, bpy.data.images,
+        #                         bpy.data.cameras, bpy.data.lights, bpy.data.curves]:
+        for data_collection in [bpy.data.meshes]:
+            for datablock in data_collection:
+                if datablock.users == 0:
+                    data_collection.remove(datablock)
+
+        return {'cleared': True}
+
+
 class ImageTexture(Module):
     ''' Add image texture to ground'''
     create_folder = False
