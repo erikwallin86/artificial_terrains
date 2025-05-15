@@ -320,13 +320,15 @@ class Render(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, filename='render.png', default=None,
+    def __call__(self, filename=None, default=None,
                  folder='Render',
                  overwrite=False,
+                 loop_id=None,
                  **_):
         from utils.Blender import render_eevee
 
-        # filename = default if default is not None else filename
+        if filename is None:
+            filename = f'render{loop_id}.png'
 
         # Possibly set folder from 'default'.
         if default is not None and '.' in default:
