@@ -171,17 +171,18 @@ class PlotRoughness(Module):
         from utils.plots import new_fig
         
         fig, ax = new_fig()
-        ax.plot(slope_deg_mean)
+        ax.scatter(roughness, heuristic_combined_roughness)
+        # ax.plot(slope_deg_mean)
         # ax.hist(slope_deg_mean, bins=30, color='steelblue', edgecolor='black')
-        ax.set_title("Histogram of Mean Slope (degrees)")
-        ax.set_xlabel("x-value (a.u)")
-        ax.set_ylabel("Mean slope degree")
+        # ax.set_title("Histogram of Mean Slope (degrees)")
+        ax.set_xlabel("Roughness")
+        ax.set_ylabel("Heuristic combined roughness")
         fig.tight_layout()
 
         # Save the figure
-        save_path = os.path.join(self.save_dir, f"slope_plot_{self.file_id}.png")
-        fig.savefig(save_path)
-        plt.close(fig)
+        filename = f"roughness_v_heuristic_{self.file_id}.png"
+        filename = os.path.join(self.save_dir, filename)
+        fig.savefig(filename)
 
 
 class SetRoughness(Module):
