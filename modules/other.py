@@ -7,6 +7,7 @@ from scipy.optimize import brentq
 from modules.data import Module, debug_decorator
 from utils.utils import get_terrains, get_terrain
 from utils.terrains import get_surface_normal
+from utils.plots import new_fig
 
 
 class Slope(Module):
@@ -168,8 +169,6 @@ class PlotRoughness(Module):
     def __call__(self, roughness=None, heuristic_combined_roughness=None,
                  default=None, last=None, **_):
 
-        from utils.plots import new_fig
-        
         fig, ax = new_fig()
         ax.scatter(roughness, heuristic_combined_roughness)
         # ax.plot(slope_deg_mean)
@@ -181,6 +180,38 @@ class PlotRoughness(Module):
 
         # Save the figure
         filename = f"roughness_v_heuristic_{self.file_id}.png"
+        filename = os.path.join(self.save_dir, filename)
+        fig.savefig(filename)
+
+
+class PlotRoughnessForLengthscale(Module):
+    """
+    Plot typical roughness for different length-scales
+    """
+    create_folder = True
+
+    @debug_decorator
+    def __call__(self, roughness=None,
+                 default=None, last=None,
+                 num_octaves=10,
+                 **_):
+
+        roughness = np.array(roughness)
+
+        # Reshape to get length-scale on separate axis
+        roughness = roughness.reshape(-1, num_octaves)
+        print(f"roughness.shape:{roughness.shape}")
+        fig, ax = new_fig()
+
+        for i in range(roughness.shape[0]):
+            ax.plot(roughness[i, :])
+
+        ax.set_xlabel("Length-scale")
+        ax.set_ylabel("Roughness")
+        fig.tight_layout()
+
+        # Save the figure
+        filename = f"roughness_for_lengthscales_{self.file_id}.png"
         filename = os.path.join(self.save_dir, filename)
         fig.savefig(filename)
 
