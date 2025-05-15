@@ -131,7 +131,9 @@ class Unloop(Module):
         data_to_merge = [
             'terrain_temp', 'terrain_heap',
             'position', 'width', 'height',
-            'aspect', 'yaw_deg', 'pitch_deg'
+            'aspect', 'yaw_deg', 'pitch_deg',
+            # Test:
+            'roughness', 'heuristic_combined_roughness',
         ]
 
         if key in self.new_pipe and key in data_to_merge:
