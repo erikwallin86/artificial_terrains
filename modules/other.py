@@ -91,6 +91,54 @@ class LoadData(Module):
         return result
 
 
+class LogData(Module):
+    """
+    Collect data by appending to lists, then save to .npz file on delete.
+    """
+    create_folder = True
+
+    def __init__(self, *args, **kwargs):
+        self.data = {}  # key: list of values
+        self.filename = None
+        super().__init__(*args, **kwargs)
+
+    @debug_decorator
+    def __call__(
+            self, default=None, filename='data.npz',
+            # parameters to skip:
+            terrain_temp=[], terrain_heap=[],
+            last=None, call_number=None,
+            call_total=None, size=None, ppm=None,
+            extent=None, loop_id=None, loop_id_r=None,
+            **kwargs,
+    ):
+
+        # Append each kwarg value to the internal data lists
+        for k, v in kwargs.items():
+            if k not in self.data:
+                self.data[k] = []
+            self.data[k].append(v)
+
+        # Possibly set the filename
+        if self.filename is None:
+            if default is None:
+                self.filename = filename
+            if default is not None:
+                self.filename = default
+
+    def save(self):
+        # Convert lists to arrays and save
+        to_save = {k: np.array(v) for k, v in self.data.items()}
+        filename = os.path.join(self.save_dir, self.filename)
+        np.savez(filename, **to_save)
+        self.info(f"Saved log data to {filename}")
+
+    def __del__(self):
+        # Save on delete
+        if self.data:
+            self.save()
+
+
 class Slope(Module):
     """
     Print slope statistics (in degrees) for each terrain.
