@@ -10,6 +10,87 @@ from utils.terrains import get_surface_normal
 from utils.plots import new_fig
 
 
+
+class SaveData(Module):
+    """
+    Save selected list or array data to a compressed .npz file.
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self,
+                 filename='data.npz',
+                 default=None,
+                 folder='SaveData',
+                 # parameters to skip:
+                 terrain_temp=[], terrain_heap=[],
+                 last=None, call_number=None,
+                 call_total=None, size=None, ppm=None,
+                 extent=None, loop_id=None, loop_id_r=None,
+                 **kwargs):
+        # use default to update filename or folder
+        if default is not None and '.npz' in default:
+            filename = default
+        if default is not None:
+            folder = default
+            
+        # Use folder
+        basename = os.path.basename(self.save_dir)
+        if basename != folder:
+            dirname = os.path.dirname(self.save_dir)
+            self.save_dir = os.path.join(dirname, folder)
+
+        # Create folder if needed
+        if not os.path.isdir(self.save_dir):
+            os.makedirs(self.save_dir)
+
+        # Create dict to collect data to save
+        data = {}
+
+        # Full path
+        filename = os.path.join(self.save_dir, filename)
+
+        for k, v in kwargs.items():
+            # Only save list-like objects
+            if isinstance(v, (list, tuple, np.ndarray)):
+                data[k] = np.array(v)
+
+        # Spara till .npz
+        np.savez_compressed(filename, **data)
+        self.info(f"Saved to {filename}")
+
+
+class LoadData(Module):
+    """
+    Load a .npz file and return the contents as a dictionary of arrays.
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self,
+                 default=None,
+                 filename=None,
+                 **_,
+                 ):
+        if default is not None:
+            filename = default
+        else:
+            original_save_dir = os.path.dirname(self.save_dir)
+            filename = os.path.join(original_save_dir, 'SaveData/data.npz')
+
+        if not os.path.isfile(filename):
+            raise FileNotFoundError(f"File not found: {filename}")
+
+        # Load file
+        data = np.load(filename)
+
+        # Convert to dict
+        result = {k: data[k] for k in data.files}
+        self.info(f"Loaded from {filename}: keys = {list(result.keys())}")
+
+        return result
+
+
 class Slope(Module):
     """
     Print slope statistics (in degrees) for each terrain.
