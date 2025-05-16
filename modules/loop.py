@@ -14,9 +14,23 @@ class Loop(Module):
 
         # Handle if default is given a parameter=expression
         if isinstance(default, str) and '=' in default:
-            parameter, expression = default.split('=')
-            values = eval(expression)
-            self.n_loops = len(values)
+            try:
+                # First try to handle like a distribution
+                # Note: only works for 'regular' distributions, not random ones
+                # There needs to be a fixed length
+                # e.g.
+                from utils.utils import parse_and_assign_distribution
+                parameter, distribution = parse_and_assign_distribution(default)
+                # Get the sequence from the (regular) distribution
+                sequence = distribution._sequence
+                self.n_loops = len(sequence)
+                values = sequence
+
+            except ValueError:
+                parameter, expression = default.split('=')
+                values = eval(expression)
+                self.n_loops = len(values)
+
         elif isinstance(default, int):
             # Length of the loop
             self.n_loops = default if default is not None else n_loops
