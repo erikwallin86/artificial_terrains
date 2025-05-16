@@ -497,3 +497,24 @@ class PlotLine(Module):
 
         return {'histogram_path': save_path}
     
+
+class PlotPersistanceVRoughness(Module):
+    """
+    """
+    create_folder = True
+
+    @debug_decorator
+    def __call__(self, roughness=None, persistance=None,
+                 default=None, last=None, **_):
+
+        fig, ax = new_fig()
+
+        ax.scatter(persistance, roughness)
+
+        ax.set_xlabel("Persistance (a.u.)")
+        ax.set_ylabel("Roughness (a.u.)")
+        fig.tight_layout()
+
+        filename = f"persistance_v_roughness{self.file_id}.png"
+        filename = os.path.join(self.save_dir, filename)
+        fig.savefig(filename)
