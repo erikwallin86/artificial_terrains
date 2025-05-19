@@ -183,7 +183,11 @@ class ClearTerrain(Module):
     def __call__(self,
                  hf_array=None, hf_info_dict=None,
                  call_number=None, call_total=None, **pipe):
-        return pipe
+
+        return {
+            'terrain_temp': [],
+            'terrain_heap': [],
+        }
 
 
 class CombinePipes(Module):

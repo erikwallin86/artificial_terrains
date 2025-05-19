@@ -247,6 +247,7 @@ class Smooth(Module):
 
         # Possibly set sigma (m) using default value
         sigma_meter = default if default is not None else sigma_meter
+        self.info(f"smooth using sigma: {sigma_meter} (m)")
 
         # Get terrains
         terrains = get_terrains(

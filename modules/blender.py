@@ -2,8 +2,7 @@ from modules.data import Module, debug_decorator
 import os
 import sys
 import numpy as np
-from utils.utils import get_terrain
-
+from utils.utils import get_terrains, get_terrain
 
 def fix_blender_path():
     try:
@@ -34,31 +33,39 @@ class Ground(Module):
     @debug_decorator
     def __call__(self, filename=None, default=None,
                  terrain_temp=[], terrain_heap=[],
-                 ground_material=None, **_):
+                 ground_material=None,
+                 last=None,
+                 **_):
+        from utils.Blender import grid_from_array
+        import hashlib
+
         filename = default if default is not None else filename
         if filename is not None:
             from utils.terrains import Terrain
             # Load data
             terrain = Terrain.from_numpy(filename)
+            terrains = [terrain]
         else:
             # Get latest from dict/heap
-            terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
+            # terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
+            terrains = get_terrains(
+                terrain_temp, terrain_heap, last, remove=False)
 
         # Make grid from array
-        from utils.Blender import grid_from_array
+        for i, terrain in enumerate(terrains):
+            # Generate a short hash from the terrain array
+            array_bytes = terrain.array.tobytes()
+            hash_digest = hashlib.sha1(array_bytes).hexdigest()[:6]  # Short hash
+            name = f"Ground{i:05d}{self.file_id}_{hash_digest}"
 
-        # name = 'Ground' + self.file_id + #hash
-        import hashlib
-        # Generate a short hash from the terrain array
-        array_bytes = terrain.array.tobytes()
-        hash_digest = hashlib.sha1(array_bytes).hexdigest()[:6]  # Short hash
-        name = f"Ground{self.file_id}_{hash_digest}"
+            grid_obj = grid_from_array(
+                terrain.array, name=name, size=terrain.size,
+                center=terrain.position)
 
-        grid_obj = grid_from_array(terrain.array, name=name, size=terrain.size, center=terrain.position)
+            if ground_material is not None:
+                grid_obj.data.materials.append(ground_material)
 
-        if ground_material is not None:
-            grid_obj.data.materials.append(ground_material)
-
+        # This line has not been adopted for possibly multiple objs.
         return {'grid_obj': grid_obj}
 
 
@@ -115,11 +122,16 @@ class ClearScene(Module):
     def __call__(self, **_):
         import bpy
 
-        # Select all objects in the scene
-        # bpy.ops.object.select_all(action='SELECT')
+        # Deselect all objects
+        bpy.ops.object.select_all(action='DESELECT')
+
+        # Find and delete objects with names starting with "Ground"
+        for obj in bpy.data.objects:
+            if obj.name.startswith("Ground"):
+                obj.select_set(True)
 
         # Delete selected objects
-        # bpy.ops.object.delete()
+        bpy.ops.object.delete()
 
         # Optionally clear unused data blocks (meshes, materials, etc.)
         # This helps free memory and avoid clutter

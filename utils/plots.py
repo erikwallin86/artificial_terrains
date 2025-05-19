@@ -56,6 +56,10 @@ def save_all_axes(fig, base_filename, ticks_in=True, delta=0.05,
         if axis_off:
             ax.axis('off')
 
+        # Print limits
+        print(f"#### {base_filename} ####")
+        print(f"  (ax.get_xlim(), ax.get_ylim()):{(ax.get_xlim(), ax.get_ylim())}")
+
         if clear_legend:
             legend = ax.get_legend()
             if legend:
