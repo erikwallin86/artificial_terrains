@@ -339,9 +339,9 @@ class FindRocks2(Module):
             terrain_temp, terrain_heap, last=last, remove=False,
             print_fn=self.info)
 
-        pos, height, size = zip(*(find_rocks(t) for t in terrains))
+        position, height, size = zip(*(find_rocks(t) for t in terrains))
 
-        pos = np.concatenate(pos)
+        position = np.concatenate(position)
         height = np.concatenate(height)
         size = np.concatenate(size)
 
@@ -349,7 +349,7 @@ class FindRocks2(Module):
         width = np.sqrt(size) * pixel_diag
 
         return {
-            'position': pos,
+            'position': position,
             'height': height,
             'width': width,
             'yaw_deg': np.zeros_like(height),
