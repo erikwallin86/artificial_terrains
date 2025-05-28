@@ -348,7 +348,7 @@ class FindRocks2(Module):
         pixel_diag = np.linalg.norm(terrains[0].resolution)
         width = np.sqrt(size) * pixel_diag
 
-        return {
+        result = {
             'position': position,
             'height': height,
             'width': width,
@@ -356,6 +356,12 @@ class FindRocks2(Module):
             'pitch_deg': np.zeros_like(height),
             'aspect': np.ones_like(height),
         }
+
+        # Filter to include only rocks of some height
+        pick = (height > 0.2)
+        result = {k: v[pick] for k, v in result.items()}
+
+        return result
 
 
 class PlotRocks(Module):
