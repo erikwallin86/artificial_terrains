@@ -407,6 +407,41 @@ class FindRocks2(Module):
         return np.array(positions_highest), np.array(heights_max), np.array(sizes)
 
 
+class PlotRocks(Module):
+    ''' Plot rocks
+    '''
+    @debug_decorator
+    def __call__(self, terrain_heap=None, terrain_temp=None,
+                 position=None, width=None,
+                 default=None, last=None,
+                 dpi=200,
+                 **kwargs):
+        from utils.utils import get_terrain
+        from utils.plots import plot_terrain, new_fig
+
+        # Get terrain
+        try:
+            terrain = get_terrain(
+                terrain_temp, terrain_heap, last=last, remove=False,
+                print_fn=self.info)
+        except AttributeError:
+            terrain = None
+        except TypeError:
+            terrain = None
+
+        filename = 'rocks.png'
+        filename = os.path.join(self.save_dir, filename)
+
+        if terrain is not None:
+            fig, ax = plot_terrain(terrain)
+        else:
+            fig, ax = new_fig()
+
+        ax.scatter(position[:, 0], position[:, 1], facecolor='none', color='red', s=
+40*width**2)
+        fig.savefig(filename, dpi=dpi)
+
+
 class Plot(Module):
     create_folder = False
 
