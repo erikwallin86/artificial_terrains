@@ -325,57 +325,36 @@ class FindRocks(Module):
 
 class FindRocks2(Module):
     """
-    Detect rock-like features from terrain data and output them as 'obstacles'.
+    Detect rock-like features from terrain data and return them as 'obstacles'.
 
-    The method identifies local maxima (interpreted as rocks), computes their
-    positions, heights, and estimated widths, and returns them in a structured
-    format.
+    Identifies local maxima in elevation, estimates their real-world position,
+    height, and width.
     """
     @debug_decorator
     def __call__(self, terrain_heap=None, terrain_temp=None,
                  default=None, last=None, **kwargs):
         from utils.utils import get_terrains, find_rocks
 
-        positions_all = []
-        heights_all = []
-        sizes_all = []
-
         terrains = get_terrains(
             terrain_temp, terrain_heap, last=last, remove=False,
             print_fn=self.info)
 
-        for i, terrain in enumerate(terrains):
-            # Detect local maxima and get stats
-            positions, heights, sizes = find_rocks(terrain)
-            positions_all.append(positions)
-            heights_all.append(heights)
-            sizes_all.append(sizes)
+        pos, height, size = zip(*(find_rocks(t) for t in terrains))
 
-        # Assume same resolution for all terrains
-        resolution = terrain.resolution
-        pixel_diag = np.linalg.norm(resolution)
+        pos = np.concatenate(pos)
+        height = np.concatenate(height)
+        size = np.concatenate(size)
 
-        # Merge results
-        positions = np.concatenate(positions_all)
-        heights = np.concatenate(heights_all)
-        sizes = np.concatenate(sizes_all)
-        widths = np.sqrt(sizes) * pixel_diag
-
-        # Convert pixel indices to physical coordinates
-        # x = np.interp(
-        #     positions[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
-        # y = np.interp(
-        #     positions[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
-        # positions[:, 0] = x
-        # positions[:, 1] = y
+        pixel_diag = np.linalg.norm(terrains[0].resolution)
+        width = np.sqrt(size) * pixel_diag
 
         return {
-            'position': positions,
-            'height': heights,
-            'width': widths,
-            'yaw_deg': np.zeros_like(heights),
-            'pitch_deg': np.zeros_like(heights),
-            'aspect': np.ones_like(heights),
+            'position': pos,
+            'height': height,
+            'width': width,
+            'yaw_deg': np.zeros_like(height),
+            'pitch_deg': np.zeros_like(height),
+            'aspect': np.ones_like(height),
         }
 
 
