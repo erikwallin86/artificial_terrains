@@ -462,14 +462,6 @@ def find_rocks(array_2d):
     return np.array(positions), np.array(heights), np.array(sizes)
 
 
-
-
-
-def draw_from_2d_probability(probability: Terrain):
-    ''' probability. A normalized Terrain (thus with extent) '''
-    pass
-
-
 class Distribution:
     def __init__(self, dist_name, *params):
         self.dist_name = dist_name
