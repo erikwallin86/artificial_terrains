@@ -323,6 +323,79 @@ class FindRocks(Module):
         return np.array(positions_highest), np.array(heights_max), np.array(sizes)
 
 
+class FindRocks2(Module):
+    ''' Find rocks, and pass along as 'obstacles'
+    '''
+    @debug_decorator
+    def __call__(self, terrain_heap=None, terrain_temp=None,
+                 default=None, last=None,
+                 **kwargs):
+        positions_list = []
+        heights_list = []
+        sizes_list = []
+
+        from utils.utils import get_terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last=last, remove=False,
+            print_fn=self.info)
+
+        for i, terrain in enumerate(terrains):
+            # Find local max
+            positions, heights, sizes = self.localMax4(terrain.array)
+            positions_list.append(positions)
+            heights_list.append(heights)
+            sizes_list.append(sizes)
+
+        return {
+            'rock_positions': np.concatenate(positions_list),
+            'rock_heights': np.concatenate(heights_list),
+            'rock_sizes': np.concatenate(sizes_list),
+        }
+
+    def filter_points(self, x, y, heights=None, sizes=None, threshold=0.1):
+        # Create a mask to identify points greater or equal to the threshold
+        mask = (heights >= threshold)
+
+        # Apply the mask to filter out the points below the threshold
+        x = x[mask]
+        y = y[mask]
+        sizes = sizes[mask]
+        heights = heights[mask]
+
+        return x, y, heights, sizes
+
+    def localMax4(self, array_2d):
+        import scipy.ndimage as ndimage
+        # Find islands using label connected components
+        labelled_array, num_islands = ndimage.label(array_2d)
+
+        # Initialize arrays to store results
+        positions_central = []
+        positions_highest = []
+        heights_max = []
+        sizes = []
+
+        # Iterate through each island
+        for island_label in range(1, num_islands+1):
+            # Get the coordinates of all points in the current island
+            island_coords = np.argwhere(labelled_array == island_label)
+            sizes.append(len(island_coords))
+
+            # Calculate the central point of the island
+            central_point = np.mean(island_coords, axis=0)
+
+            # Find the highest point in the island
+            highest_point = island_coords[np.argmax(array_2d[labelled_array == island_label])]
+            max_height = array_2d[highest_point[0], highest_point[1]]
+
+            # Append the positions to the respective arrays
+            positions_central.append(central_point)
+            positions_highest.append(highest_point)
+            heights_max.append(max_height)
+
+        return np.array(positions_highest), np.array(heights_max), np.array(sizes)
+
+
 class Plot(Module):
     create_folder = False
 
