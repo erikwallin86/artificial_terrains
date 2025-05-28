@@ -346,23 +346,24 @@ class FindRocks2(Module):
             heights_list.append(heights)
             sizes_list.append(sizes)
 
+        # get pixel size to estimate width
+        resolution = terrain.resolution
+        pixel_diagonal_size = np.linalg.norm(resolution)
+
+        position = np.concatenate(positions_list)
+        height = np.concatenate(heights_list)
+        size = np.concatenate(sizes_list)
+        width = np.sqrt(size)*pixel_diagonal_size
+
+        # Return data, in the same 'format' as 'obstacles'
         return {
-            'rock_positions': np.concatenate(positions_list),
-            'rock_heights': np.concatenate(heights_list),
-            'rock_sizes': np.concatenate(sizes_list),
+            'position': position,
+            'height': height,
+            'width': width,
+            'yaw_deg': np.zeros_like(height),
+            'pitch_deg': np.zeros_like(height),
+            'aspect': np.ones_like(height),
         }
-
-    def filter_points(self, x, y, heights=None, sizes=None, threshold=0.1):
-        # Create a mask to identify points greater or equal to the threshold
-        mask = (heights >= threshold)
-
-        # Apply the mask to filter out the points below the threshold
-        x = x[mask]
-        y = y[mask]
-        sizes = sizes[mask]
-        heights = heights[mask]
-
-        return x, y, heights, sizes
 
     def localMax4(self, array_2d):
         import scipy.ndimage as ndimage
