@@ -456,8 +456,10 @@ class PlotRocks(Module):
         else:
             fig, ax = new_fig()
 
-        ax.scatter(position[:, 0], position[:, 1], facecolor='none', color='red', s=
-40*width**2)
+        ax.scatter(
+            # position[:, 0], position[:, 1],
+            *position.T,
+            facecolor='none', color='red', s=40*width**2)
         fig.savefig(filename, dpi=dpi)
 
 
