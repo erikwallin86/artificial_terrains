@@ -351,6 +351,16 @@ class FindRocks2(Module):
         pixel_diagonal_size = np.linalg.norm(resolution)
 
         position = np.concatenate(positions_list)
+        print(f"position.shape:{position.shape}")
+        x = np.interp(position[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
+        y = np.interp(position[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
+
+        position[:, 0] = x
+        position[:, 1] = y
+
+        # position = np.array([x, y])
+        print(f"position.shape:{position.shape}")
+
         height = np.concatenate(heights_list)
         size = np.concatenate(sizes_list)
         width = np.sqrt(size)*pixel_diagonal_size
