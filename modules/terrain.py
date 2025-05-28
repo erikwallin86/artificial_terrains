@@ -329,26 +329,12 @@ class FindRocks2(Module):
 
     The method identifies local maxima (interpreted as rocks), computes their
     positions, heights, and estimated widths, and returns them in a structured
-    format suitable for obstacle processing.
+    format.
     """
-
     @debug_decorator
     def __call__(self, terrain_heap=None, terrain_temp=None,
                  default=None, last=None, **kwargs):
-        """
-        Parameters:
-        - terrain_heap, terrain_temp: Terrain sources.
-        - last: Fallback terrain if others are not provided.
-
-        Returns:
-        - dict with fields:
-            - 'position': Nx2 array of (x, y) positions.
-            - 'height': Estimated height of each feature.
-            - 'width': Estimated width based on region size.
-            - 'yaw_deg', 'pitch_deg': Zeros (placeholders).
-            - 'aspect': Ones (placeholder for shape).
-        """
-        from utils.utils import get_terrains
+        from utils.utils import get_terrains, find_rocks
 
         positions_all = []
         heights_all = []
@@ -360,7 +346,7 @@ class FindRocks2(Module):
 
         for i, terrain in enumerate(terrains):
             # Detect local maxima and get stats
-            positions, heights, sizes = self.localMax4(terrain.array)
+            positions, heights, sizes = find_rocks(terrain.array)
             positions_all.append(positions)
             heights_all.append(heights)
             sizes_all.append(sizes)
@@ -391,39 +377,6 @@ class FindRocks2(Module):
             'pitch_deg': np.zeros_like(heights),
             'aspect': np.ones_like(heights),
         }
-
-    def localMax4(self, array_2d):
-        """
-        Identify connected regions (islands) and extract central and max points.
-
-        Parameters:
-        - array_2d: 2D numpy array representing elevation.
-
-        Returns:
-        - positions: Nx2 array of region centroids.
-        - heights: Maximum value per region.
-        - sizes: Number of pixels in each region.
-        """
-        import scipy.ndimage as ndimage
-
-        labeled, num = ndimage.label(array_2d)
-        positions = []
-        heights = []
-        sizes = []
-
-        for label in range(1, num + 1):
-            coords = np.argwhere(labeled == label)
-            sizes.append(len(coords))
-
-            center = np.mean(coords, axis=0)
-            max_idx = np.argmax(array_2d[labeled == label])
-            max_pos = coords[max_idx]
-            max_val = array_2d[max_pos[0], max_pos[1]]
-
-            positions.append(center)
-            heights.append(max_val)
-
-        return np.array(positions), np.array(heights), np.array(sizes)
 
 
 class PlotRocks(Module):

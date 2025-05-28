@@ -428,6 +428,43 @@ def get_terrain(*args, last=None, **kwargs):
     return get_terrains(*args, last=-1, **kwargs)[0]
 
 
+def find_rocks(array_2d):
+    """
+    Identify connected regions (islands) and extract central and max points.
+
+    Parameters:
+    - array_2d: 2D numpy array representing elevation.
+
+    Returns:
+    - positions: Nx2 array of region centroids.
+    - heights: Maximum value per region.
+    - sizes: Number of pixels in each region.
+    """
+    import scipy.ndimage as ndimage
+
+    labeled, num = ndimage.label(array_2d)
+    positions = []
+    heights = []
+    sizes = []
+
+    for label in range(1, num + 1):
+        coords = np.argwhere(labeled == label)
+        sizes.append(len(coords))
+
+        center = np.mean(coords, axis=0)
+        max_idx = np.argmax(array_2d[labeled == label])
+        max_pos = coords[max_idx]
+        max_val = array_2d[max_pos[0], max_pos[1]]
+
+        positions.append(center)
+        heights.append(max_val)
+
+    return np.array(positions), np.array(heights), np.array(sizes)
+
+
+
+
+
 def draw_from_2d_probability(probability: Terrain):
     ''' probability. A normalized Terrain (thus with extent) '''
     pass
