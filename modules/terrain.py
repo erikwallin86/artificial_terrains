@@ -346,7 +346,7 @@ class FindRocks2(Module):
 
         for i, terrain in enumerate(terrains):
             # Detect local maxima and get stats
-            positions, heights, sizes = find_rocks(terrain.array)
+            positions, heights, sizes = find_rocks(terrain)
             positions_all.append(positions)
             heights_all.append(heights)
             sizes_all.append(sizes)
@@ -362,12 +362,12 @@ class FindRocks2(Module):
         widths = np.sqrt(sizes) * pixel_diag
 
         # Convert pixel indices to physical coordinates
-        x = np.interp(
-            positions[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
-        y = np.interp(
-            positions[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
-        positions[:, 0] = x
-        positions[:, 1] = y
+        # x = np.interp(
+        #     positions[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
+        # y = np.interp(
+        #     positions[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
+        # positions[:, 0] = x
+        # positions[:, 1] = y
 
         return {
             'position': positions,

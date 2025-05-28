@@ -428,21 +428,20 @@ def get_terrain(*args, last=None, **kwargs):
     return get_terrains(*args, last=-1, **kwargs)[0]
 
 
-def find_rocks(array_2d):
+def find_rocks(terrain):
     """
-    Identify connected regions (islands) and extract central and max points.
-
-    Parameters:
-    - array_2d: 2D numpy array representing elevation.
+    Identify connected high regions in a terrain and return their real-world
+    centroids, maximum heights, and pixel counts.
 
     Returns:
-    - positions: Nx2 array of region centroids.
-    - heights: Maximum value per region.
-    - sizes: Number of pixels in each region.
+    - positions: Nx2 array of (x, y) centroids in real-world coordinates
+    - heights: Maximum elevation per region
+    - sizes: Number of pixels in each region
     """
+    import numpy as np
     import scipy.ndimage as ndimage
 
-    labeled, num = ndimage.label(array_2d)
+    labeled, num = ndimage.label(terrain.array)
     positions = []
     heights = []
     sizes = []
@@ -452,11 +451,17 @@ def find_rocks(array_2d):
         sizes.append(len(coords))
 
         center = np.mean(coords, axis=0)
-        max_idx = np.argmax(array_2d[labeled == label])
+        max_idx = np.argmax(terrain.array[labeled == label])
         max_pos = coords[max_idx]
-        max_val = array_2d[max_pos[0], max_pos[1]]
+        max_val = terrain.array[max_pos[0], max_pos[1]]
 
-        positions.append(center)
+        # Convert row/col center to (x, y) coordinates
+        x_range = [0, terrain.array.shape[0]]
+        y_range = [0, terrain.array.shape[1]]
+
+        x = np.interp(center[0], x_range, terrain.extent[:2])
+        y = np.interp(center[1], y_range, terrain.extent[2:4])
+        positions.append([x, y])
         heights.append(max_val)
 
     return np.array(positions), np.array(heights), np.array(sizes)
