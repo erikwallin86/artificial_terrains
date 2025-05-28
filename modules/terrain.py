@@ -324,87 +324,106 @@ class FindRocks(Module):
 
 
 class FindRocks2(Module):
-    ''' Find rocks, and pass along as 'obstacles'
-    '''
+    """
+    Detect rock-like features from terrain data and output them as 'obstacles'.
+
+    The method identifies local maxima (interpreted as rocks), computes their
+    positions, heights, and estimated widths, and returns them in a structured
+    format suitable for obstacle processing.
+    """
+
     @debug_decorator
     def __call__(self, terrain_heap=None, terrain_temp=None,
-                 default=None, last=None,
-                 **kwargs):
-        positions_list = []
-        heights_list = []
-        sizes_list = []
+                 default=None, last=None, **kwargs):
+        """
+        Parameters:
+        - terrain_heap, terrain_temp: Terrain sources.
+        - last: Fallback terrain if others are not provided.
 
+        Returns:
+        - dict with fields:
+            - 'position': Nx2 array of (x, y) positions.
+            - 'height': Estimated height of each feature.
+            - 'width': Estimated width based on region size.
+            - 'yaw_deg', 'pitch_deg': Zeros (placeholders).
+            - 'aspect': Ones (placeholder for shape).
+        """
         from utils.utils import get_terrains
+
+        positions_all = []
+        heights_all = []
+        sizes_all = []
+
         terrains = get_terrains(
             terrain_temp, terrain_heap, last=last, remove=False,
             print_fn=self.info)
 
         for i, terrain in enumerate(terrains):
-            # Find local max
+            # Detect local maxima and get stats
             positions, heights, sizes = self.localMax4(terrain.array)
-            positions_list.append(positions)
-            heights_list.append(heights)
-            sizes_list.append(sizes)
+            positions_all.append(positions)
+            heights_all.append(heights)
+            sizes_all.append(sizes)
 
-        # get pixel size to estimate width
+        # Assume same resolution for all terrains
         resolution = terrain.resolution
-        pixel_diagonal_size = np.linalg.norm(resolution)
+        pixel_diag = np.linalg.norm(resolution)
 
-        position = np.concatenate(positions_list)
-        print(f"position.shape:{position.shape}")
-        x = np.interp(position[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
-        y = np.interp(position[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
+        # Merge results
+        positions = np.concatenate(positions_all)
+        heights = np.concatenate(heights_all)
+        sizes = np.concatenate(sizes_all)
+        widths = np.sqrt(sizes) * pixel_diag
 
-        position[:, 0] = x
-        position[:, 1] = y
+        # Convert pixel indices to physical coordinates
+        x = np.interp(
+            positions[:, 0], [0, terrain.array.shape[0]], terrain.extent[:2])
+        y = np.interp(
+            positions[:, 1], [0, terrain.array.shape[1]], terrain.extent[2:4])
+        positions[:, 0] = x
+        positions[:, 1] = y
 
-        # position = np.array([x, y])
-        print(f"position.shape:{position.shape}")
-
-        height = np.concatenate(heights_list)
-        size = np.concatenate(sizes_list)
-        width = np.sqrt(size)*pixel_diagonal_size
-
-        # Return data, in the same 'format' as 'obstacles'
         return {
-            'position': position,
-            'height': height,
-            'width': width,
-            'yaw_deg': np.zeros_like(height),
-            'pitch_deg': np.zeros_like(height),
-            'aspect': np.ones_like(height),
+            'position': positions,
+            'height': heights,
+            'width': widths,
+            'yaw_deg': np.zeros_like(heights),
+            'pitch_deg': np.zeros_like(heights),
+            'aspect': np.ones_like(heights),
         }
 
     def localMax4(self, array_2d):
-        import scipy.ndimage as ndimage
-        # Find islands using label connected components
-        labelled_array, num_islands = ndimage.label(array_2d)
+        """
+        Identify connected regions (islands) and extract central and max points.
 
-        # Initialize arrays to store results
-        positions_central = []
-        positions_highest = []
-        heights_max = []
+        Parameters:
+        - array_2d: 2D numpy array representing elevation.
+
+        Returns:
+        - positions: Nx2 array of region centroids.
+        - heights: Maximum value per region.
+        - sizes: Number of pixels in each region.
+        """
+        import scipy.ndimage as ndimage
+
+        labeled, num = ndimage.label(array_2d)
+        positions = []
+        heights = []
         sizes = []
 
-        # Iterate through each island
-        for island_label in range(1, num_islands+1):
-            # Get the coordinates of all points in the current island
-            island_coords = np.argwhere(labelled_array == island_label)
-            sizes.append(len(island_coords))
+        for label in range(1, num + 1):
+            coords = np.argwhere(labeled == label)
+            sizes.append(len(coords))
 
-            # Calculate the central point of the island
-            central_point = np.mean(island_coords, axis=0)
+            center = np.mean(coords, axis=0)
+            max_idx = np.argmax(array_2d[labeled == label])
+            max_pos = coords[max_idx]
+            max_val = array_2d[max_pos[0], max_pos[1]]
 
-            # Find the highest point in the island
-            highest_point = island_coords[np.argmax(array_2d[labelled_array == island_label])]
-            max_height = array_2d[highest_point[0], highest_point[1]]
+            positions.append(center)
+            heights.append(max_val)
 
-            # Append the positions to the respective arrays
-            positions_central.append(central_point)
-            positions_highest.append(highest_point)
-            heights_max.append(max_height)
-
-        return np.array(positions_highest), np.array(heights_max), np.array(sizes)
+        return np.array(positions), np.array(heights), np.array(sizes)
 
 
 class PlotRocks(Module):
