@@ -141,10 +141,19 @@ class LogData(Module):
             # Only save if it's a proper NumPy array (not ragged or object dtype)
             try:
                 arr = np.array(v)
-                if arr.dtype != object:
+                if arr.dtype is not  object:
                     to_save[k] = arr
             except Exception:
                 pass  # Skip entries that can't be safely converted to a NumPy array
+
+            # Second attempt, try to concatenate arrays/lists of different size
+            if k not in to_save:
+                try:
+                    arr = np.concatenate(v)
+                    if arr.dtype is not object:
+                        to_save[k] = arr
+                except Exception:
+                    pass
 
         filename = os.path.join(self.save_dir, self.filename)
         np.savez(filename, **to_save)
