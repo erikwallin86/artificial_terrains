@@ -131,6 +131,11 @@ class Rocks(Module):
                  terrain_temp=None,
                  **kwargs):
         rock_size = default if default is not None else rock_size
+
+        # Make sure 'rock-size' is a list
+        if not isinstance(rock_size, list):
+            rock_size = [rock_size]
+
         if rock_heights is None:
             rock_heights = np.divide(rock_size, 2)
             # [0.25, 0.5, 1, 2],
