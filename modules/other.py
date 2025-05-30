@@ -82,7 +82,7 @@ class LoadData(Module):
             raise FileNotFoundError(f"File not found: {filename}")
 
         # Load file
-        data = np.load(filename)
+        data = np.load(filename, allow_pickle=True)
 
         # Convert to dict
         result = {}
@@ -114,9 +114,12 @@ class LogData(Module):
             self, default=None, filename='data.npz',
             # parameters to skip:
             terrain_temp=[], terrain_heap=[],
-            last=None, call_number=None,
-            call_total=None, size=None, ppm=None,
+            last=None,
+            call_total=None, size=None,
             extent=None, loop_id=None, loop_id_r=None,
+            # don't skip
+            # call_number=None,
+            # ppm=None,
             **kwargs,
     ):
 
