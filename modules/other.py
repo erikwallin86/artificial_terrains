@@ -310,6 +310,43 @@ class Slope(Module):
         return results
 
 
+class SurfaceStructure(Module):
+    """
+    Compute surface-structure measures
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 position=None, height=None,
+                 default=None, last=None, sigma_meter=0, **_):
+
+        terrain = get_terrain(
+            terrain_temp, terrain_heap, remove=False)
+
+        # Get terrain resolution
+        resolution = terrain.resolution  # (dy, dx)
+        size = terrain.size
+
+        a = np.sum(height > 0.1)
+        b = np.sum(height > 0.3)
+        c = np.sum(height > 0.5)
+        d = np.sum(height > 0.7)
+        print(f"(a, b, c, d):{(a, b, c, d)}")
+
+        # Categorize as number of obstaces per ha (100x100m)
+        per_ha_factor = 100*100/np.multiply(*terrain.size)
+
+        results = {
+            'h_20': (a-b)*per_ha_factor,
+            'h_40': (b-c)*per_ha_factor,
+            'h_60': (c-d)*per_ha_factor,
+            'h_80': (d-0)*per_ha_factor,
+        }
+
+        return results
+
+
 class CombineRoughness(Module):
     """
     Combine roughness values and weights into a proxy roughness estimate.
