@@ -269,7 +269,7 @@ class FindRocks(Module):
         }
 
         # Filter to include only rocks of some height
-        pick = (height > 0.2)
+        pick = (height > 0.1)
         result = {k: v[pick] for k, v in result.items()}
 
         return result
