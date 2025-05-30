@@ -297,7 +297,7 @@ class PlotRocks(Module):
         except TypeError:
             terrain = None
 
-        filename = 'rocks.png'
+        filename = f'rocks{self.file_id}.png'
         filename = os.path.join(self.save_dir, filename)
 
         if terrain is not None:
