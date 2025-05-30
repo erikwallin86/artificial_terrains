@@ -165,6 +165,35 @@ class LogData(Module):
             self.save()
 
 
+class MakeData1D(Module):
+    """
+    Split all arrays with shape (N, D) into D separate 1D arrays named
+    key_0, key_1, ..., key_{D-1}.
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(
+            self,
+            # parameters to skip:
+            terrain_temp=[], terrain_heap=[],
+            last=None, call_number=None,
+            call_total=None, size=None, ppm=None,
+            extent=None, loop_id=None, loop_id_r=None,
+            **kwargs,
+    ):
+        result = {}
+        for k, v in kwargs.items():
+            if isinstance(v, np.ndarray) and v.ndim == 2 and v.shape[1] > 1:
+                for i in range(v.shape[1]):
+                    result[f"{k}_{i}"] = v[:, i]
+                self.info(f"Split key '{k}' into {v.shape[1]} separate 1D arrays.")
+            else:
+                result[k] = v  # Keep unchanged if not 2D or not wide enough
+
+        return result
+
+
 class Roughness(Module):
     """
     Calculate terrain roughness by comparing the surface area of the original
