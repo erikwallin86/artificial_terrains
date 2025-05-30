@@ -529,3 +529,15 @@ class AddRocks(Module):
                 # obj.rotation_euler = np.random.random(3)*np.pi*2
                 obj.rotation_euler = [np.deg2rad(pitch_deg), 0, np.deg2rad(yaw_deg)]
                 obj.name = 'Rock'
+
+
+class Pause(Module):
+    """
+    Pause execution until the user presses Enter.
+    Useful for debugging or inspecting intermediate states (e.g., in Blender).
+    """
+    create_folder = False
+
+    def __call__(self, message="Paused. Press Enter to continue...", **kwargs):
+        input(message)
+        return {'paused': True}
