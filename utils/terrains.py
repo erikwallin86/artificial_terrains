@@ -270,7 +270,7 @@ def get_surface_normal(hf_array, size):
     return normal
 
 
-def calculate_surface_area(heightmap: np.ndarray, resolution: tuple[float, float]) -> float:
+def get_surface_area(heightmap: np.ndarray, resolution: tuple[float, float]) -> float:
     """
     Estimate the surface area of a terrain heightmap.
 

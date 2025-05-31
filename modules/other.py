@@ -1,12 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 from scipy.ndimage import gaussian_filter
 from scipy.optimize import brentq
 
 from modules.data import Module, debug_decorator
 from utils.utils import get_terrains, get_terrain
-from utils.terrains import get_surface_normal
 from utils.plots import new_fig, save_all_axes
 
 
@@ -32,7 +30,7 @@ class SaveData(Module):
             filename = default
         if default is not None:
             folder = default
-            
+
         # Use folder
         basename = os.path.basename(self.save_dir)
         if basename != folder:
@@ -92,7 +90,6 @@ class LoadData(Module):
                 k = f'{k}_2'
             result[k] = v
 
-
         self.info(f"Loaded from {filename}: keys = {list(result.keys())}")
 
         return result
@@ -138,16 +135,16 @@ class LogData(Module):
 
     def save(self):
         # Convert lists to arrays and save
-        # to_save = {k: np.array(v) for k, v in self.data.items()}
         to_save = {}
         for k, v in self.data.items():
-            # Only save if it's a proper NumPy array (not ragged or object dtype)
+            # Only save if it's a proper NumPy array
             try:
                 arr = np.array(v)
-                if arr.dtype is not  object:
+                if arr.dtype is not object:
                     to_save[k] = arr
             except Exception:
-                pass  # Skip entries that can't be safely converted to a NumPy array
+                # Skip entries that can't be converted to a NumPy array
+                pass
 
             # Second attempt, try to concatenate arrays/lists of different size
             if k not in to_save:
@@ -190,7 +187,7 @@ class MakeData1D(Module):
             if isinstance(v, np.ndarray) and v.ndim == 2 and v.shape[1] > 1:
                 for i in range(v.shape[1]):
                     result[f"{k}_{i}"] = v[:, i]
-                self.info(f"Split key '{k}' into {v.shape[1]} separate 1D arrays.")
+                self.info(f"Split '{k}' into {v.shape[1]} separate 1D arrays.")
             else:
                 result[k] = v  # Keep unchanged if not 2D or not wide enough
 
@@ -214,7 +211,7 @@ class Roughness(Module):
     def __call__(self, terrain_temp=[], terrain_heap=[],
                  default=None, last=None, sigma_meter=5, **_):
 
-        from utils.terrains import calculate_surface_area
+        from utils.terrains import get_surface_area
 
         # Possibly set sigma (m) using default value
         sigma_meter = default if default is not None else sigma_meter
@@ -232,8 +229,8 @@ class Roughness(Module):
             smoothed_array = gaussian_filter(terrain.array, sigma=sigma_grid)
 
             # Compute surface normals
-            area_orig = calculate_surface_area(terrain.array, terrain.resolution)
-            area_smooth = calculate_surface_area(smoothed_array, terrain.resolution)
+            area_orig = get_surface_area(terrain.array, terrain.resolution)
+            area_smooth = get_surface_area(smoothed_array, terrain.resolution)
 
             roughness = area_orig / area_smooth if area_smooth > 0 else np.nan
 
