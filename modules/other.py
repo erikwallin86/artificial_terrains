@@ -324,10 +324,7 @@ class SurfaceStructure(Module):
         terrain = get_terrain(
             terrain_temp, terrain_heap, remove=False)
 
-        # Get terrain resolution
-        resolution = terrain.resolution  # (dy, dx)
-        size = terrain.size
-
+        # Count number of rocks larger than some cutoffs
         a = np.sum(height > 0.1)
         b = np.sum(height > 0.3)
         c = np.sum(height > 0.5)
@@ -342,6 +339,7 @@ class SurfaceStructure(Module):
             'h_40': (b-c)*per_ha_factor,
             'h_60': (c-d)*per_ha_factor,
             'h_80': (d-0)*per_ha_factor,
+            'h_sum': a*per_ha_factor,
         }
 
         return results
