@@ -250,11 +250,23 @@ class FindRocks(Module):
             terrain_temp, terrain_heap, last=last, remove=False,
             print_fn=self.info)
 
-        position, height, size = zip(*(find_rocks(t) for t in terrains))
+        # position, height, size = zip(*(find_rocks(t) for t in terrains))
+        position_list = []
+        height_list = []
+        size_list = []
+        terrain_number_list = []
 
-        position = np.concatenate(position)
-        height = np.concatenate(height)
-        size = np.concatenate(size)
+        for i, terrain in enumerate(terrains):
+            position, height, size = find_rocks(terrain)
+            position_list.append(position)
+            height_list.append(height)
+            size_list.append(size)
+            terrain_number_list.append(np.full(len(height), i))
+
+        position = np.concatenate(position_list)
+        height = np.concatenate(height_list)
+        size = np.concatenate(size_list)
+        terrain_number = np.concatenate(terrain_number_list)
 
         pixel_diag = np.linalg.norm(terrains[0].resolution)
         width = np.sqrt(size) * pixel_diag
@@ -263,6 +275,7 @@ class FindRocks(Module):
             'position': position,
             'height': height,
             'width': width,
+            'terrain_number': terrain_number,
             'yaw_deg': np.zeros_like(height),
             'pitch_deg': np.zeros_like(height),
             'aspect': np.ones_like(height),
