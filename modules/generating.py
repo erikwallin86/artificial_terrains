@@ -147,8 +147,8 @@ class Rocks(Module):
 
         for i, (x, height) in enumerate(zip(rock_size, rock_heights)):
             info_dict = {}
-            scaling = 1.75/(1+x*0.75)
-            simplex_noise = 1/scaling * get_simplex2(
+
+            simplex_noise = get_simplex2(
                 scale_x=x, scale_y=x,
                 info_dict=info_dict,
                 center=True,
@@ -156,7 +156,9 @@ class Rocks(Module):
                 **kwargs,
             )
 
-            max_value = np.max(simplex_noise)
+            # max_value = np.max(simplex_noise)
+            max_value = np.sqrt(3)/2
+
             # Pick all that is not holes/rocks
             pick = (simplex_noise < max_value*fraction)
             # Normalize, and remove all that is not holes/rocks
