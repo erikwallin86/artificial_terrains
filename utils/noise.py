@@ -29,6 +29,7 @@ def get_simplex2(ppm=None, size=None, N=None, resolution=None,
                  scale_x=50, scale_y=50, seed=None,
                  extent=None,
                  info_dict=None,
+                 random_shift=False,
                  logger_fn=None, **_):
     '''
     Get noise with shape (Nx, Ny)
@@ -63,6 +64,19 @@ def get_simplex2(ppm=None, size=None, N=None, resolution=None,
             f"extent:{info_dict['extent']}, " +\
             f"seed:{info_dict['opensimplex_seed']}"
         logger_fn(info)
+
+    if random_shift:
+        # Add random shift, connected to opensimplex seed to get
+        # repeatable results
+        import random
+        seed = opensimplex.get_seed()
+        rng = random.Random(seed)
+        # Generate two random numbers in [0, 1)
+        rx = rng.random()
+        ry = rng.random()
+        # Add random shift to the extent
+        extent[:2] = np.add(extent[:2], rx*scale_x)
+        extent[2:] = np.add(extent[2:], ry*scale_y)
 
     x = np.linspace(extent[0]/scale_x, extent[1]/scale_x, num=N_x, endpoint=False)
     y = np.linspace(extent[2]/scale_y, extent[3]/scale_y, num=N_y, endpoint=False)
