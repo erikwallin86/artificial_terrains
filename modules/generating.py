@@ -153,7 +153,7 @@ class Rocks(Module):
                 info_dict=info_dict,
                 center=True,
                 logger_fn=self.info,
-                random_shift=True,
+                random_shift=False,
                 **kwargs,
             )
 
