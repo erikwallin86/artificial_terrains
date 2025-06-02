@@ -2,6 +2,8 @@ from modules.data import Module, debug_decorator
 import os
 import numpy as np
 import yaml
+from utils.plots import save_all_axes
+
 
 class Save(Module):
     create_folder = False
@@ -295,7 +297,7 @@ class PlotRocks(Module):
     def __call__(self, terrain_heap=None, terrain_temp=None,
                  position=None, width=None,
                  default=None, last=None,
-                 dpi=200,
+                 dpi=200, exportmode=False,
                  **kwargs):
         from utils.utils import get_terrain
         from utils.plots import plot_terrain, new_fig
@@ -323,6 +325,11 @@ class PlotRocks(Module):
             *position.T,
             facecolor='none', color='red', s=40*width**2)
         fig.savefig(filename, dpi=dpi)
+        if exportmode:
+            save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+            filename = filename.replace('.png', f'_{0:01d}.png')
+            # Possibly use as image texture
+            return {'texture': filename}
 
 
 class Plot(Module):
