@@ -621,7 +621,7 @@ class PlotScatter(Module):
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  # plot-parameters
-                 exportmode=False, dpi=200,
+                 exportmode=False, dpi=200, overwrite=False,
                  color=None, cmap=None,
                  grid=False,
                  **kwargs):
@@ -632,6 +632,12 @@ class PlotScatter(Module):
                 # Skip plotting identical variables or mismatched lengths
                 # if k1 == k2 or len(v1) != len(v2):
                 if k1 == k2:
+                    continue
+
+                # Generate filename and save figure
+                filename = f"{k1}_v_{k2}{self.file_id}.png"
+                filename = os.path.join(self.save_dir, filename)
+                if os.path.isfile(filename) and not overwrite:
                     continue
 
                 try:
@@ -654,9 +660,6 @@ class PlotScatter(Module):
 
                     if grid:
                         ax.grid()
-                    # Generate filename and save figure
-                    filename = f"{k1}_v_{k2}{self.file_id}.png"
-                    filename = os.path.join(self.save_dir, filename)
                     fig.savefig(filename)
                     if exportmode:
                         save_all_axes(fig, filename, delta=0.0, dpi=dpi)
