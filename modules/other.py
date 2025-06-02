@@ -74,7 +74,10 @@ class LoadData(Module):
             filename = default
         else:
             original_save_dir = os.path.dirname(self.save_dir)
-            filename = os.path.join(original_save_dir, 'SaveData/data.npz')
+            for name in ['SaveData/data.npz', 'LogData/data.npz']:
+                filename = os.path.join(original_save_dir, name)
+                if os.path.isfile(filename):
+                    break
 
         if not os.path.isfile(filename):
             raise FileNotFoundError(f"File not found: {filename}")
