@@ -153,6 +153,83 @@ def calc_ytstruktur(H_to_number_mapping, ha=1.0):
     return Y
 
 
+def calc_ytstruktur_2(h_20, h_40, h_60, h_80):
+    '''
+    Def rocks per hectare in each size class
+    '''
+    def classify(v):
+        ''' Classify according to enstaka, sparsamt, måttlit, rikligt '''
+        return 0 if v < 4 else 1 if v < 40 else 2 if v < 400 else 3 if v < 4000 else 4
+
+    number_mapping = {
+        0: 'Finns inga',
+        1: 'Enstaka',
+        2: 'Sparsamt',
+        3: 'Måttligt',
+        4: 'Rikligt',
+    }
+    none = 0
+    occasional = 1
+    sparse = 2
+    moderate = 3
+    abundant = 4
+    
+    # Calculate
+    if classify(h_20) <= sparse:
+        if classify(h_40 + h_60 + h_80) <= occasional:
+            Y = 1
+        elif classify(h_40) <= sparse and classify(h_60 + h_80) <= occasional:
+            Y = 2
+        elif classify(h_40) <= moderate:
+            if classify(h_60) <= sparse:
+                if classify(h_80) <= occasional:
+                    Y = 3
+                elif classify(h_80) <= sparse:
+                    Y = 4
+                else:
+                    Y = 5
+            else:
+                Y = 5
+        else:
+            Y = 5
+    
+    elif classify(h_20) == moderate:
+        if classify(h_40 + h_60 + h_80) == none:
+            Y = 1
+        elif classify(h_40) <= sparse and classify(h_60 + h_80) <= occasional:
+            Y = 2
+        elif classify(h_40) <= moderate:
+            if classify(h_60) <= sparse:
+                if classify(h_80) <= occasional:
+                    Y = 3
+                elif classify(h_80) <= sparse:
+                    Y = 4
+                else:
+                    Y = 5
+            else:
+                Y = 5
+        else:
+            Y = 5
+    
+    else:  # classify(h_20) == abundant
+        if classify(h_40 + h_60 + h_80) == none:
+            Y = 2
+        elif classify(h_40) <= moderate:
+            if classify(h_60) <= sparse:
+                if classify(h_80) <= occasional:
+                    Y = 3
+                elif classify(h_80) <= sparse:
+                    Y = 4
+                else:
+                    Y = 5
+            else:
+                Y = 5
+        else:
+            Y = 5
+    
+    return Y
+
+
 def generate_size_distribution(Y=3, random=False):
     '''
     Generate a size distribution

@@ -345,6 +345,15 @@ class SurfaceStructure(Module):
             'h_sum': a*per_ha_factor,
         }
 
+        # Calculate surface structure
+        from utils.utils import calc_ytstruktur_2
+        h_20 = results['h_20']
+        h_40 = results['h_40']
+        h_60 = results['h_60']
+        h_80 = results['h_80']
+        Y = calc_ytstruktur_2(h_20, h_40, h_60, h_80)
+        self.info(f"Y:{Y}")
+
         return results
 
 
