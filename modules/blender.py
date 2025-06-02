@@ -150,12 +150,12 @@ class ImageTexture(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ground_material=None, filename=None, default=None, **_):
+    def __call__(self, ground_material=None, texture=None, default=None, **_):
         from utils.Blender import (use_image_texture)
 
-        filename = default if default is not None else filename
+        texture = default if default is not None else texture
         image_texture_kwargs = {}
-        use_image_texture(ground_material, filename, **image_texture_kwargs)
+        use_image_texture(ground_material, texture, **image_texture_kwargs)
 
 
 class ColorMap(Module):
