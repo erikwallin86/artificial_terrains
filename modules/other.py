@@ -779,3 +779,84 @@ class PlotLines(Module):
             except Exception:
                 # Silently skip any error (consider logging)
                 pass
+
+
+class PlotLines2(Module):
+    """
+    Plot lines
+    """
+    create_folder = True
+
+    @debug_decorator
+    def __call__(self,
+                 default=None,
+                 # parameters to skip:
+                 terrain_temp=[], terrain_heap=[],
+                 last=None, call_number=None,
+                 call_total=None, size=None, ppm=None,
+                 extent=None, loop_id=None, loop_id_r=None,
+                 # plot-parameters
+                 exportmode=False, dpi=200, overwrite=False,
+                 color=None, cmap=None,
+                 grid=False,
+                 yscale='linear',
+                 **kwargs):
+
+        # Loop over all key-value pairs in kwargs
+        for k1, v1 in kwargs.items():
+            for k2, v2 in kwargs.items():
+                # Skip plotting identical variables or mismatched lengths
+                # if k1 == k2 or len(v1) != len(v2):
+                if k1 == k2:
+                    continue
+
+                # Generate filename and save figure
+                filename = f"{k1}_v_{k2}{self.file_id}.png"
+                filename = os.path.join(self.save_dir, filename)
+                if os.path.isfile(filename) and not overwrite:
+                    continue
+
+                try:
+                    # Create figure and axis
+                    fig, ax = new_fig()
+
+                    if color is not None and color in kwargs:
+                        color_data = kwargs[color]
+                        print(f"color_data:{color_data}")
+                        unique_values = np.unique(color_data)
+                        print(f"unique_values:{unique_values}")
+                        for v in unique_values:
+                            pick = (color_data == v)
+                            print(f"pick:{pick}")
+                            label = f'{color} = {v:.2f}'
+                            print(f"label:{label}")
+                            ax.plot(v1[pick], v2[pick], alpha=1, label=label)
+                        fig.legend()
+                        ax.set_yscale(yscale)
+                    else:
+                        ax.plot(v1, v2)
+
+                    # Label axes
+                    ax.set_xlabel(k1)
+                    ax.set_ylabel(k2)
+
+                    # Apply tight layout
+                    fig.tight_layout()
+
+                    if grid:
+                        ax.grid()
+                    fig.savefig(filename)
+                    if exportmode:
+                        save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+
+                except IndexError as e:
+                    # Skip silently on error (could add logging if needed)
+                    print(f"e:{e}")
+                    pass
+                except ValueError as e:
+                    # Skip silently on error (could add logging if needed)
+                    print(f"e:{e}")
+                    pass
+
+
+            
