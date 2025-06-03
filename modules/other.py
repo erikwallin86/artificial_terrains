@@ -143,7 +143,8 @@ class LogData(Module):
             # Only save if it's a proper NumPy array
             try:
                 arr = np.array(v)
-                if arr.dtype is not object:
+                # if arr.dtype is not object:
+                if not np.issubdtype(arr.dtype, np.object_):
                     to_save[k] = arr
             except Exception:
                 # Skip entries that can't be converted to a NumPy array
@@ -153,7 +154,8 @@ class LogData(Module):
             if k not in to_save:
                 try:
                     arr = np.concatenate(v)
-                    if arr.dtype is not object:
+                    # if arr.dtype is not object:
+                    if not np.issubdtype(arr.dtype, np.object_):
                         to_save[k] = arr
                 except Exception:
                     pass
