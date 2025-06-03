@@ -75,6 +75,8 @@ def get_simplex2(ppm=None, size=None, N=None, resolution=None,
         rx = rng.random()
         ry = rng.random()
         # Add random shift to the extent
+        import copy
+        extent = copy.deepcopy(extent)
         extent[:2] = np.add(extent[:2], rx*scale_x)
         extent[2:] = np.add(extent[2:], ry*scale_y)
 

@@ -129,6 +129,7 @@ class Rocks(Module):
                  fraction=0.8,
                  default=None,
                  terrain_temp=None,
+                 random_shift=False,
                  **kwargs):
         rock_size = default if default is not None else rock_size
 
@@ -153,7 +154,7 @@ class Rocks(Module):
                 info_dict=info_dict,
                 center=True,
                 logger_fn=self.info,
-                random_shift=False,
+                random_shift=random_shift,
                 **kwargs,
             )
 
