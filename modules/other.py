@@ -354,6 +354,8 @@ class SurfaceStructure(Module):
         h_60 = results['h_60']
         h_80 = results['h_80']
         Y = calc_ytstruktur_2(h_20, h_40, h_60, h_80)
+
+        results['Y'] = Y
         self.info(f"Y:{Y}")
 
         return results
