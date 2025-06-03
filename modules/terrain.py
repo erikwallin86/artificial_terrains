@@ -381,9 +381,15 @@ class Plot(Module):
                 if exportmode:
                     save_all_axes(fig, filename, delta=0.0, dpi=dpi)
 
-        return {
-            'plot_filenames': list_of_filenames
-            }
+        result = {'plot_filenames': list_of_filenames}
+
+        if exportmode:
+            filename = filename.replace('.png', f'_{0:01d}.png')
+            # Possibly use last result as image texture
+            result['texture'] = filename
+
+        return result
+
 
 
 class SaveYaml(Module):
