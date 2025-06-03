@@ -322,11 +322,14 @@ class PlotObstacles(Module):
     @debug_decorator
     def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
                  width=[5], aspect=[1], pitch_deg=[0],
-                 filename='obstacles.png', default=None,
+                 filename=None, default=None,
                  exportmode=False, dpi=200,
                  **kwargs):
         # Setup filename
         filename = default if default is not None else filename
+        if filename is None:
+            filename = f'obstacles{self.file_id}.png'
+
         filename = os.path.join(self.save_dir, filename)
 
         from utils.obstacles import Obstacles
@@ -349,6 +352,9 @@ class PlotObstacles(Module):
         fig.savefig(filename)
         if exportmode:
             save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+            filename = filename.replace('.png', f'_{0:01d}.png')
+            # Possibly use as image texture
+            return {'texture': filename}
 
 
 class SaveObstacles(Module):
