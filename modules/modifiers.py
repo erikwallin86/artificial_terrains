@@ -66,6 +66,22 @@ class Absolute(Module):
             terrain.array = np.absolute(terrain.array)
 
 
+class Clip(Module):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_heap=[],
+                 default=None, last=None, **_):
+        ''' Clip terrains '''
+
+        terrains = get_terrains(
+            terrain_temp, terrain_heap, last, remove=False)
+
+        # Clip
+        for terrain in terrains:
+            terrain.array = np.clip(terrain.array, 0, 1)
+
+
 class Around(Module):
     create_folder = False
 
