@@ -42,8 +42,8 @@ def main():
             exit(1)
 
     if using_blender:
-        # Prepend 'BasicSetup' module
-        args.modules = [('BasicSetup', None)] + args.modules
+        # Prepend the 'BasicSetup' and 'Holdout' modules
+        args.modules = [('BasicSetup', None), ('Holdout', None)] + args.modules
 
     pipe = {
         'size': 50,  # default
