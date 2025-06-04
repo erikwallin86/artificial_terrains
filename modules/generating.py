@@ -55,14 +55,14 @@ class Octaves(Module):
       num_octaves: (int) number of octaves/terrains to generate
       start (float): start scale
       amplitude_start (float): amplitude for start octave
-      persistance (float): factor by which amplitude is scaled for each octave
+      persistence (float): factor by which amplitude is scaled for each octave
     '''
     @debug_decorator
     def __call__(
             self, terrain_temp=None, default=None,
             num_octaves=10,
             start=128,
-            persistance=0.60,
+            persistence=0.60,
             amplitude_start=10,
             random_amp=0.5,
             random_sign=True,
@@ -83,10 +83,10 @@ class Octaves(Module):
         scale_list = np.logspace(start_log2, end_log2, num_octaves, base=2)
 
         # Generate amplitude list
-        amplitude_start_log = np.log(amplitude_start)/np.log(persistance)
+        amplitude_start_log = np.log(amplitude_start)/np.log(persistence)
         amplitude_end_log = amplitude_start_log+num_octaves-1
         amplitude_list = np.logspace(amplitude_start_log, amplitude_end_log,
-                                     num_octaves, base=persistance)
+                                     num_octaves, base=persistence)
 
         # Possibly multiply amplitudes by random perturbations
         if random_amp:
