@@ -71,6 +71,7 @@ class Clip(Module):
 
     @debug_decorator
     def __call__(self, terrain_temp=[], terrain_heap=[],
+                 clip_min=0, clip_max=1,
                  default=None, last=None, **_):
         ''' Clip terrains '''
 
@@ -79,7 +80,7 @@ class Clip(Module):
 
         # Clip
         for terrain in terrains:
-            terrain.array = np.clip(terrain.array, 0, 1)
+            terrain.array = np.clip(terrain.array, clip_min, clip_max)
 
 
 class Around(Module):
