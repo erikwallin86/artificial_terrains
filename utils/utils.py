@@ -467,7 +467,7 @@ def add_id(filename, file_id):
 
 
 def get_terrains(
-        terrain_temp=[], terrain_heap=[],
+        terrain_temp=[], terrain_prim=[],
         last=None, print_fn=print, remove=True):
     ''' Get terrains from temp/heap
 
@@ -487,16 +487,16 @@ def get_terrains(
         if remove:
             del terrain_temp[last:]
 
-    elif len(terrain_heap) > 0:
+    elif len(terrain_prim) > 0:
         # Get terrains from heap (if last=None then all are used)
-        terrains = terrain_heap[last:]
-        print_fn(f"Use {len(terrains)}/{len(terrain_heap)} terrains from heap")
+        terrains = terrain_prim[last:]
+        print_fn(f"Use {len(terrains)}/{len(terrain_prim)} terrains from heap")
 
-        # Remove any used terrains from terrain_heap in place
+        # Remove any used terrains from terrain_prim in place
         if remove:
-            del terrain_heap[last:]
+            del terrain_prim[last:]
     else:
-        raise AttributeError("Both terrain_temp and terrain_heap are empty")
+        raise AttributeError("Both terrain_temp and terrain_prim are empty")
 
     return terrains
 

@@ -20,7 +20,7 @@ class SaveData(Module):
                  default=None,
                  folder='SaveData',
                  # parameters to skip:
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,
@@ -113,7 +113,7 @@ class LogData(Module):
     def __call__(
             self, default=None, filename='data.npz',
             # parameters to skip:
-            terrain_temp=[], terrain_heap=[],
+            terrain_temp=[], terrain_prim=[],
             last=None,
             call_total=None, size=None,
             extent=None, loop_id=None, loop_id_r=None,
@@ -181,7 +181,7 @@ class MakeData1D(Module):
     def __call__(
             self,
             # parameters to skip:
-            terrain_temp=[], terrain_heap=[],
+            terrain_temp=[], terrain_prim=[],
             last=None, call_number=None,
             call_total=None, size=None, ppm=None,
             extent=None, loop_id=None, loop_id_r=None,
@@ -213,7 +213,7 @@ class Roughness(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, sigma_meter=5, **_):
 
         from utils.terrains import get_surface_area
@@ -222,7 +222,7 @@ class Roughness(Module):
         sigma_meter = default if default is not None else sigma_meter
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         results = {'roughness': []}
 
@@ -255,14 +255,14 @@ class Slope(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, sigma_meter=0, **_):
 
         # Possibly override sigma with `default`
         sigma_meter = default if default is not None else sigma_meter
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         results = {
             'slope_deg': [],  # mean slope, in degrees
@@ -322,12 +322,12 @@ class SurfaceStructure(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  position=None, height=None,
                  default=None, last=None, sigma_meter=0, **_):
 
         terrain = get_terrain(
-            terrain_temp, terrain_heap, remove=False)
+            terrain_temp, terrain_prim, remove=False)
 
         # Count number of rocks larger than some cutoffs
         a = np.sum(height > 0.1)
@@ -629,7 +629,7 @@ class PlotScatter(Module):
     def __call__(self,
                  default=None,
                  # parameters to skip:
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,
@@ -693,7 +693,7 @@ class PlotHistogram(Module):
     def __call__(self,
                  default=None,
                  # parameters to skip:
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,
@@ -750,7 +750,7 @@ class PlotLines(Module):
     def __call__(self,
                  default=None,
                  # parameters to skip:
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,
@@ -791,7 +791,7 @@ class PlotLines2(Module):
     def __call__(self,
                  default=None,
                  # parameters to skip:
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
                  call_total=None, size=None, ppm=None,
                  extent=None, loop_id=None, loop_id_r=None,

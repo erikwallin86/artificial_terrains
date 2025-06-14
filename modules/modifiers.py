@@ -8,10 +8,10 @@ class Negate(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Negate the terrains
         for terrain in terrains:
@@ -22,12 +22,12 @@ class Scale(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  factor=2, default=None, last=None, **_):
         factor = default if default is not None else factor
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Scale the terrains
         for terrain in terrains:
@@ -38,12 +38,12 @@ class Add(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  term=1, default=None, last=None, **_):
         term = default if default is not None else term
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Scale the terrains
         for terrain in terrains:
@@ -56,10 +56,10 @@ class Absolute(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Scale the terrains
         for terrain in terrains:
@@ -70,13 +70,13 @@ class Clip(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  clip_min=0, clip_max=1,
                  default=None, last=None, **_):
         ''' Clip terrains '''
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Clip
         for terrain in terrains:
@@ -87,14 +87,14 @@ class Around(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  around=1, default=None, last=None, **_):
         ''' Move terrain in z to place mean at some value '''
         # Get value from 'default'
         around = default if default is not None else around
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Move to place mean around 1
         for terrain in terrains:
@@ -110,12 +110,12 @@ class AsProbability(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         ''' Use terrain as a 2d probability '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_heap, print_fn=print)
+            terrain_temp, terrain_prim, print_fn=print)
 
         # Clip to remove negative values
         terrain.array = np.clip(terrain.array, 0, None)
@@ -129,7 +129,7 @@ class AsLookupFor(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  parameter='width',
                  default=None, last=None, **_):
         ''' Use terrain as function f(x, y) to sample values given positions '''
@@ -138,7 +138,7 @@ class AsLookupFor(Module):
 
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_heap, print_fn=print)
+            terrain_temp, terrain_prim, print_fn=print)
 
         return {f'{parameter}_lookup_function': terrain}
 
@@ -147,12 +147,12 @@ class AsFactor(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         ''' Use terrain as a 2d factor '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_heap, print_fn=print, remove=True)
+            terrain_temp, terrain_prim, print_fn=print, remove=True)
 
         return {'factor': terrain.array}
 
@@ -174,7 +174,7 @@ class BezierRemap(Module):
     create_folder = True
 
     @debug_decorator
-    def __call__(self, bezier_args=0.5, terrain_temp=[], terrain_heap=[],
+    def __call__(self, bezier_args=0.5, terrain_temp=[], terrain_prim=[],
                  default=None, plot=False, call_number=None, call_total=None,
                  last=None, **pipe):
 
@@ -184,7 +184,7 @@ class BezierRemap(Module):
             bezier_args = [bezier_args]
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Get bezier curve
         t_array = np.linspace(0, 1, 50)
@@ -258,7 +258,7 @@ class Smooth(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, sigma_meter=5, **_):
         from scipy.ndimage import gaussian_filter
 
@@ -268,7 +268,7 @@ class Smooth(Module):
 
         # Get terrains
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False)
 
         # Loop the terrains, and perform Gaussian smoothing
         for terrain in terrains:

@@ -8,10 +8,10 @@ class Combine(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Add', terrain_temp=None, terrain_heap=None,
+    def __call__(self, operation='Add', terrain_temp=None, terrain_prim=None,
                  default=None, last=None, **_):
         '''
-        Combine terrains in terrain_temp (or terrain_heap) using 'operation'
+        Combine terrains in terrain_temp (or terrain_prim) using 'operation'
 
         Args:
           operation (string): What operation to perform
@@ -20,7 +20,7 @@ class Combine(Module):
         '''
         # Initialize lists
         terrain_temp = [] if terrain_temp is None else terrain_temp
-        terrain_heap = [] if terrain_heap is None else terrain_heap
+        terrain_prim = [] if terrain_prim is None else terrain_prim
 
         operations = ['Add', 'Max', 'Min', 'Prod']
         operation = default if default is not None else operation
@@ -33,7 +33,7 @@ class Combine(Module):
 
         from utils.utils import get_terrains
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last=last, remove=True,
+            terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
 
         # Turn into arrays. Workaround to work in Windows/Ubuntu
@@ -60,12 +60,12 @@ class Combine(Module):
             raise AttributeError
 
         # Add terrain to heap
-        terrain_heap.append(terrain)
+        terrain_prim.append(terrain)
 
         # Return updated heap/dict
         return {
             'terrain_temp': terrain_temp,
-            'terrain_heap': terrain_heap,
+            'terrain_prim': terrain_prim,
         }
 
 
@@ -83,15 +83,15 @@ class ToPrimary(Combine):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_heap=[],
+    def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         from utils.utils import get_terrains
-        terrain = get_terrains(terrain_temp, terrain_heap, last)
-        terrain_heap.extend(terrain)
+        terrain = get_terrains(terrain_temp, terrain_prim, last)
+        terrain_prim.extend(terrain)
 
         return {
             'terrain_temp': terrain_temp,
-            'terrain_heap': terrain_heap,
+            'terrain_prim': terrain_prim,
         }
 
 
@@ -101,13 +101,13 @@ class WeightedSum(Module):
 
     @debug_decorator
     def __call__(self, weights=[5, 8, 0.1], terrain_temp=None,
-                 terrain_heap=None, last=None,
+                 terrain_prim=None, last=None,
                  overwrite=False,
                  default=None, **_):
 
         # Initialize lists
         terrain_temp = [] if terrain_temp is None else terrain_temp
-        terrain_heap = [] if terrain_heap is None else terrain_heap
+        terrain_prim = [] if terrain_prim is None else terrain_prim
 
         weights = default if default is not None else weights
         weights = np.array(weights).reshape(-1, 1, 1)
@@ -117,7 +117,7 @@ class WeightedSum(Module):
         # Get terrains
         from utils.utils import get_terrains
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last=last, remove=True,
+            terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
 
         # Get arrays
@@ -127,11 +127,11 @@ class WeightedSum(Module):
         terrain = Terrain.from_array(
             array, size=terrains[0].size, extent=terrains[0].extent)
 
-        terrain_heap.append(terrain)
+        terrain_prim.append(terrain)
 
         return {
             'terrain_temp': terrain_temp,
-            'terrain_heap': terrain_heap,
+            'terrain_prim': terrain_prim,
             }
 
 
@@ -140,14 +140,14 @@ class Stack(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=None, terrain_heap=None,
+    def __call__(self, terrain_temp=None, terrain_prim=None,
                  default=None, last=None, **_):
         '''
         Operates on the 'most recent' list. 
         '''
         # Initialize lists
         terrain_temp = [] if terrain_temp is None else terrain_temp
-        terrain_heap = [] if terrain_heap is None else terrain_heap
+        terrain_prim = [] if terrain_prim is None else terrain_prim
 
         if last is not None and last > 0:
             # When e.g. taking the last two, the slice is [-2:]
@@ -156,7 +156,7 @@ class Stack(Module):
 
         from utils.utils import get_terrains
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last=last, remove=True,
+            terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
 
         from utils.terrains import assign_grid_indices
@@ -170,11 +170,11 @@ class Stack(Module):
 
         # Add the merged terrain to the primary list
         merged_terrain_list = merge_terrain_blocks(index_to_terrain)
-        terrain_heap.extend(merged_terrain_list)
+        terrain_prim.extend(merged_terrain_list)
 
         # We need to return these in case we have emptited some list
         # (made it a new list?), as then the existing list is not 'updated'
         return {
             'terrain_temp': terrain_temp,
-            'terrain_heap': terrain_heap,
+            'terrain_prim': terrain_prim,
         }

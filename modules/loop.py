@@ -143,7 +143,7 @@ class Unloop(Module):
         it appends or concatenates the values accordingly.
         """
         data_to_merge = [
-            'terrain_temp', 'terrain_heap',
+            'terrain_temp', 'terrain_prim',
             'position', 'width', 'height',
             'aspect', 'yaw_deg', 'pitch_deg',
             # Test:

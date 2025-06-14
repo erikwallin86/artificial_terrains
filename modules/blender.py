@@ -32,7 +32,7 @@ class Ground(Module):
 
     @debug_decorator
     def __call__(self, filename=None, default=None,
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  ground_material=None,
                  last=None,
                  **_):
@@ -47,9 +47,9 @@ class Ground(Module):
             terrains = [terrain]
         else:
             # Get latest from dict/heap
-            # terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
+            # terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
             terrains = get_terrains(
-                terrain_temp, terrain_heap, last, remove=False)
+                terrain_temp, terrain_prim, last, remove=False)
 
         # Make grid from array
         for i, terrain in enumerate(terrains):
@@ -213,7 +213,7 @@ class Camera(Module):
 
     @debug_decorator
     def __call__(self, camera='top', default=None,
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  size=None,
                  ppm=None,
                  resolution=None,
@@ -236,7 +236,7 @@ class Camera(Module):
             angle = default
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
 
         size = terrain.size
         camera_kwargs = {}
@@ -309,7 +309,7 @@ class Depth(Module):
     @debug_decorator
     def __call__(self, filename="terrain.npz", default=None,
                  folder='Depth',
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  overwrite=False,
                  **_):
         from utils.Blender import get_depth, render_eevee
@@ -328,7 +328,7 @@ class Depth(Module):
             os.makedirs(self.save_dir)
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_heap)
+        terrain = get_terrain(terrain_temp, terrain_prim)
 
         setup_render_z()
 
@@ -348,10 +348,10 @@ class Depth(Module):
 
         # TODO: Fix this. Unsure how to handle this when I remove
         # the 'terrain' attribute
-        terrain_heap = [terrain]
+        terrain_prim = [terrain]
 
         return {
-            'terrain_heap': terrain_heap,
+            'terrain_prim': terrain_prim,
         }
 
 
@@ -444,7 +444,7 @@ class Holdout(Module):
 
     @debug_decorator
     def __call__(self,
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  default=None,
                  **_):
         import bpy
@@ -462,12 +462,12 @@ class AddRocks(Module):
                  width=[10, 5, 3, 1],
                  yaw_deg=[0, 90, 180, 270],
                  pitch_deg=[0, 10, 20, 30],
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  size=None,
                  default=None,
                  **_):
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_heap, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
 
         # Construct 'interpolator'
         if terrain is not None:

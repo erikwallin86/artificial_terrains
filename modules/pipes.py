@@ -12,7 +12,7 @@ class Split(Module):
     @debug_decorator
     def __call__(self, nx=2, ny=2, seed=None,
                  extent=None,
-                 terrain_temp=None, terrain_heap=None,
+                 terrain_temp=None, terrain_prim=None,
                  default=None, call_number=None, call_total=None, **pipe):
 
         # n = default if default is not None else n
@@ -39,8 +39,8 @@ class Split(Module):
         from utils.terrains import split_terrain_blocks, extent_to_size
         if terrain_temp is not None:
             terrain_temp_blocks = split_terrain_blocks(terrain_temp, nx, ny)
-        if terrain_heap is not None:
-            terrain_heap_blocks = split_terrain_blocks(terrain_heap, nx, ny)
+        if terrain_prim is not None:
+            terrain_prim_blocks = split_terrain_blocks(terrain_prim, nx, ny)
 
         for i, split_index in enumerate(combinations):
             # Copy pipe
@@ -61,10 +61,10 @@ class Split(Module):
                 array_list = list(terrain_temp_blocks[:, a, b])
                 terrain_list = [Terrain.from_array(array, extent=sub_extent) for array in array_list]
                 new_pipe['terrain_temp'] = terrain_list
-            if terrain_heap:
-                array_list = list(terrain_heap_blocks[:, a, b])
+            if terrain_prim:
+                array_list = list(terrain_prim_blocks[:, a, b])
                 terrain_list = [Terrain.from_array(array, extent=sub_extent) for array in array_list]
-                new_pipe['terrain_heap'] = terrain_list
+                new_pipe['terrain_prim'] = terrain_list
 
             if seed is not None:
                 new_pipe['seed'] = seed
@@ -88,11 +88,11 @@ class Join(Module):
 
     @debug_decorator
     def __call__(self, 
-                 terrain_temp=None, terrain_heap=None,
+                 terrain_temp=None, terrain_prim=None,
                  extent=None, split_index=None,
                  default=None, call_number=None, call_total=None,
                  index_to_terrain_temp={},
-                 index_to_terrain_heap={},
+                 index_to_terrain_prim={},
                  extent_list=[],
                  **pipe):
 
@@ -102,7 +102,7 @@ class Join(Module):
 
         # Append terrain lists to dict
         index_to_terrain_temp[split_index] = terrain_temp
-        index_to_terrain_heap[split_index] = terrain_heap
+        index_to_terrain_prim[split_index] = terrain_prim
         extent_list.append(extent)
 
         # Early return on all but last call
@@ -115,9 +115,9 @@ class Join(Module):
             terrain_temp = merge_terrain_blocks(index_to_terrain_temp)
             pipe['terrain_temp'] = terrain_temp
 
-        if list(index_to_terrain_heap.values())[0]:
-            terrain_heap = merge_terrain_blocks(index_to_terrain_heap)
-            pipe['terrain_heap'] = terrain_heap
+        if list(index_to_terrain_prim.values())[0]:
+            terrain_prim = merge_terrain_blocks(index_to_terrain_prim)
+            pipe['terrain_prim'] = terrain_prim
 
         # Merge the extent
         extent_start = extent_list[0]

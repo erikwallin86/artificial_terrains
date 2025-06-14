@@ -12,7 +12,7 @@ class Save(Module):
     @debug_decorator
     def __call__(self, folder='Save',
                  default=None,
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  overwrite=False,
                  **_):
         # Possibly set folder from 'default'.
@@ -30,7 +30,7 @@ class Save(Module):
             os.makedirs(self.save_dir)
 
         # Save terrain
-        for i, terrain in enumerate(terrain_heap):
+        for i, terrain in enumerate(terrain_prim):
             filename = f'terrain{self.file_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
@@ -96,13 +96,13 @@ class Load(Module):
         pipes = [pipe.copy() for _ in range(
             max(len(terrain_temp_list), len(terrain_list)))]
 
-        # Load to create terrain_heap
+        # Load to create terrain_prim
         for terrains, pipe in zip(terrain_list, pipes):
-            terrain_heap = pipe.get('terrain_heap', [])
+            terrain_prim = pipe.get('terrain_prim', [])
             for _, filename in terrains:
                 terrain = Terrain.from_numpy(filename)
-                terrain_heap.append(terrain)
-            pipe['terrain_heap'] = terrain_heap
+                terrain_prim.append(terrain)
+            pipe['terrain_prim'] = terrain_prim
 
         # Load to create terrain_temp
         for terrains, pipe in zip(terrain_temp_list, pipes):
@@ -188,7 +188,7 @@ class ClearTerrain(Module):
 
         return {
             'terrain_temp': [],
-            'terrain_heap': [],
+            'terrain_prim': [],
         }
 
 
@@ -244,12 +244,12 @@ class FindRocks(Module):
     height, and width.
     """
     @debug_decorator
-    def __call__(self, terrain_heap=None, terrain_temp=None,
+    def __call__(self, terrain_prim=None, terrain_temp=None,
                  default=None, last=None, **kwargs):
         from utils.utils import get_terrains, find_rocks
 
         terrains = get_terrains(
-            terrain_temp, terrain_heap, last=last, remove=False,
+            terrain_temp, terrain_prim, last=last, remove=False,
             print_fn=self.info)
 
         # position, height, size = zip(*(find_rocks(t) for t in terrains))
@@ -294,7 +294,7 @@ class PlotRocks(Module):
     ''' Plot rocks
     '''
     @debug_decorator
-    def __call__(self, terrain_heap=None, terrain_temp=None,
+    def __call__(self, terrain_prim=None, terrain_temp=None,
                  position=None, width=None,
                  default=None, last=None,
                  dpi=200, exportmode=False,
@@ -305,7 +305,7 @@ class PlotRocks(Module):
         # Get terrain
         try:
             terrain = get_terrain(
-                terrain_temp, terrain_heap, last=last, remove=False,
+                terrain_temp, terrain_prim, last=last, remove=False,
                 print_fn=self.info)
         except AttributeError:
             terrain = None
@@ -338,7 +338,7 @@ class Plot(Module):
     ''' Plot terrain '''
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
-                 terrain_temp=[], terrain_heap=[], folder='Plot',
+                 terrain_temp=[], terrain_prim=[], folder='Plot',
                  exportmode=False, dpi=400,
                  vmin=None, vmax=None,
                  call_number=None, call_total=None, **kwargs):
@@ -360,7 +360,7 @@ class Plot(Module):
             os.makedirs(self.save_dir)
 
         # Plot terrain
-        for i, terrain in enumerate(terrain_heap):
+        for i, terrain in enumerate(terrain_prim):
             filename = f'terrain{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
@@ -397,7 +397,7 @@ class SaveYaml(Module):
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
                  call_number=None, call_total=None,
-                 terrain_temp=[], terrain_heap=[],
+                 terrain_temp=[], terrain_prim=[],
                  **kwargs):
 
         extent = kwargs['extent']

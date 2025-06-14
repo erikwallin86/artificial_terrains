@@ -433,9 +433,9 @@ def plot_terrain(terrain, ax=None, fig=None,
     return fig, ax
 
 
-def debug_plot(filename=None, terrain_temp=[], terrain_heap=[], **kwargs):
+def debug_plot(filename=None, terrain_temp=[], terrain_prim=[], **kwargs):
     temp_length = len(terrain_temp)
-    heap_length = len(terrain_heap)
+    heap_length = len(terrain_prim)
 
     max_length = max(temp_length, heap_length)
 
@@ -446,7 +446,7 @@ def debug_plot(filename=None, terrain_temp=[], terrain_heap=[], **kwargs):
     axs = np.array(axs).reshape(max_length, 2)
 
     # Plot heap
-    for i, terrain in enumerate(terrain_heap):
+    for i, terrain in enumerate(terrain_prim):
         ax = axs[i, 0]
         fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
         ax.patch.set_edgecolor('red')
@@ -471,9 +471,9 @@ def debug_plot(filename=None, terrain_temp=[], terrain_heap=[], **kwargs):
 
 def debug_plot_horizontal(
         filename=None, terrain_temp=[],
-        terrain_heap=[], **kwargs):
+        terrain_prim=[], **kwargs):
     temp_length = len(terrain_temp)
-    heap_length = len(terrain_heap)
+    heap_length = len(terrain_prim)
 
     max_length = max(temp_length, heap_length)
 
@@ -484,7 +484,7 @@ def debug_plot_horizontal(
     axs = np.array(axs).reshape(2, max_length)
 
     # Plot heap
-    for i, terrain in enumerate(terrain_heap):
+    for i, terrain in enumerate(terrain_prim):
         ax = axs[0, i]
         fig, ax = plot_terrain(terrain, ax=ax, fig=fig)
         ax.patch.set_edgecolor('red')
