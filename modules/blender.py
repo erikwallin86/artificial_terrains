@@ -451,7 +451,7 @@ class Holdout(Module):
         bpy.context.scene.render.film_transparent = True
 
 
-class AddRocks(Module):
+class AddMeshObjects(Module):
     ''' '''
     create_folder = False
 
