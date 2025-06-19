@@ -613,7 +613,7 @@ class LoadObstacles(Module):
         return pipe
 
 
-class CleanDistantObstacles(Module):
+class RemoveDistantObstacles(Module):
     """
     Filter obstacles based on their distance
 
