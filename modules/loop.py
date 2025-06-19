@@ -107,7 +107,7 @@ class Loop(Module):
             yield return_dict
 
 
-class Unloop(Module):
+class EndLoop(Module):
     ''' Test... '''
     create_folder = False
 
