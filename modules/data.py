@@ -141,6 +141,23 @@ class Size(Module):
             }
 
 
+class Extent(Module):
+    ''' Extent '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, extent=[-25, 25, -25, 25], default=None, **kwargs):
+        extent = default if default is not None else extent
+
+        self.info(f"Set extent:{extent} [m]")
+        from utils.terrains import extent_to_size
+
+        return {
+            'size': extent_to_size(extent),
+            'extent': extent,
+            }
+
+
 class PPM(Module):
     ''' Test '''
     create_folder = False
