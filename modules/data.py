@@ -126,6 +126,8 @@ class Size(Module):
 
         if isinstance(size, list):
             size_x, size_y = size
+        elif isinstance(size, str) and 'x' in default:
+            size_x, size_y = map(float, default.lower().split('x'))
         else:
             size_x, size_y = (size, size)
 
