@@ -223,7 +223,8 @@ class Camera(Module):
                  distance=None,
                  **_):
         from utils.artificial_shapes import determine_extent_and_resolution
-        size_x, size_y, N_x, N_y = determine_extent_and_resolution(
+
+        extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
         from utils.Blender import (
