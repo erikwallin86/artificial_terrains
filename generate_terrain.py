@@ -47,7 +47,7 @@ def main():
 
     pipe = {
         'size': 50,  # default
-        'ppm': 2,  # default
+        'resolution': 2,  # default
         'extent': [-25, 25, -25, 25],  # default
         'call_number': 0,
         'call_total': 1,

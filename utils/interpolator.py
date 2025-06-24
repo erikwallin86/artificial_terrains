@@ -41,14 +41,14 @@ class Interpolator():
         result = self.interpolator([x, y])
         return result
 
-    def setup_points(self, size=(2, 2), resolution=(128, 128), offset_x=0):
+    def setup_points(self, size=(2, 2), grid_size=(128, 128), offset_x=0):
         '''
         Setup points for sampling heightfield
         '''
         half_x = size[0] / 2
         half_y = size[1] / 2
-        nx, ny = resolution
-        self.resolution = resolution
+        nx, ny = grid_size
+        self.grid_size = grid_size
         x = offset_x + np.linspace(-half_x, half_x, nx)
         y = np.linspace(-half_y, half_y, ny)
 
@@ -70,7 +70,7 @@ class Interpolator():
         heights = self.interpolator(trans_grid_points)
 
         # Reshape to grid size
-        heights = heights.reshape(self.resolution)
+        heights = heights.reshape(self.grid_size)
         self.heights = heights
 
         return heights, trans_grid_points

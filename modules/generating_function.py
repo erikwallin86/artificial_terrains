@@ -13,7 +13,7 @@ class Generative(Module):
             self, function_name=None, terrain_temp=None, default=None,
             position=[[0, 0]], height=[], width=[],
             aspect=[], yaw_deg=[], pitch_deg=[],
-            size=None, resolution=None, ppm=None, extent=None,
+            size=None, grid_size=None, resolution=None, extent=None,
             reset_input=True,
             **kwargs):
         '''
@@ -47,9 +47,9 @@ class Generative(Module):
 
         # Setup sizes etc.
         from utils.artificial_shapes import determine_extent_and_resolution
-        # Get size and resolution from any two tuples: ppm, size, resolution
+        # Get size and resolution from any two tuples: resolution, size, resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
-            ppm, size, resolution, extent)
+            resolution, size, grid_size, extent)
 
         properties = {
             'position': position,
@@ -158,7 +158,7 @@ class Function(Module):
             self,
             expression='x',
             terrain_temp=None, default=None, overwrite=None,
-            size=None, resolution=None, ppm=None, extent=None,
+            size=None, grid_size=None, resolution=None, extent=None,
             **kwargs):
         '''
         '''
@@ -168,9 +168,9 @@ class Function(Module):
 
         # Setup sizes etc.
         from utils.artificial_shapes import determine_extent_and_resolution
-        # Get size and resolution from any two tuples: ppm, size, resolution
+        # Get size and resolution from any two tuples: resolution, size, resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
-            ppm, size, resolution, extent)
+            resolution, size, grid_size, extent)
 
         from utils.artificial_shapes import get_meshgrid
 

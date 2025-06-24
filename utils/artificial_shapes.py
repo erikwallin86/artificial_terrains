@@ -51,49 +51,33 @@ def cartesian_to_polar(x, y):
     return (rho, phi)
 
 
-def determine_size_and_resolution(ppm=None, size=None, N=None):
-    # Update parameters from any tuple input
-    if ppm is not None:
-        if isinstance(ppm, list):
-            ppm_x, ppm_y = ppm
+def determine_extent_and_resolution(resolution=None, size=None, grid_size=None, extent=None):
+    '''
+    Determine extent and resolution.
+
+    Default: use extent (m) and resolution (points/m) to decide -> (extent, grid_size)
+    
+    If grid_size explicitly given, use that instead.
+    '''
+    if resolution is not None:
+        # Default, use resolution
+        if isinstance(resolution, list):
+            resolution_x, resolution_y = resolution
         else:
-            ppm_x, ppm_y = (ppm, ppm)
-    if size is not None:
-        if isinstance(size, list):
-            size_x, size_y = size
+            resolution_x, resolution_y = (resolution, resolution)
+
+        from utils.terrains import extent_to_size
+        [size_x, size_y] = extent_to_size(extent)
+        grid_size_x = int(size_x * resolution_x)
+        grid_size_y = int(size_y * resolution_y)
+    elif grid_size is not None:
+        # But use grid-size if explicitly given
+        if isinstance(grid_size, list):
+            grid_size_x, grid_size_y = grid_size
         else:
-            size_x, size_y = (size, size)
-    if N is not None:
-        if isinstance(N, list):
-            N_x, N_y = N
-        else:
-            N_x, N_y = (N, N)
+            grid_size_x, grid_size_y = (grid_size, grid_size)
 
-    # if N_x is None:
-    #     N_x = int(size_x * ppm_x)
-    # if N_y is None:
-    #     N_y = int(size_y * ppm_y)
-    if N is None:
-        N_x = int(size_x * ppm_x)
-        N_y = int(size_y * ppm_y)
-
-    return size_x, size_y, N_x, N_y
-
-
-def determine_extent_and_resolution(ppm=None, size=None, N=None, extent=None):
-    # Update parameters from any tuple input
-    if ppm is not None:
-        if isinstance(ppm, list):
-            ppm_x, ppm_y = ppm
-        else:
-            ppm_x, ppm_y = (ppm, ppm)
-
-    from utils.terrains import extent_to_size
-    [size_x, size_y] = extent_to_size(extent)
-    N_x = int(size_x * ppm_x)
-    N_y = int(size_y * ppm_y)
-
-    return extent, [N_x, N_y]
+    return extent, [grid_size_x, grid_size_y]
 
 
 def gaussian_1d(x, mu=0, sigma=1):

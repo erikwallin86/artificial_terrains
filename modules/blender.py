@@ -215,15 +215,16 @@ class Camera(Module):
     def __call__(self, camera='top', default=None,
                  terrain_temp=[], terrain_prim=[],
                  size=None,
-                 ppm=None,
                  resolution=None,
+                 extent=None,
+                 grid_size=None,
                  angle=45,
                  center=None,
                  distance=None,
                  **_):
-        from utils.artificial_shapes import determine_size_and_resolution
-        size_x, size_y, N_x, N_y = determine_size_and_resolution(
-            ppm, size, resolution)
+        from utils.artificial_shapes import determine_extent_and_resolution
+        size_x, size_y, N_x, N_y = determine_extent_and_resolution(
+            resolution, size, grid_size, extent)
 
         from utils.Blender import (
             setup_top_camera, set_view_to_camera, setup_angled_camera)

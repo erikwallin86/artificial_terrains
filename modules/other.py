@@ -22,7 +22,7 @@ class SaveData(Module):
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
-                 call_total=None, size=None, ppm=None,
+                 call_total=None, size=None, resolution=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  **kwargs):
         # use default to update filename or folder
@@ -119,7 +119,7 @@ class LogData(Module):
             extent=None, loop_id=None, loop_id_r=None,
             # don't skip
             # call_number=None,
-            # ppm=None,
+            # resolution=None,
             **kwargs,
     ):
 
@@ -183,7 +183,7 @@ class MakeData1D(Module):
             # parameters to skip:
             terrain_temp=[], terrain_prim=[],
             last=None, call_number=None,
-            call_total=None, size=None, ppm=None,
+            call_total=None, size=None, resolution=None,
             extent=None, loop_id=None, loop_id_r=None,
             **kwargs,
     ):
@@ -631,7 +631,7 @@ class PlotScatter(Module):
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
-                 call_total=None, size=None, ppm=None,
+                 call_total=None, size=None, resolution=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  # plot-parameters
                  exportmode=False, dpi=200, overwrite=False,
@@ -695,7 +695,7 @@ class PlotHistogram(Module):
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
-                 call_total=None, size=None, ppm=None,
+                 call_total=None, size=None, resolution=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  # plot parameters
                  bins=10, range=None,
@@ -752,7 +752,7 @@ class PlotLines(Module):
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
-                 call_total=None, size=None, ppm=None,
+                 call_total=None, size=None, resolution=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  **kwargs):
 
@@ -793,7 +793,7 @@ class PlotLines2(Module):
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
-                 call_total=None, size=None, ppm=None,
+                 call_total=None, size=None, resolution=None,
                  extent=None, loop_id=None, loop_id_r=None,
                  # plot-parameters
                  exportmode=False, dpi=200, overwrite=False,

@@ -25,7 +25,7 @@ def get_simplex(Nx=100, Ny=100, scale_x=50, scale_y=50, seed=None):
     return noise2array(y, x)
 
 
-def get_simplex2(ppm=None, size=None, N=None, resolution=None,
+def get_simplex2(resolution=None, size=None, N=None, grid_size=None,
                  scale_x=50, scale_y=50, seed=None,
                  extent=None,
                  info_dict=None,
@@ -47,7 +47,7 @@ def get_simplex2(ppm=None, size=None, N=None, resolution=None,
     # Setup sizes etc.
     from utils.artificial_shapes import determine_extent_and_resolution
     extent, (N_x, N_y) = determine_extent_and_resolution(
-        ppm, size, resolution, extent)
+        resolution, size, grid_size, extent)
 
     size_x = extent[1] - extent[0]
     size_y = extent[3] - extent[2]

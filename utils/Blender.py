@@ -456,7 +456,7 @@ def setup_camera(
 
 
 def setup_top_camera(
-        array, resolution, size,
+        array, grid_size, size,
         camera_name='Camera', camera_type='ORTHO',
 ):
     '''
@@ -475,8 +475,8 @@ def setup_top_camera(
 
     # Set resolution from array shape
     scene = bpy.data.scenes["Scene"]
-    scene.render.resolution_x = resolution[0]
-    scene.render.resolution_y = resolution[1]
+    scene.render.resolution_x = grid_size[0]
+    scene.render.resolution_y = grid_size[1]
 
     # Set location
     camera.location.x = x

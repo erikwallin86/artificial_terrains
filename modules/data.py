@@ -97,20 +97,28 @@ class Print(Module):
             self.info(f"{key}: {value}")
 
 
-class Resolution(Module):
+class GridSize(Module):
     ''' Test '''
     create_folder = False
 
     @debug_decorator
-    def __call__(self, resolution=100, default=None, **kwargs):
-        # göra så att 'default' parametern alltid står först
-        # och göra det här automatiskt
-        resolution = default if default is not None else resolution
+    def __call__(self, grid_size=100, default=None, **kwargs):
+        grid_size = default if default is not None else grid_size
+
+        if isinstance(grid_size, list):
+            grid_size_x, grid_size_y = grid_size
+        elif isinstance(grid_size, str) and 'x' in default:
+            grid_size_x, grid_size_y = map(float, default.lower().split('x'))
+        else:
+            grid_size_x, grid_size_y = (grid_size, grid_size)
+
+        grid_size = [grid_size_x, grid_size_y]
+
+        self.info(f"Set grid_size:{grid_size}")
 
         return {
-            'ppm': None,
-            'resolution': resolution,
-            'N': resolution,
+            'grid_size': grid_size,
+            'resolution': None,  # Not valid?
             }
 
 
@@ -185,21 +193,19 @@ class Location(Module):
             }
 
 
-class PPM(Module):
-    ''' Test '''
+class Resolution(Module):
+    '''  '''
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ppm=5, default=None, **kwargs):
-        # göra så att 'default' parametern alltid står först
-        # och göra det här automatiskt
-        ppm = default if default is not None else ppm
+    def __call__(self, resolution=5, default=None, **kwargs):
+        resolution = default if default is not None else resolution
 
-        self.info(f"Set points-per-meter:{ppm}")
+        self.info(f"Set points-per-meter:{resolution}")
 
         return {
-            'ppm': ppm,
-            'resolution': None,
+            'resolution': resolution,
+            'grid_size': None,
             }
 
 
@@ -320,45 +326,6 @@ class Y(Module):
             pipe['weights'] = [10, 6, 0.2]
         if Y == 5:
             pipe['weights'] = [15, 8, 0.3]
-
-        return pipe
-
-
-class MakeObstacles(Module):
-    ''' Make basic terrains '''
-    @debug_decorator
-    def __call__(self, resolution=None, size=None, ppm=None, **kwargs):
-        from utils.obstacles import Obstacles
-        from utils.plots import plot_obstacles
-
-        from utils.artificial_shapes import determine_size_and_resolution
-        # Get size and resolution from any two tuples: ppm, size, resolution
-        size_x, size_y, N_x, N_y = determine_size_and_resolution(
-            ppm, size, resolution)
-
-        obstacles = Obstacles(Y=3)
-
-        # Fix using extent...
-        diff = np.array([size_x/2, size_y/2]).reshape(2, 1)
-        obstacles.position = np.subtract(obstacles.position, diff)
-
-        filename = 'obstacles.png'
-        filename = os.path.join(self.save_dir, filename)
-        plot_obstacles(obstacles, filename)
-        obstacles.save_numpy(filename.replace('.png', '.npz'))
-
-        # Filter out small obstacles
-        pick = (obstacles.height > 0.29).squeeze()
-        obstacles = obstacles[pick]
-
-        pipe = {}
-        pipe['position'] = obstacles.position.T
-        # For these, we remove one dimension
-        pipe['width'] = obstacles.width[0, :]
-        pipe['height'] = obstacles.height[0, :]
-        pipe['yaw_deg'] = obstacles.yaw_deg[0, :]
-        pipe['aspect'] = obstacles.aspect[0, :]
-        pipe['pitch_deg'] = obstacles.pitch_deg[0, :]
 
         return pipe
 
@@ -497,7 +464,7 @@ class Random(Module):
     @debug_decorator
     def __call__(
             self, number_of_values=3,
-            size=None, resolution=None, ppm=None, extent=None,
+            size=None, grid_size=None, resolution=None, extent=None,
             position_x_distribution=None,
             position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
@@ -527,10 +494,9 @@ class Random(Module):
             else:
                 to_generate = default
 
-        # from utils.artificial_shapes import determine_size_and_resolution
         from utils.artificial_shapes import determine_extent_and_resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
-            ppm, size, resolution, extent)
+            resolution, size, grid_size, extent)
 
         # Setup distributions that depend on other parameters
         if position_x_distribution is None:
