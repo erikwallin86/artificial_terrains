@@ -490,7 +490,7 @@ def get_terrains(
     elif len(terrain_prim) > 0:
         # Get terrains from heap (if last=None then all are used)
         terrains = terrain_prim[last:]
-        print_fn(f"Use {len(terrains)}/{len(terrain_prim)} terrains from heap")
+        print_fn(f"Use {len(terrains)}/{len(terrain_prim)} terrains from primary")
 
         # Remove any used terrains from terrain_prim in place
         if remove:
