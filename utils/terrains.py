@@ -142,6 +142,10 @@ def extent_to_size(extent):
     return [extent[1]-extent[0], extent[3]-extent[2]]
 
 
+def extent_to_location(extent):
+    return [(extent[1]+extent[0])/2, (extent[3]+extent[2])/2]
+
+
 def merge_terrain_blocks(index_to_terrain_list):
     """
     Merges terrain arrays from a dictionary of indexed terrain lists into larger terrain arrays.

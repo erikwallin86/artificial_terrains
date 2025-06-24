@@ -158,6 +158,33 @@ class Extent(Module):
             }
 
 
+class Location(Module):
+    ''' Update location in extent '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, location=[0, 0], extent=None, default=None, **kwargs):
+        location = default if default is not None else location
+
+        from utils.terrains import extent_to_location
+        current_location = extent_to_location(extent)
+
+        # Calculate diff
+        diff = [location[0] - current_location[0],
+                location[1] - current_location[1]]
+
+        # And shift the extent
+        extent = [extent[0]+diff[0],
+                  extent[1]+diff[0],
+                  extent[2]+diff[1],
+                  extent[3]+diff[1]
+                  ]
+
+        return {
+            'extent': extent,
+            }
+
+
 class PPM(Module):
     ''' Test '''
     create_folder = False
