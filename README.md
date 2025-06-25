@@ -1,9 +1,9 @@
 # artificial_terrain
 
 A library and script for creating artificial terrains.
-The library is described in more detail in the paper, (todo: arXiv-link).
-This also contains more updated and relevant examples.
-The README will be further updated, but currently has only been cleaned of outdated content.
+The library is described in more detail in the following arXiv preprint: [arXiv abstract](https://arxiv.org/abs/2506.19751), [PDF download](https://arxiv.org/pdf/2506.19751).
+The paper also includes more up-to-date and relevant examples.
+For now, the README has only been cleaned to remove outdated or incorrect information; further updates are planned.
 
 The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
