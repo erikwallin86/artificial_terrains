@@ -215,6 +215,36 @@ class DonutFunction():
         return self.A * gaussian_1d(rho, mu=self.radius, sigma=self.A/2)
 
 
+class SmoothCircleFunction():
+    # Even if this a Gaussian shape
+    def __init__(self, position=(0, 0), height=2.5, width=5, yaw_deg=0, aspect=1,
+                 **_):
+        self.pos = position
+        self.A = height
+        self.radius = width/2
+        self.aspect = aspect
+        self.yaw_deg = yaw_deg
+
+    def __call__(self, x, y):
+        # Adjust position
+        # NOTE: 'shifted, maybe due to our 'transpose' habit
+        x = x - self.pos[0]
+        y = y - self.pos[1]
+
+        # Rotate
+        x, y = rotate_meshgrid(x, y, self.yaw_deg)
+
+        # Stretch coordinates
+        x = x * np.sqrt(self.aspect)
+        y = y / np.sqrt(self.aspect)
+
+        # Turn to polar coordinates
+        rho, phi = cartesian_to_polar(x, y)
+
+        # return self.A * gaussian_1d(rho, mu=self.radius, sigma=self.A/2)
+        return self.A * smoothstep((rho-self.radius)/self.A/2)
+
+
 class PlaneFunction():
     def __init__(self, position=(0, 0), pitch_deg=0, yaw_deg=0, **_):
         self.pitch_deg = pitch_deg
