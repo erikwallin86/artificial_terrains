@@ -270,6 +270,37 @@ class CubeFunction():
         return np.logical_and(x_dir, y_dir) * self.height
 
 
+class SmoothCubeFunction():
+    def __init__(self, position=(0, 0), height=2.5, width=10, yaw_deg=0, aspect=1, **_):
+        self.position = position
+        self.height = height
+        self.width_x = width * np.sqrt(aspect)
+        self.width_y = width / np.sqrt(aspect)
+        self.yaw_deg = yaw_deg
+        self.aspect = aspect
+        smooth_width = height
+        self.smooth_width = smooth_width  # smoothing distance (in same units as x,y)
+
+    def __call__(self, x, y):
+        # Translate
+        x = x - self.position[0]
+        y = y - self.position[1]
+
+        # Rotate
+        x, y = rotate_meshgrid(x, y, self.yaw_deg)
+
+        # Compute distance to cube edges (positive inside, negative outside)
+        dx = self.width_x/2 - np.abs(x)
+        dy = self.width_y/2 - np.abs(y)
+        dist = np.minimum(dx, dy)
+
+        # Apply smoothing near edges
+        t = 0.5 + 0.5 * dist / self.smooth_width
+        smooth_val = smoothstep(t)
+
+        return smooth_val * self.height
+
+
 clsmembers_pairs = inspect.getmembers(sys.modules[__name__], inspect.isclass)
 FUNCTIONS = {k.replace('Function', '').lower(): v for (k, v)
              in clsmembers_pairs if 'Function' in k}

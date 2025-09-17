@@ -25,7 +25,7 @@ class Generative(Module):
         '''
         terrain_temp = [] if terrain_temp is None else terrain_temp
         functions = ['gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
-                     'smoothstep', 'sine']
+                     'smoothstep', 'sine', 'smoothcube']
         if function_name is None:
             function_name = np.random.choice(functions)
 
@@ -133,6 +133,12 @@ class Cube(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
             *args, function_name='cube', **kwargs)
+
+
+class SmoothCube(Generative):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='smoothcube', **kwargs)
 
 
 class SmoothStep(Generative):
