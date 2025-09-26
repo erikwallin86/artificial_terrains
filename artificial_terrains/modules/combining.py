@@ -143,7 +143,7 @@ class Stack(Module):
     def __call__(self, terrain_temp=None, terrain_prim=None,
                  default=None, last=None, **_):
         '''
-        Operates on the 'most recent' list. 
+        Operates on the 'most recent' list.
         '''
         # Initialize lists
         terrain_temp = [] if terrain_temp is None else terrain_temp

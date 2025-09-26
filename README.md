@@ -7,6 +7,31 @@ For now, the README has only been cleaned to remove outdated or incorrect inform
 
 The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
+## Use as libary
+To use as library.
+1. Clone this repo
+2. Navigate the the main folder, and run `pip install .`
+Example of how to construct a simple terrain:
+```
+import artificial_terrains as at
+
+
+settings = [
+    ('Size', 100),
+    ('Basic', {}),
+    ('WeightedSum', {}),
+    ('Print', {}),
+    ('Plot', {}),
+    ('Save', {}),
+]
+
+at.run(settings, verbose=True)
+terrain = at.get_terrain()
+print(f"terrain:{terrain}")
+```
+
+
+
 ## Getting started
 The following command creates a terrain with an overall ground-shape generated from a `WeightedSum` of different simplex noise `Octaves`. `Holes` and `Rocks` of different scale are generated and combined with a `Min` and `Max` operation respectivly. The resultant ground, holes, and rocks are `Combined` with a default Add operation, and the result is `Save`d and `Plot`ted in the folder Result.
 ```
@@ -45,7 +70,7 @@ It is also possible to run multiple pipes to generate a number of terrains.
 
 ### 'Primary' and 'temporary' terrain lists
 In order to combine basic building blocks to more complex results, and in turn combine these and so on, we utilize two lists for storing sub-results, 'primary' and 'temporary'.
-Generated terrain elements are placed in the `temporary` list. 
+Generated terrain elements are placed in the `temporary` list.
 If a 'combining' module is run, it primarily operates on the content of the 'temporary' list, with the result appended to the 'primary' list.
 If the 'temporary' list is empty, the 'combining' module operates on the 'primary' list instead.
 
@@ -62,7 +87,7 @@ If the 'temporary' list is empty, the 'combining' module operates on the 'primar
 |-----------|-------------|----------------|---------------|--------|
 |**Combine**| Combines the (entire by default) content of the 'temporary' list (primarily) or the 'primary' list (secondarily) using a mathematical operation e.g. (add, min, max, prod). | `operation='add'`  <br /> `last=None` | <img src="readme/images/trio_fixed.png" height="75"> | `Combine:add` <img src="readme/images/add.png" height="75"> <br /> `Combine:max` <img src="readme/images/max.png" height="75"> <br /> `Combine:min`<img src="readme/images/min.png" height="75">  <br /> `Combine:prod`<img src="readme/images/prod.png" height="75">
 |**CombineLast**| As Combine, but only work on the last 2 terrains in the 'temporary' or primary lists. (note that this is a shortcut, and the option `last=X` can be passed to `Combine` for the more general case of combining the last X terrains) | `operation='add'` |  |
-|**WeightedSum**| Add the content of the 'temporary' list as a weighted sum. The input `weights` must match the length of the 'temporary' list.| `weights=[5,8,0.1]` | <img src="readme/images/octaves_fixed.png" height="75"> | <img src="readme/images/octaves_sum_fixed.png" height="75"> | 
+|**WeightedSum**| Add the content of the 'temporary' list as a weighted sum. The input `weights` must match the length of the 'temporary' list.| `weights=[5,8,0.1]` | <img src="readme/images/octaves_fixed.png" height="75"> | <img src="readme/images/octaves_sum_fixed.png" height="75"> |
 
 
 
@@ -85,8 +110,8 @@ If the 'temporary' list is empty, the 'combining' module operates on the 'primar
 ### Obstacles?
 | Technique | Description | Input | Example 1 | Example 2 | Example 3 | Example 4 |
 |-----------|-------------|-------|-------|-------|-------|-------|
-| **LoadObstacles** | LoadObstacles | | | 
-| **SaveObstacles** | SaveObstacles | | | 
+| **LoadObstacles** | LoadObstacles | | |
+| **SaveObstacles** | SaveObstacles | | |
 | **Random** | Random | `number_of_values` <br /> `position_distribution` <br /> `height_distribution` <br /> `yaw_deg_distribution` <br /> `width_distribution` <br /> `aspect_distribution` <br /> `pitch_deg_distribution` <br /> `position_distribution_2d` | `Random:10` <br /> <img src="readme/images/random_10.png" height="75">  | `Random:position` <br /> <img src="readme/images/random_2.png" height="75"> | `Random:[position,yaw_deg]` <br /> <img src="readme/images/random_5.png" height="75"> |`Set:number_of_values=10 Random:[position,yaw_deg]` <br /> <img src="readme/images/random_6.png" height="75"> |
 
 
@@ -131,8 +156,8 @@ If the 'temporary' list is empty, the 'combining' module operates on the 'primar
 ### Other
 | Technique | Description | Input |
 |-----------|-------------|-------|
-| **Exit** | Exit early  |   |   | 
-| **Print** | Print information of pipe  |   |   | 
+| **Exit** | Exit early  |   |   |
+| **Print** | Print information of pipe  |   |   |
 
 
 
@@ -197,17 +222,17 @@ blender --python generate_terrain.py -- --save-dir runs/data_001/ --modules Sine
 
 | Technique | Description | Input | Output |
 |-----------|-------------|-------|-------|
-| **Ground** | Create grid, using either a terrain from a specified file, or the latest terrain in the primary or temporary heaps | `filename=None` | `Ground` <br /> <img src="readme/images/ground_fixed.png" height="75"> | 
-| **ColorMap** | Color heightfield using colormap  | ~~`cmap='viridis'`~~  |  `Ground ColorMap` <br /> <img src="readme/images/colormap_fixed.png" height="75"> | 
-| **AddRocks** | Add rocks to scene.   |   `position` <br /> ~~`height`~~ <br /> `yaw_deg` <br /> `width` <br /> ~~`aspect`~~ <br /> `pitch_deg` | `Ground Random:10 AddRocks` <br /> <img src="readme/images/addrocks_fixed.png" height="75"> | 
-| **ImageTexture** | Color heightfield using image texture file  | `filename=None`  |  `Ground ImageTexture:image_texture.png` <br /> <img src="readme/images/imagetexture_fixed.png" height="75"> | 
-| **Render** |   |   | `Ground Random:10 AddRocks Render` <br /> <img src="readme/images/addrocks_fixed.png" height="75"> | 
-| **RenderSegmentation** |   |  |  `Ground Random:10 AddRocks RenderSegmentation` <br /> <img src="readme/images/render_segmentation_fixed.png" height="75"> | 
-| **Depth** | Generate depth image. This also returns a 'terrain', but this will only be resonable together with the `Camera:top` command, see below.  |   | `Ground Random:10 AddRocks Depth` <br /> <img src="readme/images/depth_fixed.png" height="75"> | 
-| **Camera** | Setup camera. Takes either 'angled' or 'top' as input  |   | `... Depth:top` <br /> <img src="readme/images/depth_top.png" height="75"> | 
-| **GenericCamera** |   |   |   | 
-| **Holdout** | Add a large 'holdout plane' at height -100 m, which gives a transparent background in generated images.  |   |   | 
-| **BasicSetup** | Clean and setup basic blender scene. NOTE: Runs by default as the first module.  |   |   | 
+| **Ground** | Create grid, using either a terrain from a specified file, or the latest terrain in the primary or temporary heaps | `filename=None` | `Ground` <br /> <img src="readme/images/ground_fixed.png" height="75"> |
+| **ColorMap** | Color heightfield using colormap  | ~~`cmap='viridis'`~~  |  `Ground ColorMap` <br /> <img src="readme/images/colormap_fixed.png" height="75"> |
+| **AddRocks** | Add rocks to scene.   |   `position` <br /> ~~`height`~~ <br /> `yaw_deg` <br /> `width` <br /> ~~`aspect`~~ <br /> `pitch_deg` | `Ground Random:10 AddRocks` <br /> <img src="readme/images/addrocks_fixed.png" height="75"> |
+| **ImageTexture** | Color heightfield using image texture file  | `filename=None`  |  `Ground ImageTexture:image_texture.png` <br /> <img src="readme/images/imagetexture_fixed.png" height="75"> |
+| **Render** |   |   | `Ground Random:10 AddRocks Render` <br /> <img src="readme/images/addrocks_fixed.png" height="75"> |
+| **RenderSegmentation** |   |  |  `Ground Random:10 AddRocks RenderSegmentation` <br /> <img src="readme/images/render_segmentation_fixed.png" height="75"> |
+| **Depth** | Generate depth image. This also returns a 'terrain', but this will only be resonable together with the `Camera:top` command, see below.  |   | `Ground Random:10 AddRocks Depth` <br /> <img src="readme/images/depth_fixed.png" height="75"> |
+| **Camera** | Setup camera. Takes either 'angled' or 'top' as input  |   | `... Depth:top` <br /> <img src="readme/images/depth_top.png" height="75"> |
+| **GenericCamera** |   |   |   |
+| **Holdout** | Add a large 'holdout plane' at height -100 m, which gives a transparent background in generated images.  |   |   |
+| **BasicSetup** | Clean and setup basic blender scene. NOTE: Runs by default as the first module.  |   |   |
 
 
 
@@ -264,7 +289,7 @@ class NewModule(Module):
                  overwrite=False,
                  **_):
 ```
-This inherits from the `Module` base class, which sets up e.g. logging and `self.save_dir`. The new module is setup by defining the `__call__` method. As a module is run, this method is executed, with the `pipe` given as keyword arguments. The `default` argument is special. If a single value/string is passed as options for the module, e.g. `Random:10` or `Load:folder/terrain.npz`, then this is passed as the 'default' value. 
+This inherits from the `Module` base class, which sets up e.g. logging and `self.save_dir`. The new module is setup by defining the `__call__` method. As a module is run, this method is executed, with the `pipe` given as keyword arguments. The `default` argument is special. If a single value/string is passed as options for the module, e.g. `Random:10` or `Load:folder/terrain.npz`, then this is passed as the 'default' value.
 Otherwise the keyword arguments are given py the pipe, or by specifying a dict input to the module, as e.g. `Gaussian:"dict(position=[10,10],height=3,width=10)"`
 
 The above example takes a `terrain` keyword as input, with the idea of this being passed in the 'pipe' from a previous module, e.g. `Load` or some 'generating' module. Anything can be passed between modules in this way, and the names are arbitrary. Some special are the following,

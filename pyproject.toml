@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "artificial-terrains"
+version = "0.1.0"
+description = "Modular, extensible terrain generation library"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+  { name = "Erik Wallin", email = "erik.wallin@umu.se" }
+]
+dependencies = [
+  "numpy",
+  "matplotlib",
+  "scipy",
+  "colorcet",
+  "opensimplex",
+  # add any others you rely on (like blender’s Python API if optional)
+]
+
+[project.urls]
+Homepage = "https://github.com/erikwallin86/artificial_terrains"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["artificial_terrains*"]
