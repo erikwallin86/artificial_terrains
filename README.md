@@ -8,7 +8,7 @@ For now, the README has only been cleaned to remove outdated or incorrect inform
 The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
 
 ## Use as libary
-To use as library.
+To use as library (temporary solution until properly published/released on pypi) (only tested in linux)
 1. Clone this repo
 2. Navigate the the main folder, and run `pip install .`
 Example of how to construct a simple terrain:
