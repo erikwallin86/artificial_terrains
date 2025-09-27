@@ -24,7 +24,7 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
         run([("Basic", {}), ("WeightedSum", {})])
     """
 
-    global _last_pipe, _last_primary
+    global _last_pipe
 
     if logger is None:
         logger = logging.getLogger("artificial_terrains")
@@ -73,16 +73,25 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
 
     # Store last_pipe globally
     _last_pipe = last_pipe
-    _last_primary = last_pipe.get('terrain_prim', [])
 
 
 def get_terrain():
     """Return the last terrain (single)."""
-    if _last_primary:
-        return _last_primary[-1]
-    return None
+
+    if 'terrain_prim' in _last_pipe:
+        return _last_pipe['terrain_prim'][-1]
+    elif 'terrain_temp' in _last_pipe:
+        return _last_pipe['terrain_temp'][-1]
+    else:
+        return None
 
 
 def get_terrains():
     """Return all terrains from the last run."""
-    return _last_primary
+
+    if 'terrain_prim' in _last_pipe:
+        return _last_pipe['terrain_prim']
+    elif 'terrain_temp' in _last_pipe:
+        return _last_pipe['terrain_temp']
+    else:
+        return None
