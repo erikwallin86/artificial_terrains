@@ -135,6 +135,58 @@ class WeightedSum(Module):
             }
 
 
+class Compose(Module):
+    ''' Combined two (and only) terrains using a mask (factor) + operation '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, operation='Over',
+                 terrain_temp=None, terrain_prim=None,
+                 factor=None, default=None, last=None, **_):
+        '''
+        Combine terrains two terrains using some operation and mask (factor)
+
+        Args:
+          operation (string): What operation to perform
+        '''
+        # Initialize lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_prim = [] if terrain_prim is None else terrain_prim
+
+        operations = ['Over', 'Under']
+        operation = default if default is not None else operation
+        assert operation in operations, f'{operation} not in {operations}'
+
+        from utils.utils import get_terrains
+        terrains = get_terrains(
+            terrain_temp, terrain_prim, last=2, remove=True,
+            print_fn=self.info)
+
+        # Turn into arrays. Workaround to work in Windows/Ubuntu
+        array_0 = terrains[0].array
+        array_1 = terrains[1].array
+
+        # clip factor to [0, 1]
+        factor = np.clip(factor, 0, 1)
+
+        if operation == 'Over':
+            array = array_1*factor + array_0*(1-factor)
+        if operation == 'Under':
+            array = array_0*factor + array_1*(1-factor)
+
+        terrain = Terrain.from_array(
+            array, size=terrains[0].size, extent=terrains[0].extent)
+
+        # Add terrain to heap
+        terrain_prim.append(terrain)
+
+        # Return updated primary/temporary
+        return {
+            'terrain_temp': terrain_temp,
+            'terrain_prim': terrain_prim,
+        }
+
+
 class Stack(Module):
     ''' Place terrains side by side '''
     create_folder = False
