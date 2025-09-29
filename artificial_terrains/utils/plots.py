@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib
-import time
 import colorcet as cc
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -513,7 +512,8 @@ def generate_line_grid(size=(512, 512),
                        major_step=100,
                        medium_step=10,
                        minor_step=1,
-                       filename="grid.png"):
+                       filename=None,
+):
     """
     Generate a grid using explicit line drawing.
 
@@ -525,8 +525,6 @@ def generate_line_grid(size=(512, 512),
         minor_step (float): Spacing of thin lines.
         filename (str): Optional file name to save.
     """
-    t0 = time.time()
-
     width_px, height_px = size
     xmin, xmax, ymin, ymax = extent
 
@@ -556,9 +554,9 @@ def generate_line_grid(size=(512, 512),
             ax.axhline(y, linewidth=lw, color=col)
 
     # Draw in order: minor → medium → major
-    draw_lines(minor_step, 0.5, "lightgrey")
-    draw_lines(medium_step, 1.0, "grey")
-    draw_lines(major_step, 2.0, "black")
+    draw_lines(minor_step, 1.0, "lightgrey")
+    draw_lines(medium_step, 2.0, "grey")
+    draw_lines(major_step, 4.0, "black")
 
     # Remove ticks
     ax.tick_params(which="both", bottom=False, left=False,
@@ -577,4 +575,5 @@ def generate_line_grid(size=(512, 512),
     # ARGB → RGBA
     buf = buf[:, :, [1, 2, 3, 0]]
     arr = buf.astype(np.float32) / 255.0
+
     return arr
