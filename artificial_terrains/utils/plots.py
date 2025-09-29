@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib
+import time
+import colorcet as cc
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
 matplotlib.pyplot.switch_backend('Agg')  # To run on keb
-import colorcet as cc
 import matplotlib.ticker as plticker
 
 
@@ -505,3 +506,75 @@ def debug_plot_horizontal(
     # Save
     fig.tight_layout()
     fig.savefig(filename)
+
+
+def generate_line_grid(size=(512, 512),
+                       extent=(-50, 50, -50, 50),
+                       major_step=100,
+                       medium_step=10,
+                       minor_step=1,
+                       filename="grid.png"):
+    """
+    Generate a grid using explicit line drawing.
+
+    Args:
+        size (tuple): (width, height) in pixels.
+        extent (tuple): [xmin, xmax, ymin, ymax] in 'meters' (or units).
+        major_step (float): Spacing of thick lines.
+        medium_step (float): Spacing of medium lines.
+        minor_step (float): Spacing of thin lines.
+        filename (str): Optional file name to save.
+    """
+    t0 = time.time()
+
+    width_px, height_px = size
+    xmin, xmax, ymin, ymax = extent
+
+    dpi = 100
+    fig, ax = new_fig(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
+
+    # Set custom limits
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+
+    # Background
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    # Helper to draw one set of lines
+    def draw_lines(step, lw, col):
+        # Vertical lines, both sides of 0
+        for x in np.arange(0, xmax + step, step):
+            ax.axvline(x, linewidth=lw, color=col)
+        for x in np.arange(0, xmin - step, -step):
+            ax.axvline(x, linewidth=lw, color=col)
+
+        # Horizontal lines, both sides of 0
+        for y in np.arange(0, ymax + step, step):
+            ax.axhline(y, linewidth=lw, color=col)
+        for y in np.arange(0, ymin - step, -step):
+            ax.axhline(y, linewidth=lw, color=col)
+
+    # Draw in order: minor → medium → major
+    draw_lines(minor_step, 0.5, "lightgrey")
+    draw_lines(medium_step, 1.0, "grey")
+    draw_lines(major_step, 2.0, "black")
+
+    # Remove ticks
+    ax.tick_params(which="both", bottom=False, left=False,
+                   labelbottom=False, labelleft=False)
+
+    fig.tight_layout(pad=0)
+
+    if filename:
+        fig.savefig(filename, dpi=dpi, bbox_inches="tight", pad_inches=0)
+        print(f"Saved grid to {filename}")
+
+    # Convert to numpy RGBA [0–1]
+    fig.canvas.draw()
+    buf = np.frombuffer(fig.canvas.tostring_argb(), dtype=np.uint8)
+    buf = buf.reshape(height_px, width_px, 4)
+    # ARGB → RGBA
+    buf = buf[:, :, [1, 2, 3, 0]]
+    arr = buf.astype(np.float32) / 255.0
+    return arr

@@ -33,7 +33,7 @@ class Ground(Module):
     @debug_decorator
     def __call__(self, filename=None, default=None,
                  terrain_temp=[], terrain_prim=[],
-                 ground_material=None,
+                 ground_material=None, grid=True,
                  last=None,
                  **_):
         from utils.Blender import grid_from_array
@@ -63,6 +63,24 @@ class Ground(Module):
                 center=terrain.position)
 
             if ground_material is not None:
+                # Add grid image
+                if grid:
+                    from utils.Blender import add_grid
+
+                    min_resolution = 2048
+                    # Resolution proportional to terrain size (10 px per unit)
+                    res_from_terrain = int(terrain.size[0] * 10), int(terrain.size[1] * 10)
+
+                    # Final resolution = take maximum in each dimension
+                    resolution = (max(min_resolution, res_from_terrain[0]),
+                                  max(min_resolution, res_from_terrain[1]))
+
+                    grid_kwargs = {
+                        'extent': terrain.extent,
+                        'size': resolution,
+                        # 'filename': 'test.png',
+                    }
+                    add_grid(ground_material, grid_kwargs=grid_kwargs)
                 grid_obj.data.materials.append(ground_material)
 
         # This line has not been adopted for possibly multiple objs.
@@ -79,7 +97,7 @@ class BasicSetup(Module):
     def __call__(self, default=None, **_):
         import bpy
         from utils.Blender import (
-            get_material, setup_z_coord_shader, add_grid, setup_lights)
+            get_material, setup_z_coord_shader, setup_lights)
         # Remove Cube
         from utils.Blender import remove_object
         remove_object(name='Cube')
@@ -91,12 +109,6 @@ class BasicSetup(Module):
         # Setup groundmaterial
         setup_z_coord_shader(ground_material)
 
-        # Add grid image
-        grid = True
-        grid_kwargs = {}
-        if grid:
-            add_grid(ground_material, **grid_kwargs)
-
         # Setup lights
         sun_position = (0, 70, 70)
 
@@ -106,7 +118,7 @@ class BasicSetup(Module):
 
         # Set standard view transform to not distort colors
         bpy.context.scene.view_settings.view_transform = 'Standard'
-        
+
         return {
             'ground_material': ground_material,
             }
