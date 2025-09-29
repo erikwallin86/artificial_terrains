@@ -339,6 +339,7 @@ class Plot(Module):
     @debug_decorator
     def __call__(self, default=None, overwrite=False,
                  terrain_temp=[], terrain_prim=[], folder='Plot',
+                 filename_base='terrain',
                  exportmode=False, dpi=400,
                  vmin=None, vmax=None,
                  call_number=None, call_total=None, **kwargs):
@@ -361,7 +362,7 @@ class Plot(Module):
 
         # Plot terrain
         for i, terrain in enumerate(terrain_prim):
-            filename = f'terrain{self.file_id}_{i:05d}.png'
+            filename = f'{filename_base}{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
@@ -372,7 +373,7 @@ class Plot(Module):
 
         # Plot terrain_temp
         for i, terrain in enumerate(terrain_temp):
-            filename = f'terrain_temp{self.file_id}_{i:05d}.png'
+            filename = f'{filename_base}_temp{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
