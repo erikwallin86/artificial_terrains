@@ -17,6 +17,7 @@ dependencies = [
   "scipy",
   "colorcet",
   "opensimplex",
+  "PyYaml",
   # add any others you rely on (like blender’s Python API if optional)
 ]
 
