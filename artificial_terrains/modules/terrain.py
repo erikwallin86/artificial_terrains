@@ -54,23 +54,44 @@ class Load(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, file_list=None, default=None, overwrite=False,
-                 call_number=None, call_total=None, **pipe):
+    def __call__(self, file_list=None, default=None,
+                 terrain_temp=None, terrain_prim=None,
+                 loop_id="", filter_on_loop_id=True,
+                 **_):
         """
         Load terrain files into structured lists.
 
         Args:
             file_list (list): List of filenames or patterns to load.
             default (list): Default list of filenames if file_list is None.
-            call_number (int): Current call number (optional).
-            call_total (int): Total number of calls (optional).
-            **pipe (dict): Additional arguments.
+
+        # One specific terrain --> use that
+        Load:runs/data_051_new_load_save/Save/terrain_temp_00_00000.npz
+
+        # List of specific terrains --> use them
+        Load:"['runs/data_051_new_load_save/Save/terrain_temp_00_00000.npz']"
+
+        # One specific folder --> find all npz in it
+        Load:runs/data_051_new_load_save/Save
+
+        # List folders --> find npz in all of them
+        Load:"['runs/data_051_new_load_save/Save']"
+
+        # One folder, in a loop --> Load
+        Loop:2 Load:runs/data_051_new_load_save/Save
+
+        # Wildcards -->
 
         Returns:
             list: A list of pipes containing loaded terrain data.
         """
         # Get file-list
         file_list = default if default is not None else file_list
+
+        # Populate primary and temporary lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_prim = [] if terrain_prim is None else terrain_prim
+
         # Parse any wildcards, and make sure it is a list
         file_list = self.parse_wildcards(file_list)
         # Check that files exist, and possibly prepend 'save-dir'
@@ -81,50 +102,45 @@ class Load(Module):
         import re
         from utils.terrains import Terrain
         # Regular expressions to match filenames
-        terrain_regex = re.compile(r'terrain(_\d{5})?_(\d{5}).npz')
-        terrain_temp_regex = re.compile(r'terrain_temp(_\d{5})?_(\d{5}).npz')
 
-        terrains = self.parse_regex(file_list, terrain_regex)
-        terrain_temps = self.parse_regex(file_list, terrain_temp_regex)
+        terrain_regex = re.compile(r"terrain(?:(_.*?))?_(\d{5})\.npz$")
+        terrain_temp_regex = re.compile(r"terrain_temp(?:(_.*?))?_(\d{5})\.npz$")
 
-        # Convert dictionaries to lists of lists
-        terrain_list = [sorted(terrains[key].items()) for key in sorted(terrains)]
-        terrain_temp_list = [sorted(terrain_temps[key].items()) for key in sorted(terrain_temps)]
+        terrain_list = self.filter_files_by_regex(
+            file_list, terrain_regex, loop_id, filter_on_loop_id)
+        terrain_temp_list = self.filter_files_by_regex(
+            file_list, terrain_temp_regex, loop_id, filter_on_loop_id)
 
-        # Populate new pipes with copy of current
-        pipes = [pipe.copy() for _ in range(
-            max(len(terrain_temp_list), len(terrain_list)))]
-
-        # Load to create terrain_prim
-        for terrains, pipe in zip(terrain_list, pipes):
-            terrain_prim = pipe.get('terrain_prim', [])
-            for _, filename in terrains:
-                terrain = Terrain.from_numpy(filename)
-                terrain_prim.append(terrain)
-            pipe['terrain_prim'] = terrain_prim
+        # Load to create terrain
+        for filename in terrain_list:
+            terrain = Terrain.from_numpy(filename)
+            terrain_prim.append(terrain)
 
         # Load to create terrain_temp
-        for terrains, pipe in zip(terrain_temp_list, pipes):
-            terrain_temp = pipe.get('terrain_temp', [])
-            for i, filename in terrains:
-                terrain = Terrain.from_numpy(filename)
-                terrain_temp.append(terrain)
-            pipe['terrain_temp'] = terrain_temp
+        for filename in terrain_temp_list:
+            terrain = Terrain.from_numpy(filename)
+            terrain_temp.append(terrain)
 
-        if not pipes:
-            raise ValueError("Empty pipe")
-        return pipes[0] if len(pipes) == 1 else pipes
+        return {
+            'terrain_temp': terrain_temp,
+            'terrain_prim': terrain_prim,
+        }
 
-    def parse_regex(self, file_list, regex):
-        data = {}
+    def filter_files_by_regex(self, file_list, regex, loop_id, filter_on_loop_id=True):
+        """Return subset of files matching regex and (optionally) loop_id."""
+        new_file_list = []
+
         for filename in file_list:
-            match = regex.search(filename)
-            if match:
-                file_id = match.group(1) if match.group(1) else ''
-                index = int(match.group(2))
-                data.setdefault(file_id, {})[index] = filename
+            base = os.path.basename(filename)
+            m = regex.match(base)
+            if not m:
+                continue
 
-        return data
+            file_loop_id = m.group(1) or ""  # extracted loop id
+            if (not filter_on_loop_id or file_loop_id.startswith(loop_id)) and 'temp' not in file_loop_id:
+                new_file_list.append(filename)
+
+        return new_file_list
 
     def parse_wildcards(self, file_list):
         # Draft of handling wildcards
@@ -389,7 +405,6 @@ class Plot(Module):
             result['texture'] = filename
 
         return result
-
 
 
 class SaveYaml(Module):
