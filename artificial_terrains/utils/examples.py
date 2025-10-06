@@ -1,3 +1,9 @@
+from dataclasses import dataclass, field
+import inspect
+import os
+
+# ## Examples which are simply lists ###
+
 # Flat ground
 FLAT = [
     ('Plane', {}),
@@ -210,6 +216,207 @@ FLAT_IN_CENTER = [
 ]
 
 
+# Classes to make 'configs' (Cfg) with default, changeable parameters
+@dataclass
+class ArtificialTerrainCfg:
+    @property
+    def modules(self) -> list:
+        """Each config must expose a list of modules."""
+        raise NotImplementedError(f"{type(self).__name__} must define a `modules` property")
+        # return []
+
+    # Needs to be iterable to behave as a list for artifical_terrains
+    def __iter__(self):
+        return iter(self.modules)
+
+    # Make sure cfg:s can be added, with the result being a 'Combined cfg'
+    def __add__(self, other: "ArtificialTerrainCfg") -> "CombinedArtificialTerrainCfg":
+        if not isinstance(other, (ArtificialTerrainCfg, list)):
+            return NotImplemented
+        return CombinedArtificialTerrainCfg(children=[self, other])
+
+    def __radd__(self, other):
+        if not isinstance(other, (ArtificialTerrainCfg, list)):
+            return NotImplemented
+        return CombinedArtificialTerrainCfg(children=[other, self])
+
+
+@dataclass
+class CombinedArtificialTerrainCfg(ArtificialTerrainCfg):
+    """Composite config, holds children configs."""
+    children: list = field(default_factory=list)
+
+    @property
+    def modules(self):
+        # flatten children’s modules
+        combined = []
+        for child in self.children:
+            if isinstance(child, list):
+                combined.extend(child)
+            else:
+                combined.extend(child.modules)
+        return combined
+
+    def __setattr__(self, key, value):
+        """Try to propagate sets into children if they have the attribute."""
+        if key in {"children", "modules"}:
+            # Don't redirect for these two special attributes.
+            # They are "structural" parts of the composite.
+            object.__setattr__(self, key, value)
+            return
+        else:
+            # propagate to children only
+            for child in self.children:
+                if hasattr(child, key):
+                    setattr(child, key, value)
+
+
+@dataclass
+class FlatCfg(ArtificialTerrainCfg):
+    @property
+    def modules(self):
+        return [
+            ('Plane', {}),
+        ]
+
+
+@dataclass
+class AngledPlaneCfg(ArtificialTerrainCfg):
+    pitch_deg = 10
+
+    @property
+    def modules(self):
+        return [
+            ('Plane', {'pitch_deg': self.pitch_deg}),
+        ]
+
+# Gaussian hill, fully parameterized
+@dataclass
+class GaussianHillCfg(ArtificialTerrainCfg):
+    @property
+    def modules(self):
+        return [
+            ('Gaussian', {
+                'position': [5, 5],
+                'height': 2.5,
+                'width': 5,
+                'aspect': 1.5,
+                'yaw_deg': 45,
+                'pitch_deg': None,
+            }),
+        ]
+
+
+# N number of random Gaussian hills
+@dataclass
+class GaussianHillRandomCfg(ArtificialTerrainCfg):
+    number = 3
+
+    @property
+    def modules(self):
+        return [
+            ('Random', self.number),
+            ('Gaussian', {}),
+            ('Combine', {})
+        ]
+
+
+# Mountain in horizon
+@dataclass
+class MountansInHorizonCfg(ArtificialTerrainCfg):
+    width = 30
+
+    @property
+    def modules(self):
+        return [
+            ('Basic', 10),
+            ('Add', 1.5),  # Get noise in [1.5, 2.5]
+            ('Scale', 0.5),
+            ('Donut', {'width': self.width}),
+            ('Combine', 'Prod')
+        ]
+
+
+# Explicit function
+@dataclass
+class ExplicitFunctionCfg(ArtificialTerrainCfg):
+    function = 'np.sin(2*np.pi*x/20.0)'
+
+    @property
+    def modules(self):
+        return [
+            ('Function', self.function),
+        ]
+
+
+@dataclass
+class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
+    ''' Example of some extended functionality'''
+    folder = 'Terrains/octaves'
+    slope_deg = 8
+    roughness = 1.03
+
+    @property
+    def modules(self):
+        modules = []
+        if os.path.exists(self.folder):
+            modules.extend(
+                [('Load', self.folder),
+                 ('Random', 'weights'),]
+            )
+        else:
+            modules.extend(
+                [('Octaves', {}),
+                 ('Save', self.folder),]
+            )
+        modules.extend(
+            [
+                ('Slope', {}),
+                ('SetSlope', self.slope_deg),
+                ('Roughness', {}),
+                ('SetRoughness', self.roughness),
+                ('WeightedSum', {}),
+            ]
+        )
+        return modules
+
+
+@dataclass
+class AndFlatInCenterCfg(ArtificialTerrainCfg):
+    width = 5
+
+    @property
+    def modules(self):
+        return [
+            ('Cube', {'width': self.width}),
+            ('AsFactor', {}),
+            ('Plane', {}),
+            ('ToPrimary', {}),
+            ('Compose', {}),
+        ]
+
+
+@dataclass
+class AndSetDifficulty(ArtificialTerrainCfg):
+    ''' Curriculum thing, interpolating with Plane to set difficulty '''
+    difficulty = 0
+
+    @property
+    def modules(self):
+        return [
+            ('Set', f'factor={self.difficulty}'),
+            ('Plane', {}),
+            ('ToPrimary', {}),
+            ('Compose', 'Under')
+        ]
+
+
+COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
+    LoadOrGenerateAndSetSlopeCfg()
+    + AndFlatInCenterCfg()
+)
+
+
 if __name__ == "__main__":
     """
     Script entry point for plot/renders of example configurations
@@ -232,7 +439,25 @@ if __name__ == "__main__":
     configs = {
         name: value for name, value in current_module.items()
         if name.isupper() and isinstance(value, list)
+        and not name.startswith("AND")
     }
+
+    # other style: dataclass config with a .modules property
+    cfg_configs = {
+        name: value() for name, value in current_module.items()
+        if inspect.isclass(value) and issubclass(value, ArtificialTerrainCfg)
+        and not name.startswith("And")
+    }
+    del cfg_configs['ArtificialTerrainCfg']
+    del cfg_configs['CombinedArtificialTerrainCfg']
+
+    combined_configs = {
+        name: value for name, value in current_module.items()
+        if name.isupper() and isinstance(value, CombinedArtificialTerrainCfg)
+    }
+
+    # for name, _class in cfg_configs.items():
+    configs = {**configs, **cfg_configs, **combined_configs}
 
     for name, config in configs.items():
         print(f"\n=== Running config: {name} ===")
@@ -259,10 +484,10 @@ if __name__ == "__main__":
         ]
 
         # Run script for plots
-        at.run(base_cfg + config + plot_cfg, verbose=True)
+        at.run(base_cfg + config + plot_cfg, verbose=False)
 
         # Try to run as blender script
         try:
-            at.run(base_cfg + config + render_cfg, verbose=True)
+            at.run(base_cfg + config + render_cfg, verbose=False)
         except ModuleNotFoundError:
             pass
