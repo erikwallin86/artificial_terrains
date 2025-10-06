@@ -14,14 +14,13 @@ class Save(Module):
                  default=None,
                  terrain_temp=[], terrain_prim=[],
                  overwrite=False,
+                 loop_id="",
                  **_):
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
+
         # Use folder
-        basename = os.path.basename(self.save_dir)
-        if basename != folder:
-            dirname = os.path.dirname(self.save_dir)
-            self.save_dir = os.path.join(dirname, folder)
+        self.save_dir = os.path.join(self.save_dir_original, folder)
 
         list_of_filenames = []
 
@@ -31,7 +30,7 @@ class Save(Module):
 
         # Save terrain
         for i, terrain in enumerate(terrain_prim):
-            filename = f'terrain{self.file_id}_{i:05d}.npz'
+            filename = f'terrain{loop_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
@@ -39,7 +38,7 @@ class Save(Module):
 
         # Save from terrain
         for i, terrain in enumerate(terrain_temp):
-            filename = f'terrain_temp{self.file_id}_{i:05d}.npz'
+            filename = f'terrain_temp{loop_id}_{i:05d}.npz'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
