@@ -20,6 +20,9 @@ dependencies = [
   # add any others you rely on (like blender’s Python API if optional)
 ]
 
+[project.scripts]
+generate_terrain = "artificial_terrains.generate_terrain:main"
+
 [project.urls]
 Homepage = "https://github.com/erikwallin86/artificial_terrains"
 
