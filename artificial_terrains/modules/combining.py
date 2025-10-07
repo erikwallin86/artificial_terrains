@@ -153,7 +153,7 @@ class Compose(Module):
         terrain_temp = [] if terrain_temp is None else terrain_temp
         terrain_prim = [] if terrain_prim is None else terrain_prim
 
-        operations = ['Over', 'Under']
+        operations = ['Over', 'Under', 'OverAndAlign', 'UnderAndAlign']
         operation = default if default is not None else operation
         assert operation in operations, f'{operation} not in {operations}'
 
@@ -169,10 +169,20 @@ class Compose(Module):
         # clip factor to [0, 1]
         factor = np.clip(factor, 0, 1)
 
+        # Standard alpha blend: top terrain over base
         if operation == 'Over':
             array = array_1*factor + array_0*(1-factor)
+        # Inverted alpha blend: base terrain over top
         if operation == 'Under':
             array = array_0*factor + array_1*(1-factor)
+        # Blend over, then shift to align mean height
+        if operation == 'OverAndAlign':
+            difference_in_mean = np.sum(array_0*factor - array_1*factor)/np.sum(factor)
+            array = array_1*factor + array_0*(1-factor) + difference_in_mean*factor
+        # Blend under, then shift to align mean height
+        if operation == 'UnderAndAlign':
+            difference_in_mean = np.sum(array_1*factor - array_0*factor) / np.sum(factor)
+            array = array_0*factor + array_1*(1-factor) + difference_in_mean*factor
 
         terrain = Terrain.from_array(
             array, size=terrains[0].size, extent=terrains[0].extent)
