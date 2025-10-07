@@ -382,6 +382,46 @@ class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
 
 
 @dataclass
+class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
+    ''' Example of some extended functionality'''
+    folder = 'Terrains/multiple_octaves'
+    number_of_sets = 5
+    slope_deg = 8
+    roughness = 1.05
+
+    @property
+    def modules(self):
+        modules = []
+        if not os.path.exists(self.folder):
+            modules.extend(
+                [('Loop', self.number_of_sets),
+                 ('Octaves', {}),
+                 ('Save', self.folder),
+                 ('ClearTerrain', None),
+                 ('EndLoop', None),
+                 ]
+            )
+
+        import random
+        files = [
+            f'{self.folder}/terrain_temp_{random.randint(0, self.number_of_sets - 1):02d}_{i:05d}.npz'
+            for i in range(10)
+        ]
+        modules.extend(
+            [
+                ('Load', files),
+                ('Random', 'weights'),
+                ('Slope', {}),
+                ('SetSlope', self.slope_deg),
+                ('Roughness', {}),
+                ('SetRoughness', self.roughness),
+                ('WeightedSum', {}),
+            ]
+        )
+        return modules
+
+
+@dataclass
 class AndFlatInCenterCfg(ArtificialTerrainCfg):
     width = 5
 
@@ -416,6 +456,8 @@ COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
     + AndFlatInCenterCfg()
 )
 
+# 10 different terrains from the same set of octaves
+
 
 if __name__ == "__main__":
     """
@@ -435,6 +477,7 @@ if __name__ == "__main__":
     Notes:
     - Rendering requires Blender and artificial_terrains package
     """
+
     current_module = globals()
     configs = {
         name: value for name, value in current_module.items()
@@ -457,7 +500,14 @@ if __name__ == "__main__":
     }
 
     # for name, _class in cfg_configs.items():
-    configs = {**configs, **cfg_configs, **combined_configs}
+    configs = {
+        **configs,
+        **cfg_configs,
+        **combined_configs,
+    }
+
+    # Override with test
+    # configs = {'test': LoadFromSeveralAndSetSlopeCfg()}
 
     for name, config in configs.items():
         print(f"\n=== Running config: {name} ===")
@@ -474,17 +524,17 @@ if __name__ == "__main__":
         ]
 
         render_cfg = [
+            ('ClearScene', None),
             ('BasicSetup', None),
             ('Holdout', None),
             ('Ground', {}),
             ('Camera', 45),
             ('Render', {'folder': 'example_renders',
                         'filename': f'{name}.png'}),
-            ('ClearScene', None),
         ]
 
         # Run script for plots
-        at.run(base_cfg + config + plot_cfg, verbose=False)
+        at.run(base_cfg + config + plot_cfg, verbose=True)
 
         # Try to run as blender script
         try:
