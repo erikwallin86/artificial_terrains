@@ -222,7 +222,8 @@ class Roughness(Module):
         sigma_meter = default if default is not None else sigma_meter
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         results = {'roughness': []}
 
@@ -262,7 +263,8 @@ class Slope(Module):
         sigma_meter = default if default is not None else sigma_meter
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         results = {
             'slope_deg': [],  # mean slope, in degrees
@@ -327,14 +329,15 @@ class SurfaceStructure(Module):
                  default=None, last=None, sigma_meter=0, **_):
 
         terrain = get_terrain(
-            terrain_temp, terrain_prim, remove=False)
+            terrain_temp, terrain_prim, remove=False,
+            print_fn=self.info)
 
         # Count number of rocks larger than some cutoffs
         a = np.sum(height > 0.1)
         b = np.sum(height > 0.3)
         c = np.sum(height > 0.5)
         d = np.sum(height > 0.7)
-        print(f"(a, b, c, d):{(a, b, c, d)}")
+        self.debug(f"(a, b, c, d):{(a, b, c, d)}")
 
         # Categorize as number of obstaces per ha (100x100m)
         per_ha_factor = 100*100/np.multiply(*terrain.size)
@@ -467,7 +470,7 @@ class OptimizeRoughness(Module):
         def loss(alpha):
             r_pred = model(alpha)
             loss = np.sum((r_obs - r_pred)**2)
-            print(f"(alpha, loss):{(alpha, loss)}")
+            self.debug(f"(alpha, loss):{(alpha, loss)}")
 
             return loss
 
@@ -489,10 +492,10 @@ class OptimizeRoughness(Module):
         res = minimize_scalar(loss, bounds=(x[0], x[-1]), method='bounded')
         if res.success:
             alpha = res.x
-            print(f"Optimal alpha: {alpha}")
-            print(f"loss(alpha):{loss(alpha)}")
+            self.debug(f"Optimal alpha: {alpha}")
+            self.debug(f"loss(alpha):{loss(alpha)}")
         else:
-            print("Optimization failed.")
+            logger.error("Optimization failed.")
 
         # Plot roughness v pred roughness
         fig, ax = new_fig()
@@ -562,11 +565,11 @@ class SetRoughness(Module):
         # Solve for λ numerically using Brent's method
         lambda_solution = brentq(f, -1000, 100)
 
-        self.info(f"lambda_solution:{lambda_solution}")
+        self.debug(f"lambda_solution:{lambda_solution}")
 
         # Compute new weights: w_i_new = w_i * r_i^λ
         adjusted_weights = weights * r_i**lambda_solution
-        self.info(f"adjusted_weights:{adjusted_weights}")
+        self.debug(f"adjusted_weights:{adjusted_weights}")
 
         return {'weights': adjusted_weights}
 
@@ -857,6 +860,3 @@ class PlotLines2(Module):
                     # Skip silently on error (could add logging if needed)
                     print(f"e:{e}")
                     pass
-
-
-            

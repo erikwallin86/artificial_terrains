@@ -173,7 +173,7 @@ def calc_ytstruktur_2(h_20, h_40, h_60, h_80):
     sparse = 2
     moderate = 3
     abundant = 4
-    
+
     # Calculate
     if classify(h_20) <= sparse:
         if classify(h_40 + h_60 + h_80) <= occasional:
@@ -192,7 +192,7 @@ def calc_ytstruktur_2(h_20, h_40, h_60, h_80):
                 Y = 5
         else:
             Y = 5
-    
+
     elif classify(h_20) == moderate:
         if classify(h_40 + h_60 + h_80) == none:
             Y = 1
@@ -210,7 +210,7 @@ def calc_ytstruktur_2(h_20, h_40, h_60, h_80):
                 Y = 5
         else:
             Y = 5
-    
+
     else:  # classify(h_20) == abundant
         if classify(h_40 + h_60 + h_80) == none:
             Y = 2
@@ -226,7 +226,7 @@ def calc_ytstruktur_2(h_20, h_40, h_60, h_80):
                 Y = 5
         else:
             Y = 5
-    
+
     return Y
 
 
@@ -594,7 +594,7 @@ def parse_and_assign_distribution(expression):
     import re
     # Replace square parenthesis with soft
     expression = expression.replace('[', '(').replace(']', ')')
-    print(f"expression:{expression}")
+    # logger.debug(f"expression:{expression}")
     match = re.match(r"(\w+)=([\w_]+)\((.*)\)", expression)
     # match = re.match(r"(\w+):(\w+)=([\w_]+)\((.*)\)", expression)
     if not match:

@@ -69,7 +69,7 @@ class Generative(Module):
         for values in zip_longest(*properties.values()):
             # Create a dictionary for each group, excluding any None values
             kwargs = {k: v for k, v in zip(keys, values) if v is not None}
-            print(f"kwargs:{kwargs}")
+            self.logger.debug(f"kwargs:{kwargs}")
 
             # Setup function callable
             function_callable = FUNCTIONS[function_name](**kwargs)
@@ -198,5 +198,3 @@ class Function(Module):
         }
 
         return pipe
-
-

@@ -11,7 +11,8 @@ class Negate(Module):
     def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Negate the terrains
         for terrain in terrains:
@@ -27,7 +28,8 @@ class Scale(Module):
         factor = default if default is not None else factor
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Scale the terrains
         for terrain in terrains:
@@ -43,7 +45,8 @@ class Add(Module):
         term = default if default is not None else term
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Scale the terrains
         for terrain in terrains:
@@ -59,7 +62,8 @@ class Absolute(Module):
     def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Scale the terrains
         for terrain in terrains:
@@ -76,7 +80,8 @@ class Clip(Module):
         ''' Clip terrains '''
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Clip
         for terrain in terrains:
@@ -94,7 +99,8 @@ class Around(Module):
         around = default if default is not None else around
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Move to place mean around 1
         for terrain in terrains:
@@ -115,7 +121,7 @@ class AsProbability(Module):
         ''' Use terrain as a 2d probability '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_prim, print_fn=print)
+            terrain_temp, terrain_prim, print_fn=self.info)
 
         # Clip to remove negative values
         terrain.array = np.clip(terrain.array, 0, None)
@@ -138,7 +144,7 @@ class AsLookupFor(Module):
 
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_prim, print_fn=print)
+            terrain_temp, terrain_prim, print_fn=self.info)
 
         return {f'{parameter}_lookup_function': terrain}
 
@@ -152,7 +158,7 @@ class AsFactor(Module):
         ''' Use terrain as a 2d factor '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
-            terrain_temp, terrain_prim, print_fn=print, remove=True)
+            terrain_temp, terrain_prim, print_fn=self.info, remove=True)
 
         return {'factor': terrain.array}
 
@@ -184,7 +190,8 @@ class BezierRemap(Module):
             bezier_args = [bezier_args]
 
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Get bezier curve
         t_array = np.linspace(0, 1, 50)
@@ -268,7 +275,8 @@ class Smooth(Module):
 
         # Get terrains
         terrains = get_terrains(
-            terrain_temp, terrain_prim, last, remove=False)
+            terrain_temp, terrain_prim, last, remove=False,
+            print_fn=self.info)
 
         # Loop the terrains, and perform Gaussian smoothing
         for terrain in terrains:

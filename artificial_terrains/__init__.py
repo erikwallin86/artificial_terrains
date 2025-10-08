@@ -32,16 +32,21 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
     global _last_pipe
 
     if logger is None:
+        # Always use the same base logger name
         logger = logging.getLogger("artificial_terrains")
+        # Essentially turn of logging by default
+        logger.setLevel(logging.CRITICAL)
 
-        if verbose:
-            handler = logging.StreamHandler(sys.stdout)   # send logs to terminal
-            formatter = logging.Formatter("%(levelname)s: %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            logger.setLevel(logging.INFO)  # or DEBUG if you want more detail
-        else:
-            logger.addHandler(logging.NullHandler())
+    if verbose:
+        # Clear any logger to avoid doubles
+        logger.handlers.clear()
+
+        # Add a logger printing to stdout
+        handler = logging.StreamHandler(sys.stdout)
+        # formatter = logging.Formatter("%(levelname)s: %(message)s")
+        # handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
 
     if general_kwargs is None:
         general_kwargs = {}

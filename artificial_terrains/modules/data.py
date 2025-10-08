@@ -6,6 +6,7 @@ from utils.utils import Distribution
 from utils.plots import save_all_axes
 import colorcet as cc
 
+
 def debug_decorator(func):
     '''
     Wrapper around calls to print some debug info
@@ -56,9 +57,13 @@ class Module():
         # Return kwargs which are not 'input'/'data'
         return kwargs
 
-    def info(self, info_string):
+    def info(self, logging_string):
         ''' 'Shorter' method for logger.info, with indent. '''
-        self.logger.info(f"  {info_string}")
+        self.logger.info(f"  {logging_string}")
+
+    def debug(self, logging_string):
+        ''' 'Shorter' method for logger.debug, with indent. '''
+        self.logger.debug(f"  {logging_string}")
 
     def start(self, **kwargs):
         # Store kwargs
@@ -94,7 +99,7 @@ class Print(Module):
             #     print(f"len(value):{len(value)}")
 
             # Print
-            self.info(f"{key}: {value}")
+            self.logger.info(f"{key}: {value}")
 
 
 class GridSize(Module):
@@ -447,13 +452,46 @@ class Sample(Module):
     @debug_decorator
     def __call__(self, default, **kwargs):
         import ast
-        print(f"default:{default}")
         parameter_name = default
 
         # Get corresponding distribution
         distribution = kwargs[f'{parameter_name}_distribution']
 
         return {parameter_name: distribution(size=1)}
+
+
+class SetLogger(Module):
+    """Activate and configure the shared logger."""
+    create_folder = False
+
+    def __call__(self, default=None, level="info", **_):
+        import logging
+        # import sys
+        logger = logging.getLogger("artificial_terrains")
+
+        level = default if default is not None else level
+
+        # Remove any old handlers to avoid duplicates
+        # logger.handlers.clear()
+
+        # Normalize level string → numeric constant
+        levels = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL,
+            "off": logging.CRITICAL + 1,
+        }
+        level_value = levels.get(str(level).lower(), logging.INFO)
+        logger.setLevel(level_value)
+
+        # Create console handler
+        # handler = logging.StreamHandler(sys.stdout)
+        # formatter = logging.Formatter("%(levelname)s: %(message)s")
+        # handler.setFormatter(formatter)
+        # logger.addHandler(handler)
+        # logger.info(f"Logger activated (level={level.upper()})")
 
 
 class Random(Module):
@@ -604,7 +642,7 @@ class LoadObstacles(Module):
         from utils.obstacles import Obstacles
 
         if 'yaml' in filename:
-            obstacles = Obstacles.from_yaml(filename)            
+            obstacles = Obstacles.from_yaml(filename)
         else:
             obstacles = Obstacles.from_numpy(filename)
 

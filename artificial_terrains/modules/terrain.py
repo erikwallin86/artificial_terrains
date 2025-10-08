@@ -414,10 +414,6 @@ class SaveYaml(Module):
                  call_number=None, call_total=None,
                  terrain_temp=[], terrain_prim=[],
                  **kwargs):
-
-        extent = kwargs['extent']
-        print(f"type(extent):{type(extent)}")
-
         # Initialize
         if call_number == 0:
             self.list_of_kwargs = []

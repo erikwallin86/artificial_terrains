@@ -75,7 +75,7 @@ class Loop(Module):
         for call_number, value in zip_longest(range(self.n_loops), self.values):
             # Custom print, as the debug_decorator prints don't work for the
             # generator setup. Also, here we loop over 'self.n_loops'
-            self.logger.info(f"Run {self.name} {call_number+1}/{self.n_loops}")
+            self.info(f"Run {self.name} {call_number+1}/{self.n_loops}")
 
             # Update loop-id, to be used in filenames
             loop_id = self.loop_id + f"_{call_number:0{self.digits}d}"

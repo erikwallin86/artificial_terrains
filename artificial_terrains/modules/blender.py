@@ -49,7 +49,8 @@ class Ground(Module):
             # Get latest from dict/heap
             # terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
             terrains = get_terrains(
-                terrain_temp, terrain_prim, last, remove=False)
+                terrain_temp, terrain_prim, last, remove=False,
+                print_fn=self.info)
 
         # Make grid from array
         for i, terrain in enumerate(terrains):
@@ -250,7 +251,8 @@ class Camera(Module):
             angle = default
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_prim, remove=False,
+                              print_fn=self.info)
 
         size = terrain.size
         camera_kwargs = {}
@@ -342,7 +344,8 @@ class Depth(Module):
             os.makedirs(self.save_dir)
 
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_prim)
+        terrain = get_terrain(terrain_temp, terrain_prim,
+                              print_fn=self.info)
 
         setup_render_z()
 
@@ -481,7 +484,8 @@ class AddMeshObjects(Module):
                  default=None,
                  **_):
         # Get latest terrain from dict/heap
-        terrain = get_terrain(terrain_temp, terrain_prim, remove=False)
+        terrain = get_terrain(terrain_temp, terrain_prim, remove=False,
+                              print_fn=self.info)
 
         # Construct 'interpolator'
         if terrain is not None:

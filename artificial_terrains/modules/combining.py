@@ -86,7 +86,8 @@ class ToPrimary(Combine):
     def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
         from utils.utils import get_terrains
-        terrain = get_terrains(terrain_temp, terrain_prim, last)
+        terrain = get_terrains(terrain_temp, terrain_prim, last,
+                               print_fn=self.info)
         terrain_prim.extend(terrain)
 
         return {
@@ -112,7 +113,7 @@ class WeightedSum(Module):
         weights = default if default is not None else weights
         weights = np.array(weights).reshape(-1, 1, 1)
 
-        self.info(f"Use weights:{weights.squeeze()}")
+        self.debug(f"Use weights:{weights.squeeze()}")
 
         # Get terrains
         from utils.utils import get_terrains
