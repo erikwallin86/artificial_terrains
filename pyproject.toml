@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "artificial-terrains"
-version = "0.1.0"
+version = "0.1.1"
 description = "Modular, extensible terrain generation library"
 readme = "README.md"
 license = {text = "MIT"}
