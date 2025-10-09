@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 import inspect
 import os
+import numpy as np
+
 
 # ## Examples which are simply lists ###
 
@@ -391,8 +393,13 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
 
     @property
     def modules(self):
+        import random
+        digits = int(2 + np.log10(self.number_of_sets))
+
         modules = []
-        if not os.path.exists(self.folder):
+        # Define filename to check that files exist
+        a_filename = f'terrain_temp_{self.number_of_sets - 1:0{digits}d}_{0:05d}.npz'
+        if not os.path.exists(os.path.join(self.folder, a_filename)):
             modules.extend(
                 [('Loop', self.number_of_sets),
                  ('Octaves', {}),
@@ -402,9 +409,8 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
                  ]
             )
 
-        import random
         files = [
-            f'{self.folder}/terrain_temp_{random.randint(0, self.number_of_sets - 1):02d}_{i:05d}.npz'
+            f'{self.folder}/terrain_temp_{random.randint(0, self.number_of_sets - 1):0{digits}d}_{i:05d}.npz'
             for i in range(10)
         ]
         modules.extend(
@@ -523,21 +529,26 @@ if __name__ == "__main__":
                       'folder': 'example_plots'}),
         ]
 
+        folder = 'example_renders'
+        filename = f'{name}.png'
+
         render_cfg = [
             ('ClearScene', None),
             ('BasicSetup', None),
             ('Holdout', None),
             ('Ground', {}),
             ('Camera', 45),
-            ('Render', {'folder': 'example_renders',
-                        'filename': f'{name}.png'}),
+            ('Render', {'folder': folder,
+                        'filename': filename}),
         ]
 
-        # Run script for plots
-        at.run(base_cfg + config + plot_cfg, verbose=True)
+        # Possibly skip already done
+        if os.path.isfile(os.path.join(folder, filename)):
+            continue
 
         # Try to run as blender script
         try:
-            at.run(base_cfg + config + render_cfg, verbose=False)
+            at.run(base_cfg + config + render_cfg + plot_cfg, verbose=True)
         except ModuleNotFoundError:
-            pass
+            # Otherwise just run as a plot script
+            at.run(base_cfg + config + plot_cfg, verbose=True)
