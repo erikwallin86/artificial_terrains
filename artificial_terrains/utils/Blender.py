@@ -857,9 +857,7 @@ def render(
 
 
 def render_eevee(*args, **kwargs):
-    return render(render_engine='BLENDER_EEVEE_NEXT', *args, **kwargs)
-
-
+    return render(render_engine='BLENDER_EEVEE', *args, **kwargs)
 
 
 def setup_render_z():
