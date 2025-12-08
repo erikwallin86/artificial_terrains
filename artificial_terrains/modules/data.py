@@ -5,12 +5,16 @@ from utils.debug import debug
 from utils.utils import Distribution
 from utils.plots import save_all_axes
 import colorcet as cc
+import time
+import functools
 
 
 def debug_decorator(func):
     '''
     Wrapper around calls to print some debug info
+    and measure execution time.
     '''
+    @functools.wraps(func)
     def wrapper(self, call_number=None, call_total=None, *args, **kwargs):
         if call_number is not None and call_total is not None:
             self.logger.info(f"Run {self.name} {call_number+1}/{call_total}")
@@ -20,8 +24,11 @@ def debug_decorator(func):
         else:
             self.file_id = ''
 
-        # Possibly debug
+        # Possibly debug input
         debug(self, kwargs, call_number, call_total, 'input')
+
+        # ---- timing starts here ----
+        start = time.perf_counter()
 
         result = func(
             self, *args,
@@ -29,10 +36,17 @@ def debug_decorator(func):
             call_total=call_total,
             **kwargs)
 
-        # Possibly debug
+        elapsed = time.perf_counter() - start
+        # ---- timing ends here ----
+
+        # Log timing
+        self.logger.info(f"  took {elapsed:.3f} s")
+
+        # Possibly debug output
         debug(self, result, call_number, call_total, 'output')
 
         return result
+
     return wrapper
 
 
