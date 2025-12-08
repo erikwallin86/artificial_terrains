@@ -10,7 +10,7 @@ class Basic(Module):
     @debug_decorator
     def __call__(self, terrain_temp=None, scale_list=[400, 32, 0.5],
                  default=None, seed=None, **kwargs):
-        from utils.noise import get_simplex2
+        from utils.noise import get_simplex
         from utils.terrains import Terrain
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
@@ -28,7 +28,7 @@ class Basic(Module):
         info_dict = {}
         for i, x in enumerate(scale_list):
             scaling = 1.75/(1+x/68)
-            simplex_noise = 1/scaling * get_simplex2(
+            simplex_noise = 1/scaling * get_simplex(
                 **kwargs,
                 scale_x=x, scale_y=x,
                 info_dict=info_dict,
@@ -69,7 +69,7 @@ class Octaves(Module):
             only_generate_weights=False,
             **kwargs
     ):
-        from utils.noise import get_simplex2
+        from utils.noise import get_simplex
         from utils.terrains import Terrain
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
@@ -101,7 +101,7 @@ class Octaves(Module):
             info_dict = {}
             for i, x in enumerate(scale_list):
                 scaling = 1.75/(1+x/68)
-                simplex_noise = 1/scaling * get_simplex2(
+                simplex_noise = 1/scaling * get_simplex(
                     **kwargs,
                     scale_x=x, scale_y=x,
                     center=True, info_dict=info_dict,
@@ -143,13 +143,13 @@ class Rocks(Module):
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
-        from utils.noise import get_simplex2
+        from utils.noise import get_simplex
         from utils.terrains import Terrain
 
         for i, (x, height) in enumerate(zip(rock_size, rock_heights)):
             info_dict = {}
 
-            simplex_noise = get_simplex2(
+            simplex_noise = get_simplex(
                 scale_x=x, scale_y=x,
                 info_dict=info_dict,
                 center=True,
@@ -197,13 +197,13 @@ class Holes(Module):
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
-        from utils.noise import get_simplex2
+        from utils.noise import get_simplex
         from utils.terrains import Terrain
 
         for i, (x, height) in enumerate(zip(size_list, heights)):
             info_dict = {}
             scaling = 1.75/(1+x*0.75)
-            simplex_noise = 1/scaling * get_simplex2(
+            simplex_noise = 1/scaling * get_simplex(
                 scale_x=x, scale_y=x,
                 info_dict=info_dict,
                 center=True,

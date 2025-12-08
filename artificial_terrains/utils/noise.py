@@ -3,34 +3,12 @@ import numpy as np
 import opensimplex
 
 
-def get_simplex(Nx=100, Ny=100, scale_x=50, scale_y=50, seed=None):
-    '''
-    Get noise with shape (Nx, Ny)
-    '''
-    if seed is None:
-        opensimplex.random_seed()
-    else:
-        opensimplex.seed(seed)
-
-    print(f"opensimplex.get_seed():{opensimplex.get_seed()}")
-
-    f_x = Nx/scale_x
-    print(f"f_x:{f_x}")
-    f_y = Ny/scale_y
-
-    x = np.linspace(0, f_x, num=Nx)
-    y = np.linspace(0, f_y, num=Ny)
-
-    # 'shift' indices due to noise2array definition
-    return noise2array(y, x)
-
-
-def get_simplex2(resolution=None, size=None, N=None, grid_size=None,
-                 scale_x=50, scale_y=50, seed=None,
-                 extent=None,
-                 info_dict=None,
-                 random_shift=False,
-                 logger_fn=None, **_):
+def get_simplex(resolution=None, size=None, N=None, grid_size=None,
+                scale_x=50, scale_y=50, seed=None,
+                extent=None,
+                info_dict=None,
+                random_shift=False,
+                logger_fn=None, **_):
     '''
     Get noise with shape (Nx, Ny)
 
