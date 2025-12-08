@@ -17,9 +17,64 @@ class Terrain():
         return terrain_obj
 
     @classmethod
-    def from_geotiff(cls, filename):
+    def from_geotiff(
+            cls, filename,
+            center_in_origin: bool = True,
+    ):
         ''' Load geotiff terrain '''
-        raise NotImplementedError
+        # from geotiff import GeoTiff
+        # # Open geotiff file
+        # # crs_code:3006 --> sweref99 tm
+        # geo_tiff = GeoTiff(filename, as_crs=3006)
+        # zarr_array = geo_tiff.read()
+        # ((E_min, N_max), (E_max, N_min)) = geo_tiff.tif_bBox_converted
+
+        import tifffile as tiff
+
+        with tiff.TiffFile(filename) as tf:
+            array = tf.asarray()  # numpy array
+            page = tf.pages[0]
+            tags = {t.name: t.value for t in page.tags.values()}
+
+            # Required GeoTIFF tags for north-up, no-rotation case
+            # pixel size
+            sx, sy, *_ = tags["ModelPixelScaleTag"]
+            # (i,j,k,X,Y,Z) (may contain multiple of 6)
+            tie = tags["ModelTiepointTag"]
+            i0, j0, _, X0, Y0, _ = tie[:6]
+
+            # Image size
+            width = int(tags.get("ImageWidth",  page.imagewidth))
+            height = int(tags.get("ImageLength", page.imagelength))
+
+            # Compute pixel-edge bounds (common GDAL-style for north-up)
+            E_min = X0 + (0 - i0) * sx
+            E_max = X0 + (width - i0) * sx
+            N_max = Y0 - (0 - j0) * sy
+            N_min = Y0 - (height - j0) * sy
+
+            # Fix to my convention
+            array = array.T
+            array = np.flip(array, axis=0)
+
+        # Create terrain object
+        terrain_obj = cls()
+        terrain_obj.array = array
+
+        # Set size and extent
+        size = (E_max - E_min, N_max - N_min)
+        center = ((E_max+E_min)/2, (N_max+N_min)/2)
+
+        if center_in_origin:
+            extent = (E_min-center[0], E_max-center[0],
+                      N_min-center[1], N_max-center[1])
+        else:
+            extent = (E_min, E_max, N_min, N_max)
+
+        terrain_obj.extent = extent
+        terrain_obj.size = size
+
+        return terrain_obj
 
     @classmethod
     def from_las(cls, filename):

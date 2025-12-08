@@ -284,3 +284,71 @@ class Smooth(Module):
             sigma_grid = np.divide(sigma_meter, resolution)
 
             terrain.array = gaussian_filter(terrain.array, sigma=sigma_grid)
+
+
+class Resample(Module):
+    """
+    Resample the resolution (array shape) of terrains, keeping the same extent.
+
+    Parameters
+    ----------
+    new_shape : tuple[int, int] | None
+        (new_nx, new_ny). If None, `scale` is used instead.
+    scale : float | tuple[float, float] | None
+        Scale factor(s) applied to (nx, ny). For example:
+        - 2.0  -> double resolution in both directions
+        - (2.0, 1.0) -> double in x, keep y
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, terrain_temp=[], terrain_prim=[],
+                 new_shape=None,
+                 resolution=None,
+                 default=None,
+                 last=None,
+                 **_):
+        # Let "default" act as fallback scale if user wires it that way
+        if default is not None and isinstance(default, float):
+            # interpret as "resolution" (points per meter)
+            resolution = default
+        elif default is not None and isinstance(default, int):
+            # interpret as new array shape
+            new_shape = default
+
+        # Get last terrain terrain
+        terrain = get_terrain(
+            terrain_temp, terrain_prim, print_fn=self.info,
+            remove=False)
+
+        hf_array = terrain.array
+        extent = terrain.extent  # (left, right, bottom, top)
+        size = terrain.size
+        nx, ny = hf_array.shape
+
+        if new_shape is not None:
+            new_nx, new_ny = new_shape
+        else:
+            # TODO: Take into account that resolution could be different for x and y
+            new_nx = int(resolution * size[0])
+            new_ny = int(resolution * size[1])
+
+        # --- Build interpolator from current terrain ------------------
+        from utils.interpolator import Interpolator
+        interp = Interpolator(hf_array, extent)  # uses RegularGridInterpolator internally
+
+        left, right, bottom, top = extent
+
+        # New grid in same world extent, new resolution
+        new_x = np.linspace(left,  right,  new_nx)
+        new_y = np.linspace(bottom, top,   new_ny)
+
+        # Be consistent with Interpolator: first dim = x, second dim = y
+        X, Y = np.meshgrid(new_x, new_y, indexing='ij')  # (new_nx, new_ny)
+
+        pts = np.stack([X.ravel(), Y.ravel()], axis=-1)  # (N, 2) with cols (x, y)
+
+        new_heights = interp.interpolator(pts).reshape((new_nx, new_ny))
+
+        # --- Write back to terrain -----------------------------------
+        terrain.array = new_heights

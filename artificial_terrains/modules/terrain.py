@@ -49,6 +49,31 @@ class Save(Module):
             }
 
 
+class LoadTIF(Module):
+    ''' Test, this should be included in Load '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, filename=None, default=None,
+                 terrain_temp=None, terrain_prim=None,
+                 loop_id="", filter_on_loop_id=True,
+                 **_):
+        filename = default if default is not None else filename
+
+        # Populate primary and temporary lists
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_prim = [] if terrain_prim is None else terrain_prim
+
+        from utils.terrains import Terrain
+        terrain = Terrain.from_geotiff(filename)
+        terrain_temp.append(terrain)
+
+        return {
+            'terrain_temp': terrain_temp,
+            'terrain_prim': terrain_prim,
+        }
+
+
 class Load(Module):
     ''' Load terrains '''
     create_folder = False
