@@ -55,7 +55,7 @@ class Terrain():
 
             # Fix to my convention
             array = array.T
-            array = np.flip(array, axis=0)
+            array = np.flip(array, axis=1)
 
         # Create terrain object
         terrain_obj = cls()
