@@ -287,8 +287,8 @@ class Slope(Module):
                 dz_dx, dz_dy = np.gradient(terrain.array, *resolution)
 
             # Get mean derivatives in 'metre' scale.
-            mean_dz_dx = np.mean(dz_dx)
-            mean_dz_dy = np.mean(dz_dy)
+            mean_dz_dx = np.nanmean(dz_dx)
+            mean_dz_dy = np.nanmean(dz_dy)
 
             mean_gradient = (mean_dz_dx, mean_dz_dy)
             norm = np.linalg.norm(mean_gradient)

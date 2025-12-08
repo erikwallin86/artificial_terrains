@@ -104,7 +104,7 @@ class Around(Module):
 
         # Move to place mean around 1
         for terrain in terrains:
-            terrain.array = terrain.array + around - np.mean(terrain.array)
+            terrain.array = terrain.array + around - np.nanmean(terrain.array)
 
 
 class Around1(Around):
