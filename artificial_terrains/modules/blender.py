@@ -27,7 +27,7 @@ def fix_blender_argv():
 
 
 class Ground(Module):
-    ''' Print array info '''
+    ''' Create ground in blender '''
     create_folder = False
 
     @debug_decorator
@@ -88,6 +88,76 @@ class Ground(Module):
         return {'grid_obj': grid_obj}
 
 
+class Ground2(Module):
+    """Create ground in Blender using a Displace modifier on a subdivided mesh.
+
+    This is faster than Ground for large terrains.
+    The resolution can be enhanced in blender, by modifying the subdivide
+
+    Note that for large terrains, the grid-generation can be slow
+    But this can be turned of with the 'Set:ground_material=None' module
+    """
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, filename=None, default=None,
+                 terrain_temp=[], terrain_prim=[],
+                 ground_material=None, grid=True,
+                 last=None,
+                 **_):
+
+        import hashlib
+        from utils.Blender import create_displaced_ground_from_terrain
+
+        filename = default if default is not None else filename
+        if filename is not None:
+            from utils.terrains import Terrain
+            # Load data
+            terrain = Terrain.from_numpy(filename)
+            terrains = [terrain]
+        else:
+            # Get latest from lists
+            terrains = get_terrains(
+                terrain_temp, terrain_prim, last, remove=False,
+                print_fn=self.info)
+
+        # Make grid from array
+        for i, terrain in enumerate(terrains):
+            # Generate a short hash from the terrain array
+            array_bytes = terrain.array.tobytes()
+            hash_digest = hashlib.sha1(array_bytes).hexdigest()[:6]  # Short hash
+            name = f"Ground2{i:05d}{self.file_id}_{hash_digest}"
+
+            grid_obj = create_displaced_ground_from_terrain(
+                terrain=terrain,
+                name=name,
+            )
+
+            if ground_material is not None:
+                # Add grid image
+                if grid:
+                    from utils.Blender import add_grid
+
+                    min_resolution = 2048
+                    # Resolution proportional to terrain size (10 px per unit)
+                    res_from_terrain = int(terrain.size[0] * 10), int(terrain.size[1] * 10)
+
+                    # Final resolution = take maximum in each dimension
+                    resolution = (max(min_resolution, res_from_terrain[0]),
+                                  max(min_resolution, res_from_terrain[1]))
+
+                    grid_kwargs = {
+                        'extent': terrain.extent,
+                        'size': resolution,
+                        # 'filename': 'test.png',
+                    }
+                    add_grid(ground_material, grid_kwargs=grid_kwargs)
+                grid_obj.data.materials.append(ground_material)
+
+        # This line has not been adopted for possibly multiple objs.
+        return {'grid_obj': grid_obj}
+
+
 class BasicSetup(Module):
     '''
     Basic setup of blender scene. Remove cube and add hrdi lights
@@ -98,7 +168,9 @@ class BasicSetup(Module):
     def __call__(self, default=None, **_):
         import bpy
         from utils.Blender import (
-            get_material, setup_z_coord_shader, setup_lights)
+            get_material, setup_z_coord_shader, setup_lights,
+            setup_near_far,
+        )
         # Remove Cube
         from utils.Blender import remove_object
         remove_object(name='Cube')
@@ -119,6 +191,8 @@ class BasicSetup(Module):
 
         # Set standard view transform to not distort colors
         bpy.context.scene.view_settings.view_transform = 'Standard'
+
+        setup_near_far()
 
         return {
             'ground_material': ground_material,

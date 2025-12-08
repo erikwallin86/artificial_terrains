@@ -49,6 +49,15 @@ def setup_tube(
     return tube_obj
 
 
+def setup_near_far():
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    space.clip_start = 0.1
+                    space.clip_end = 5000   # <-- set far clip here
+
+
 def add_tube_endpoints(
         tube_obj, obj_type='cone', offset_factor=0.0, z=0, scale=1.0):
     # Create cone
@@ -1087,3 +1096,124 @@ def camera_to_follow_path():
 
     path.data.twist_mode = 'Z_UP'
     path.data.path_duration = 1000
+
+
+def image_from_terrain(terrain, name="TerrainHeight"):
+    """
+    Create a Blender IMAGE datablock from terrain.array, as a float buffer.
+
+    terrain.array is assumed to be 2D (nx, ny).
+    We use a grayscale image: R=G=B=normalized height, A=1.
+    """
+    arr = np.asarray(terrain.array, dtype=np.float32)
+
+    # Optional: match your imshow behavior (you used terrain.array.T there)
+    # If your orientation looks wrong in Blender, try arr = arr.T or np.flipud/np.fliplr.
+    # arr = arr.T  # to be consistent with your plot_terrain
+    arr = np.flip(arr, axis=0)
+
+    h, w = arr.shape  # rows, cols
+
+    # Normalize to 0..1 (or keep raw; for now we normalize for convenience)
+    vmin = float(arr.min())
+    vmax = float(arr.max())
+    if vmax > vmin:
+        norm = (arr - vmin) / (vmax - vmin)
+    else:
+        norm = np.zeros_like(arr, dtype=np.float32)
+
+    # Remove old image with same name if it exists
+    if name in bpy.data.images:
+        bpy.data.images.remove(bpy.data.images[name], do_unlink=True)
+
+    img = bpy.data.images.new(
+        name=name,
+        width=w,
+        height=h,
+        alpha=True,
+        float_buffer=True,   # 32-bit float per channel
+    )
+
+    # Blender expects flat [R,G,B,A, R,G,B,A, ...] in row-major order
+    pixels = np.zeros((h * w, 4), dtype=np.float32)
+    g = norm.ravel()
+    pixels[:, 0] = g  # R
+    pixels[:, 1] = g  # G
+    pixels[:, 2] = g  # B
+    pixels[:, 3] = 1.0  # A
+
+    img.pixels = pixels.ravel().tolist()
+    img.update()
+
+    # Return image and also the original min/max so you can map “strength” if needed
+    return img, vmin, vmax
+
+
+def create_displaced_ground_from_terrain(
+    terrain,
+    base_cuts=128,        # resolution of manual grid
+    simple_levels=2,      # extra Simple subdiv levels (0..6)
+    name="Terrain",
+    **kwargs,
+):
+    """
+    Create a Blender terrain object from a terrain object
+    (with .array and .extent), using a float image + Displace.
+
+    - base_cuts: number of quads per side in the base grid
+    - simple_levels: extra Simple subdivision (0–6)
+    - strength: displacement strength in Blender units
+    """
+
+    strength = np.max(terrain.array) - np.min(terrain.array)
+
+    # Build float image directly from terrain.array
+    img_name = f"{name}_height"
+    img, vmin, vmax = image_from_terrain(terrain, name=img_name)
+
+    # Remove existing object with this name
+    if name in bpy.data.objects:
+        obj_old = bpy.data.objects[name]
+        bpy.data.objects.remove(obj_old, do_unlink=True)
+
+    # --- Create a grid base mesh ---
+    bpy.ops.mesh.primitive_grid_add(
+        x_subdivisions=base_cuts,
+        y_subdivisions=base_cuts,
+        size=1.0,
+    )
+    obj = bpy.context.object
+    obj.name = name
+
+    # Scale to world size
+    obj.scale.x = terrain.size[0]
+    obj.scale.y = terrain.size[1]
+
+    bpy.context.view_layer.objects.active = obj
+
+    # Basic UVs (grid usually already has UVs, but we ensure something exists)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.uv.smart_project()
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # --- Optional Simple subdiv modifier ---
+    if simple_levels > 0:
+        subsurf = obj.modifiers.new(name="SubdivSimple", type='SUBSURF')
+        subsurf.subdivision_type = 'SIMPLE'
+        subsurf.levels = min(simple_levels, 6)
+        subsurf.render_levels = min(simple_levels, 6)
+
+    # --- Create texture from image for Displace ---
+    tex = bpy.data.textures.new(name=f"{name}_height_tex", type='IMAGE')
+    tex.image = img
+
+    disp = obj.modifiers.new(name="Displace", type='DISPLACE')
+    disp.texture = tex
+    disp.texture_coords = 'UV'
+    disp.strength = strength
+    disp.mid_level = 0.0  # since we normalized to 0..1; tweak as needed
+
+    # Apply object scale so displacement is in world units cleanly
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+    return obj
