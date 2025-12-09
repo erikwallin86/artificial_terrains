@@ -1,20 +1,34 @@
-# artificial_terrain
+# artificial_terrains
 
 A library and script for creating artificial terrains.
+
 The library is described in more detail in the following arXiv preprint: [arXiv abstract](https://arxiv.org/abs/2506.19751), [PDF download](https://arxiv.org/pdf/2506.19751).
 The paper also includes more up-to-date and relevant examples.
-For now, the README has only been cleaned to remove outdated or incorrect information; further updates are planned.
+[For now, the README has only been cleaned to remove outdated or incorrect information; further updates are planned.]
 
-The script executes an ordered list of specified 'modules', to create and combine terrain buidling blocks to (more or less) realistic terrains.
+The script executes an ordered list of specified 'modules', to create and combine terrain building blocks to (more or less) realistic terrains.
+The module interface is powerful and highly extensible, but requires some familiarity with the available modules and how they interact.
+For easier use, the library also provides several preconfigured examples that can be parameterized and run directly without needing to understand the full module system.
+
+It is possible to run the script using blender for visualisation and rendering, but there is otherwise no dependence on blender.
 
 ## Use as libary
-To use as library (temporary solution until properly published/released on pypi) (only tested in linux)
-1. Clone this repo
-2. Navigate the the main folder, and run `pip install .`
-Example of how to construct a simple terrain:
+The library is available on [pypi](https://pypi.org/project/artificial-terrains) for installation using `python -m pip install artificial-terrains`.
+Alternativly, one can clone this repo, navigate the the main folder, and run `pip install .`
+
+Use a pre-configured example
 ```
+# Python
 import artificial_terrains as at
 
+config = at.examples.LoadOrGenerateAndSetSlopeCfg(slope_deg=3)
+at.run(config)
+terrain = at.get_terrain()
+```
+
+Constuct a custom terrain
+```
+import artificial_terrains as at
 
 settings = [
     ('Size', 100),
@@ -27,8 +41,25 @@ settings = [
 
 at.run(settings, verbose=True)
 terrain = at.get_terrain()
-print(f"terrain:{terrain}")
 ```
+
+## Use as script
+Installation via pip install makes `generate_terrain` available as a script, to be run as
+```
+# terminal
+generate_terrain --save-dir terrain_test --modules Octaves WeightedSum Plot Save
+```
+Alternativly, one can clone this repo and run the script from there
+```
+cd <artificial-terrains folder>
+python generate_terrain.py --save-dir terrain_test --modules Octaves WeightedSum Plot Save
+```
+For visualizing or rendering terrains there are modules using blender, and to use these the script must be called using blender in the following way
+```
+cd <artificial-terrains folder>
+blender --python generate_terrain.py -- --save-dir terrain_test --modules Octaves WeightedSum Plot Save Ground
+```
+(note the extra ` -- ` to distinguish blender (before) and python (after) arguments.
 
 
 
