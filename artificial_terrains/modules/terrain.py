@@ -1,4 +1,4 @@
-from modules.data import Module, debug_decorator
+from modules.module import Module, debug_decorator
 import os
 import numpy as np
 import yaml

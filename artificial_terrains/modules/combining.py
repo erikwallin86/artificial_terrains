@@ -1,4 +1,4 @@
-from modules.data import Module, debug_decorator
+from modules.module import Module, debug_decorator
 import numpy as np
 from utils.terrains import Terrain
 

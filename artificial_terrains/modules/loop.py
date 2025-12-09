@@ -1,4 +1,4 @@
-from modules.data import Module
+from modules.module import Module
 import numpy as np
 from itertools import zip_longest
 

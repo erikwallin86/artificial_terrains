@@ -1,105 +1,10 @@
 import os
 import numpy as np
 from utils.terrains import Terrain
-from utils.debug import debug
 from utils.utils import Distribution
 from utils.plots import save_all_axes
 import colorcet as cc
-import time
-import functools
-
-
-def debug_decorator(func):
-    '''
-    Wrapper around calls to print some debug info
-    and measure execution time.
-    '''
-    @functools.wraps(func)
-    def wrapper(self, call_number=None, call_total=None, *args, **kwargs):
-        if call_number is not None and call_total is not None:
-            self.logger.info(f"Run {self.name} {call_number+1}/{call_total}")
-
-        if call_total is not None and call_total > 1:
-            self.file_id = f'_{call_number:05d}'
-        else:
-            self.file_id = ''
-
-        # Possibly debug input
-        debug(self, kwargs, call_number, call_total, 'input')
-
-        # ---- timing starts here ----
-        start = time.perf_counter()
-
-        result = func(
-            self, *args,
-            call_number=call_number,
-            call_total=call_total,
-            **kwargs)
-
-        elapsed = time.perf_counter() - start
-        # ---- timing ends here ----
-
-        # Log timing
-        self.logger.info(f"  took {elapsed:.3f} s")
-
-        # Possibly debug output
-        debug(self, result, call_number, call_total, 'output')
-
-        return result
-
-    return wrapper
-
-
-class Module():
-    create_folder = True
-    '''
-    Args:
-    '''
-    def __init__(self, save_dir=None, logger=None):
-        self.save_dir = save_dir
-        self.logger = logger
-
-        self.save_dir_original = save_dir
-
-        self.save_dir = os.path.join(self.save_dir, self.__class__.__name__)
-        if self.create_folder:
-            if not os.path.isdir(self.save_dir):
-                os.makedirs(self.save_dir)
-
-    def __call__(
-            self, **kwargs):
-        # Return kwargs which are not 'input'/'data'
-        return kwargs
-
-    def info(self, logging_string):
-        ''' 'Shorter' method for logger.info, with indent. '''
-        self.logger.info(f"  {logging_string}")
-
-    def debug(self, logging_string):
-        ''' 'Shorter' method for logger.debug, with indent. '''
-        self.logger.debug(f"  {logging_string}")
-
-    def start(self, **kwargs):
-        # Store kwargs
-        self.kwargs = kwargs
-        # Initialize loop generator
-        self.loop_generator_instance = self.loop_generator()
-
-    @property
-    def name(self):
-        return self.__class__.__name__
-
-    def loop_generator(self):
-        """
-        Default-beteende: returnera bara en gång, samma som __call_
-        """
-        yield self.__call__(**self.kwargs)
-
-    def __iter__(self):
-        """
-        Gör modulen itererbar
-        """
-        return self.loop_generator_instance
+from modules.module import Module, debug_decorator
 
 
 class Print(Module):
@@ -114,6 +19,15 @@ class Print(Module):
 
             # Print
             self.logger.info(f"{key}: {value}")
+
+
+class Exit(Module):
+    ''' '''
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, **_):
+        exit(0)
 
 
 class GridSize(Module):
@@ -286,67 +200,6 @@ class DebugPlot(Module):
         filename = default if default is not None else filename
         filename = os.path.join(self.save_dir_original, filename)
         debug_plot_horizontal(filename, **kwargs)
-
-
-class Hypercube(Module):
-    ''' '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, n=2, seed=None,
-                 l_bounds=[1, 1, 0.1], u_bounds=[10, 10, 0.3],
-                 default=None, call_number=None, call_total=None, **pipe):
-
-        n = default if default is not None else n
-
-        from scipy.stats import qmc
-        sampler = qmc.LatinHypercube(d=3)
-        sample = sampler.random(n=n)
-        sample_scaled = qmc.scale(sample, l_bounds, u_bounds)
-
-        # Create empty pipes list
-        pipes = []
-
-        for i, sample in enumerate(sample_scaled):
-            new_pipe = pipe.copy()
-            new_pipe['weights'] = sample
-            if seed is not None:
-                new_pipe['seed'] = seed
-                seed += 1
-            pipes.append(new_pipe)
-
-        if len(pipes) == 0:
-            raise ValueError("Empty pipe")
-        elif len(pipes) == 1:
-            # Just return pipe
-            return pipes[0]
-        else:
-            return pipes
-
-
-class Y(Module):
-    ''' '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, Y=2, seed=None,
-                 default=None, call_number=None, call_total=None, **pipe):
-
-        Y = default if default is not None else Y
-        if Y == 1:
-            pipe['weights'] = [1, 1, 0.05]
-            pipe['rock_heights'] = [0.2, 0.2, 0.2, 0.2]
-
-        if Y == 2:
-            pipe['weights'] = [3, 3, 0.1]
-        if Y == 3:
-            pipe['weights'] = [5, 4, 0.1]
-        if Y == 4:
-            pipe['weights'] = [10, 6, 0.2]
-        if Y == 5:
-            pipe['weights'] = [15, 8, 0.3]
-
-        return pipe
 
 
 class PlotObstacles(Module):

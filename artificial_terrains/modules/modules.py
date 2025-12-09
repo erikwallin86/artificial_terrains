@@ -1,6 +1,6 @@
 import sys
 import inspect
-import modules.data
+import modules.general
 import modules.blender
 import modules.terrain
 import modules.modifiers
@@ -10,7 +10,7 @@ import modules.combining
 import modules.other
 import modules.pipes
 import modules.loop
-import modules.las
+
 
 MODULES = {}
 
@@ -18,7 +18,7 @@ MODULES = {}
 # ## Add from all module files ###
 # data
 clsmembers_pairs = inspect.getmembers(
-    sys.modules[modules.data.__name__], inspect.isclass)
+    sys.modules[modules.general.__name__], inspect.isclass)
 for (k, v) in clsmembers_pairs:
     MODULES[k] = v
 

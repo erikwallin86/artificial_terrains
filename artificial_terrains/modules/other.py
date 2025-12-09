@@ -3,7 +3,7 @@ import os
 from scipy.ndimage import gaussian_filter
 from scipy.optimize import brentq
 
-from modules.data import Module, debug_decorator
+from modules.module import Module, debug_decorator
 from utils.utils import get_terrains, get_terrain
 from utils.plots import new_fig, save_all_axes
 
@@ -507,7 +507,6 @@ class OptimizeRoughness(Module):
         ax.plot([1, 1.15], [1, 1.15])
         filename = os.path.join(self.save_dir, 'pred_v_obs.png')
         fig.savefig(filename)
-
 
 
 class SetRoughness(Module):

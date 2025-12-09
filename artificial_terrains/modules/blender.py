@@ -1,8 +1,9 @@
-from modules.data import Module, debug_decorator
+from modules.module import Module, debug_decorator
 import os
 import sys
 import numpy as np
 from utils.utils import get_terrains, get_terrain
+
 
 def fix_blender_path():
     try:
@@ -470,15 +471,6 @@ class RenderSegmentation(Module):
         array = get_depth()
 
         return {'segmentation_array': array}
-
-
-class Exit(Module):
-    ''' '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, **_):
-        exit(0)
 
 
 class Holdout(Module):
