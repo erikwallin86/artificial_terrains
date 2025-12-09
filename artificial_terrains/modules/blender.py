@@ -345,55 +345,6 @@ class Camera(Module):
         set_view_to_camera()
 
 
-class AnimateCube(Module):
-    ''' '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 hf_array=None, hf_info_dict=None,
-                 **_):
-        from utils.Blender import animate_cube, camera_to_follow_cube
-        filename = default if default is not None else filename
-        filename = '/home/erik/csgit/trafficability_experiments/runs/data_019_film_fram/03_test/PathToBlender/camera.npz'
-        import bpy
-        import os
-        # animate cube
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
-        cube = bpy.context.object
-        camera_to_follow_cube(cube)
-        animate_cube(cube, filename)
-        # Set the frame rate
-        bpy.context.scene.render.fps = 5
-        bpy.context.scene.render.fps_base = 1.029
-        bpy.context.scene.frame_end = 574
-        bpy.context.scene.render.image_settings.file_format = 'FFMPEG'
-        # bpy.context.scene.render.resolution_x = 1920  # Width
-        # bpy.context.scene.render.resolution_y = 1080  # Height
-        bpy.context.scene.render.resolution_x = 1280  # Width
-        bpy.context.scene.render.resolution_y = 720  # Height
-        filename = os.path.join(self.save_dir, 'test.mkv')
-        bpy.context.scene.render.filepath = filename
-
-
-class Tube(Module):
-    ''' '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 hf_array=None, hf_info_dict=None,
-                 **_):
-        path = '/home/erik/csgit/trafficability_experiments/runs/data_023_ta_ut_terränger/003_terräng_plant_full/PathToBlender/path.npy'
-        kwargs = {
-            'image_texture_file': '/home/erik/csgit/trafficability_experiments/runs/data_023_ta_ut_terränger/003_terräng_plant_full/PathToBlender/FuelConsumptionCurrent.png',
-        }
-        from utils.Blender import setup_tube
-        tube_obj = setup_tube(path, **kwargs)
-        print(f"tube_obj:{tube_obj}")
-        tube_obj.location.z += -4
-
-
 class Depth(Module):
     ''' '''
     @debug_decorator

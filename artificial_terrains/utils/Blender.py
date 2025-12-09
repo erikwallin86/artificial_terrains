@@ -3,52 +3,6 @@ import numpy as np
 import os
 
 
-def setup_tube(
-        path,
-        position=[0, 0, 0],
-        image_texture_file=None,
-        start=0,
-        stop=-1,
-        step=1,
-        bevel_depth=0.3,
-        scale=1.0,
-):
-    tube_obj = path_to_tube(path, start, stop, step, bevel_depth)
-    tube_obj.location.z = position[2]
-    tube_material = get_material(name='TubeMaterial')
-    tube_material.use_nodes = True
-    set_object_material(tube_obj, tube_material)
-    if image_texture_file is not None:
-        use_image_texture(
-            tube_material,
-            image_texture_file=image_texture_file)
-    # Setup bsdf
-    setup_bsdf(tube_material)
-
-    # EARLY RETURN WORKAROUND
-    return tube_obj
-
-    # Add endpoints
-    cone_obj = add_tube_endpoints(
-        tube_obj, obj_type='cone', offset_factor=1.0, z=1, scale=scale)
-
-    cone_material = tube_material.copy()
-    cone_material.name = 'ConeMaterial'
-    set_object_material(cone_obj, cone_material)
-    setup_path_endpoint_material(cone_material, value=0.99)
-
-    sphere_obj = add_tube_endpoints(
-        tube_obj, obj_type='sphere', offset_factor=0.0, scale=scale)
-    set_object_material(sphere_obj, tube_material)
-    # Setup material
-    sphere_material = tube_material.copy()
-    sphere_material.name = 'SphereMaterial'
-    set_object_material(sphere_obj, sphere_material)
-    setup_path_endpoint_material(sphere_material, value=0.01)
-
-    return tube_obj
-
-
 def setup_near_far():
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
@@ -56,87 +10,6 @@ def setup_near_far():
                 if space.type == 'VIEW_3D':
                     space.clip_start = 0.1
                     space.clip_end = 5000   # <-- set far clip here
-
-
-def add_tube_endpoints(
-        tube_obj, obj_type='cone', offset_factor=0.0, z=0, scale=1.0):
-    # Create cone
-    if obj_type == 'cone':
-        bpy.ops.mesh.primitive_cone_add(
-            align='WORLD',
-            location=(0, 0, 0),
-            rotation=(0, 0, 0),
-        )
-    elif obj_type == 'sphere':
-        bpy.ops.mesh.primitive_uv_sphere_add(
-            align='WORLD',
-            location=(0, 0, 0),
-            rotation=(0, 0, 0),
-        )
-
-    cone_obj = bpy.context.active_object
-    for p in cone_obj.data.polygons:
-        p.use_smooth = True
-
-    constraint = cone_obj.constraints.new('FOLLOW_PATH')
-    constraint.target = tube_obj
-    print("type(constraint):{}".format(type(constraint)))
-    print("dir(constraint):{}".format(dir(constraint)))
-    override = {'constraint': constraint}
-    bpy.ops.constraint.followpath_path_animate(
-        override, constraint='Follow Path')
-
-    constraint.use_fixed_location = True
-    constraint.use_curve_follow = True
-    constraint.forward_axis = 'FORWARD_Z'
-    constraint.up_axis = 'UP_X'
-    constraint.offset_factor = offset_factor
-
-    # Move cone forward a bit
-    cone_obj.location.z = z
-
-    # Set scale
-    cone_obj.scale = (scale, scale, scale)
-
-    return cone_obj
-
-
-def path_to_tube(
-        filename,
-        start=0,
-        stop=-1,
-        step=1,
-        bevel_depth=0.3,
-):
-    positions = np.load(filename)
-    coords_list = positions[start:stop:step]
-
-    # make a new curve
-    crv = bpy.data.curves.new('crv', 'CURVE')
-    crv.dimensions = '3D'
-
-    # make a new spline in that curve
-    spline = crv.splines.new(type='NURBS')
-
-    # a spline point for each point
-    # theres already one point by default
-    spline.points.add(len(coords_list)-1)
-
-    # assign the point coordinates to the spline points
-    for p, new_co in zip(spline.points, coords_list):
-        p.co = (list(new_co) + [1.0])  # (add nurbs weight)
-
-    # Settings
-    crv.bevel_depth = bevel_depth
-    # crv.splines[0].order_u = 2
-    crv.splines[0].use_endpoint_u = True
-
-    # make a new object with the curve
-    obj = bpy.data.objects.new('Path', crv)
-
-    bpy.context.scene.collection.objects.link(obj)
-
-    return obj
 
 
 def remove_object(name='Cube'):
@@ -264,51 +137,6 @@ def add_grid(
     node_tree.links.new(mix_shader_node.outputs[0], output_node.inputs[0])
 
 
-def add_animated_value_node(material, times, values):
-    '''
-    Add an animated value node to the material
-    '''
-    # Get material node tree and nodes
-    node_tree = material.node_tree
-    nodes = node_tree.nodes
-
-    value_node = nodes.new('ShaderNodeValue')
-    value_node.location = (250, 400)
-
-    for time, value in zip(times, values):
-        value_node.outputs[0].default_value = value
-        value_node.outputs[0].keyframe_insert("default_value", frame=time)
-
-
-def animate_cube(cube, filename):
-    ''' Animate cube using position and yaw, pitch, roll '''
-
-    loaded_data = np.load(filename)
-    # Extract the arrays from the loaded data
-    # x = loaded_data['x']
-    # y = loaded_data['y']
-    # z = loaded_data['z']
-    yaw = loaded_data['yaw']
-    pitch = loaded_data['pitch']
-    roll = loaded_data['roll']
-    time = loaded_data['time']
-
-    for step, (x, y, z, yaw, pitch, roll) in enumerate(zip(
-            loaded_data['x'],
-            loaded_data['y'],
-            loaded_data['z'],
-            loaded_data['yaw'],
-            loaded_data['pitch'],
-            loaded_data['roll'],
-            )):
-        cube.location = (x, y, z)
-        cube.rotation_euler = (-pitch, roll, -yaw)
-        # Osäker på tecknet på roll
-
-        cube.keyframe_insert(data_path="location", frame=step)
-        cube.keyframe_insert(data_path="rotation_euler", frame=step)
-
-
 def use_image_texture(
         material, image_texture_file,
         multiply=False,
@@ -355,30 +183,6 @@ def use_image_texture(
     else:
         # Simply connect image node and bsdf node
         node_tree.links.new(image_node.outputs[0], bsdf_node.inputs[0])
-
-
-def add_gamma(material, gamma=2.2):
-    # Get material node tree and nodes
-    node_tree = material.node_tree
-    nodes = node_tree.nodes
-
-    # get bsdf node
-    bsdf_node = nodes["Principled BSDF"]
-
-    # Get node connected to bsdf
-    for link in node_tree.links:
-        if link.to_node == bsdf_node:
-            second_to_last_node = link.from_node
-            node_tree.links.remove(link)
-
-    # Add gamma node
-    gamma_node = nodes.new('ShaderNodeGamma')
-    # Setup nodes
-    gamma_node.inputs[1].default_value = gamma
-
-    # make new links
-    node_tree.links.new(second_to_last_node.outputs[0], gamma_node.inputs[0])
-    node_tree.links.new(gamma_node.outputs[0], bsdf_node.inputs[0])
 
 
 def setup_world(hdri='forest.exr', hdri_level=None):
@@ -639,24 +443,6 @@ def setup_bsdf(material,
     bsdf_node.inputs['Roughness'].default_value = roughness
 
 
-def setup_path_endpoint_material(material, value=0.0):
-    ''' Add Value node and connect to image texture node '''
-    # Get material node tree and nodes
-    node_tree = material.node_tree
-    nodes = node_tree.nodes
-
-    # Get image node
-    image_node = nodes["Image Texture"]
-
-    # Create nodes
-    value_node = nodes.new('ShaderNodeValue')
-    value_node.outputs[0].default_value = value
-
-    # Link nodes
-    links = node_tree.links
-    links.new(value_node.outputs[0], image_node.inputs[0])
-
-
 def hide_light():
     ob = bpy.data.objects.get("Light")
     ob.hide_render = True
@@ -682,31 +468,6 @@ def setup_lights(
         ob.hide_render = False
         ob.hide_viewport = False
         ob.data.energy = level
-
-
-def delete_vertices(bool_array):
-    import bmesh
-
-    ob = bpy.context.object
-    assert ob.type == "MESH"
-    me = ob.data
-
-    if me.is_editmode:
-        bm = bmesh.from_edit_mesh(me)
-    else:
-        bm = bmesh.new()
-        bm.from_mesh(me)
-
-    # Remove vertices if bool array value is true
-    for v, a in zip(bm.verts, bool_array.T.flatten()):
-        if a:
-            bm.verts.remove(v)
-
-    if bm.is_wrapped:
-        bmesh.update_edit_mesh(me)
-    else:
-        bm.to_mesh(me)
-        me.update()
 
 
 def setup_sun(x=0, y=0, z=70, angle=55):
@@ -802,21 +563,6 @@ def grid_from_array(array, size, center=(0, 0), name='Grid', **kwargs):
     bpy.ops.object.mode_set(mode="OBJECT")
 
     return obj
-
-
-def add_edges_to_hf(array):
-    ''' Add constant layer around array '''
-    min_value = np.min(array)
-
-    # Make new bigger array, using min value of original
-    new_shape = np.add(array.shape, [2, 2])
-    new_array = np.ones(new_shape)
-    new_array = np.multiply(new_array, min_value)
-
-    # Place original array in 'middle' of new
-    new_array[1:-1, 1:-1] = array
-
-    return new_array
 
 
 def get_depth():
