@@ -338,7 +338,8 @@ class Camera(Module):
                 middle_z = terrain.array[int(terrain.array.shape[0]/2), int(terrain.array.shape[1]/2)]
                 center = [0, 0, middle_z]
             if distance is None:
-                distance = size[0]*2
+                max_size = np.max(size)
+                distance = max_size*2
             camera = setup_angled_camera(
                 angle=angle,
                 center=center, distance=distance, **camera_kwargs)
