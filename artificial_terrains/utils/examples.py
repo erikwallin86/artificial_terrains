@@ -284,7 +284,7 @@ class FlatCfg(ArtificialTerrainCfg):
 
 @dataclass
 class AngledPlaneCfg(ArtificialTerrainCfg):
-    pitch_deg = 10
+    pitch_deg: float = 10
 
     @property
     def modules(self):
@@ -292,7 +292,8 @@ class AngledPlaneCfg(ArtificialTerrainCfg):
             ('Plane', {'pitch_deg': self.pitch_deg}),
         ]
 
-# Gaussian hill, fully parameterized
+
+# Gaussian hill, fully specified
 @dataclass
 class GaussianHillCfg(ArtificialTerrainCfg):
     @property
@@ -312,21 +313,25 @@ class GaussianHillCfg(ArtificialTerrainCfg):
 # N number of random Gaussian hills
 @dataclass
 class GaussianHillRandomCfg(ArtificialTerrainCfg):
-    number = 3
+    number: int = 3
 
     @property
     def modules(self):
         return [
             ('Random', self.number),
             ('Gaussian', {}),
-            ('Combine', {})
+            ('Combine', {}),
+            # Allowing adding to other:
+            # (even if that terrain is in 'temporary')
+            ('ToPrimary', {}),
+            ('Combine', {}),
         ]
 
 
 # Mountain in horizon
 @dataclass
 class MountansInHorizonCfg(ArtificialTerrainCfg):
-    width = 30
+    width: float = 30
 
     @property
     def modules(self):
@@ -335,14 +340,17 @@ class MountansInHorizonCfg(ArtificialTerrainCfg):
             ('Add', 1.5),  # Get noise in [1.5, 2.5]
             ('Scale', 0.5),
             ('Donut', {'width': self.width}),
-            ('Combine', 'Prod')
+            ('Combine', 'Prod'),
+            # Allowing adding to other:
+            ('ToPrimary', {}),
+            ('Combine', {}),
         ]
 
 
 # Explicit function
 @dataclass
 class ExplicitFunctionCfg(ArtificialTerrainCfg):
-    function = 'np.sin(2*np.pi*x/20.0)'
+    function: str = 'np.sin(2*np.pi*x/20.0)'
 
     @property
     def modules(self):
@@ -354,9 +362,9 @@ class ExplicitFunctionCfg(ArtificialTerrainCfg):
 @dataclass
 class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
     ''' Example of some extended functionality'''
-    folder = 'Terrains/octaves'
-    slope_deg = 8
-    roughness = 1.03
+    folder: str = 'Terrains/octaves'
+    slope_deg: float = 8
+    roughness: float = 1.03
 
     @property
     def modules(self):
@@ -384,12 +392,12 @@ class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
 
 
 @dataclass
-class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
+class LoadFromSeveralAndSetSlopeAndRoughnessCfg(ArtificialTerrainCfg):
     ''' Example of some extended functionality'''
-    folder = 'Terrains/multiple_octaves'
-    number_of_sets = 5
-    slope_deg = 8
-    roughness = 1.05
+    folder: str = 'Terrains/multiple_octaves'
+    number_of_sets: int = 5
+    slope_deg: float = 8
+    roughness: float = 1.05
 
     @property
     def modules(self):
@@ -428,12 +436,58 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
 
 
 @dataclass
+class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
+    ''' Example of some extended functionality'''
+
+    num_octaves: int = 10
+    start: float = 128
+
+    folder: str = 'Terrains/multiple_octaves2'
+    number_of_sets: int = 5
+    slope_deg: float = 8
+
+    @property
+    def modules(self):
+        import random
+        digits = int(2 + np.log10(self.number_of_sets))
+
+        modules = []
+        # Define filename to check that files exist
+        a_filename = f'terrain_temp_{self.number_of_sets - 1:0{digits}d}_{0:05d}.npz'
+        if not os.path.exists(os.path.join(self.folder, a_filename)):
+            modules.extend(
+                [('Loop', self.number_of_sets),
+                 ('Octaves', {'num_octaves': self.num_octaves, 'start': self.start}),
+                 ('Save', self.folder),
+                 ('ClearTerrain', None),
+                 ('EndLoop', None),
+                 ]
+            )
+
+        files = [
+            f'{self.folder}/terrain_temp_{random.randint(0, self.number_of_sets - 1):0{digits}d}_{i:05d}.npz'
+            for i in range(self.num_octaves)
+        ]
+        modules.extend(
+            [
+                ('Load', files),
+                ('Random', 'weights'),
+                ('Slope', {}),
+                ('SetSlope', self.slope_deg),
+                ('WeightedSum', {}),
+            ]
+        )
+        return modules
+
+
+@dataclass
 class AndFlatInCenterCfg(ArtificialTerrainCfg):
-    width = 5
+    width: float = 5
 
     @property
     def modules(self):
         return [
+            # Assumes there is already a terrain in primary
             ('Cube', {'width': self.width}),
             ('AsFactor', {}),
             ('Plane', {}),
@@ -445,11 +499,12 @@ class AndFlatInCenterCfg(ArtificialTerrainCfg):
 @dataclass
 class AndSetDifficulty(ArtificialTerrainCfg):
     ''' Curriculum thing, interpolating with Plane to set difficulty '''
-    difficulty = 0
+    difficulty: float = 0
 
     @property
     def modules(self):
         return [
+            # Assumes there is already a terrain in primary
             ('Set', f'factor={self.difficulty}'),
             ('Plane', {}),
             ('ToPrimary', {}),
@@ -457,10 +512,169 @@ class AndSetDifficulty(ArtificialTerrainCfg):
         ]
 
 
+@dataclass
+class StoneCircleCfg(ArtificialTerrainCfg):
+    width: float = 25
+    number_of_stones: int = 30
+
+    @property
+    def modules(self):
+        return [
+            ('Donut', {'width': self.width}),
+            ('AsProbability', {}),
+            ('SetDistribution', "width=uniform(2,2)"),
+            ('Random', self.number_of_stones),
+            ('Cube', {}),
+            ('Combine', "Max"),
+            # Allowing adding to other:
+            ('ToPrimary', {}),
+            ('Combine', {}),
+        ]
+
+
+@dataclass
+class PerimiterWallsCfg(ArtificialTerrainCfg):
+    width: float = 28.0
+    height: float = 2.0
+
+    @property
+    def modules(self):
+        return [
+            ('Cube', {'width': self.width, 'height': self.height}),
+            ('Negate', {}),
+            ('Add', self.height),
+            # Allowing adding to other:
+            ('ToPrimary', {}),
+            ('Combine', {}),
+        ]
+
+
+@dataclass
+class TerrainAndHillsAndPerimiterCfg(ArtificialTerrainCfg):
+    ''' Combine several things into something semi-complicated'''
+
+    # Size and grid-size
+    size_x: float = 50
+    size_y: float = 50
+    grid_size_x: int = 500
+    grid_size_y: int = 500
+    # Parameters for general terrain
+    slope_deg: float = 5
+
+    folder: str = 'Terrains/combine_several'
+
+    perimiter_walls: bool = True
+    gaussian_hills: int = 10
+
+    def __post_init__(self):
+        # Add hash to self.folder, to get unique folders for different
+        # size and grid-size
+
+        import hashlib
+        # Compute hash from instance values
+        data = (self.size_x, self.size_y, self.grid_size_x, self.grid_size_y)
+        data_bytes = repr(data).encode("utf-8")
+        hash_digest = hashlib.sha1(data_bytes).hexdigest()[:6]
+
+        self.folder = f"{self.folder}_{hash_digest}"
+
+    @property
+    def modules(self):
+
+        # Add hash to folder
+        print(f"self.folder:{self.folder}")
+        # exit(0)
+
+        # Calculate number of octaves and start
+        # We want 'start' a factor 2~4 more than the max size,
+        # and then set num_octaves to get the smallest features
+        # in the order of 1 meter.
+        max_size = np.maximum(self.size_x, self.size_y)
+        start_log = int(np.log2(max_size)+2)
+        end_log = 1
+        num_octaves = start_log - end_log + 1
+        start = np.power(2, start_log)
+
+        size = [
+            # Set Size and GridSize
+            ('Size', [self.size_x, self.size_y]),
+            ('GridSize', [self.grid_size_x, self.grid_size_y]),
+        ]
+
+        # Setup general terrain
+        terrain = LoadFromSeveralAndSetSlopeCfg(
+            folder=self.folder,
+            slope_deg=self.slope_deg,
+            num_octaves=num_octaves,
+            start=start,
+        )
+
+        # Setup walls
+        if self.perimiter_walls:
+            perimiter = PerimiterWallsCfg(width=self.size_x-2)
+        else:
+            perimiter = []
+
+        if self.gaussian_hills:
+            hills = GaussianHillRandomCfg(number=self.gaussian_hills)
+        else:
+            hills = []
+
+        return size + terrain + perimiter + hills
+
+
 COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
     LoadOrGenerateAndSetSlopeCfg()
     + AndFlatInCenterCfg()
 )
+
+
+COMBINED_SET_SLOPE_AND_PERIMITER_WALLS = (
+    LoadOrGenerateAndSetSlopeCfg()
+    + PerimiterWallsCfg()
+)
+
+
+COMBINED_SET_SLOPE_AND_STONE_CIRCLE = (
+    LoadOrGenerateAndSetSlopeCfg()
+    + StoneCircleCfg()
+)
+
+
+COMBINED_SET_SLOPE_AND_MOUNTAINS_IN_HORIZON = (
+    LoadOrGenerateAndSetSlopeCfg()
+    + MountansInHorizonCfg()
+)
+
+
+COMBINED_SET_SLOPE_AND_GAUSSIAN_HILLS = (
+    LoadOrGenerateAndSetSlopeCfg()
+    + GaussianHillRandomCfg()
+)
+
+
+INSTANTIATED_CFG_GAUSSIAN_HILLS = GaussianHillRandomCfg(number=10)
+
+INSTANTIATED_CFG_TERRAIN_HILL_PERIMITER_SLOPE_5 = TerrainAndHillsAndPerimiterCfg()
+INSTANTIATED_CFG_TERRAIN_HILL_PERIMITER_SLOPE_10 = TerrainAndHillsAndPerimiterCfg(
+    slope_deg=10)
+INSTANTIATED_CFG_TERRAIN_HILL = TerrainAndHillsAndPerimiterCfg(
+    perimiter_walls=False
+)
+INSTANTIATED_CFG_TERRAIN_PERIMITER = TerrainAndHillsAndPerimiterCfg(
+    gaussian_hills=0
+)
+INSTANTIATED_CFG_TERRAIN = TerrainAndHillsAndPerimiterCfg(
+    gaussian_hills=0, perimiter_walls=False
+)
+
+INSTANTIATED_CFG_TERRAIN_STRIP_Y = TerrainAndHillsAndPerimiterCfg(
+    gaussian_hills=0, perimiter_walls=False, size_x=10, grid_size_x=100,
+)
+INSTANTIATED_CFG_TERRAIN_STRIP_X = TerrainAndHillsAndPerimiterCfg(
+    gaussian_hills=0, perimiter_walls=False, size_y=10, grid_size_y=100,
+)
+
 
 # 10 different terrains from the same set of octaves
 
@@ -505,11 +719,17 @@ if __name__ == "__main__":
         if name.isupper() and isinstance(value, CombinedArtificialTerrainCfg)
     }
 
+    instantiated_configs = {
+        name: value for name, value in current_module.items()
+        if name.isupper() and isinstance(value, ArtificialTerrainCfg)
+    }
+
     # for name, _class in cfg_configs.items():
     configs = {
         **configs,
         **cfg_configs,
         **combined_configs,
+        **instantiated_configs,
     }
 
     # Override with test
