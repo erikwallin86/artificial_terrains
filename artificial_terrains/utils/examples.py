@@ -58,6 +58,43 @@ DONUT_HILL = [
 ]
 
 
+#
+BASIC_AND_MAX = [
+    ('Basic', [10, 10, 10, 10, 10]),
+    ('Combine', 'Max'),
+    ('Scale', 3),
+]
+
+
+BASIC_AND_MIN = [
+    ('Basic', [10, 10, 10, 10, 10]),
+    ('Combine', 'Min'),
+    ('Scale', 3),
+]
+
+
+BASIC_AND_MAX2 = [
+    ('Basic', [50, 20, 5]),
+    ('Combine', 'Max'),
+    ('Scale', 3),
+]
+
+
+BASIC_AND_MIN2 = [
+    ('Basic', [50, 20, 5]),
+    ('Combine', 'Min'),
+    ('Scale', 3),
+]
+
+
+RANDOM_AND_SMOOTHSTEP = [
+    ('SetDistribution', "height=uniform[0,2]"),
+    ('Random', 5),
+    ('SmoothStep', {}),
+    ('Combine', 'Add'),
+]
+
+
 # Sample gaussian hills, along a circle
 GAUSSIAN_HILLS_WITH_SAMPLED_LOCATIONS = [
     ('Donut', {'width': 20}),
