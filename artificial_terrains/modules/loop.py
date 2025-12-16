@@ -3,14 +3,16 @@ import numpy as np
 from itertools import zip_longest
 
 
-
 class Loop(Module):
     ''' Basic loop '''
     create_folder = False
 
     def start(self, default=None, n_loops=2, loop_id=None, loop_id_r=None, call_total=None,
               call_number=None, parameter=None, expression=None, values=None,
+              terrain_prim=None, terrain_temp=None,
               **kwargs):
+        self.terrain_prim = terrain_prim
+        self.terrain_temp = terrain_temp
 
         # Handle if default is given a parameter=expression
         if isinstance(default, str) and '=' in default:
@@ -91,7 +93,16 @@ class Loop(Module):
                 'call_number': call_number + self.call_number*self.n_loops,
                 'loop_id': loop_id,
                 'loop_id_r': loop_id_r,
+                # copys of terrain lists, to give each 'thread' in loop
+                # an own list. Otherwise they will all add to the same,
+                # and when running EndLoop these will all be added,
+                # such that there will be (much) to many terrain in the lists
             }
+
+            if self.terrain_prim is not None:
+                return_dict['terrain_prim'] = self.terrain_prim.copy()
+            if self.terrain_temp is not None:
+                return_dict['terrain_temp'] = self.terrain_temp.copy()
 
             # Possibly take new extent etc. from list
             try:

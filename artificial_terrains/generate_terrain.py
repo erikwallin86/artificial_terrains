@@ -51,6 +51,8 @@ def main():
         'extent': [-25, 25, -25, 25],  # default
         'call_number': 0,
         'call_total': 1,
+        'terrain_prim': [],
+        'terrain_temp': [],
     }
 
     # Extract general settings (not given by dicts)
