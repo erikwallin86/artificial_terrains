@@ -232,50 +232,6 @@ class ClearTerrain(Module):
         }
 
 
-class CombinePipes(Module):
-    ''' Combine terrains from different pipes '''
-    create_folder = False
-
-    @debug_decorator
-    def __call__(self, operation='Add', default=None,
-                 hf_array=None, hf_info_dict=None,
-                 call_number=None, call_total=None, **pipe):
-
-        operation = default if default is not None else operation
-
-        # If only one call, do nothing
-        if call_total == 1:
-            return
-
-        if call_number == 0:
-            # first call
-            self.arrays = [hf_array]
-            return 'remove'
-        elif call_number + 1 != call_total:
-            # not last call
-            self.arrays.append(hf_array)
-            return 'remove'
-
-        # on last call
-        self.arrays.append(hf_array)
-
-        if operation == 'Add':
-            hf_array = np.sum(self.arrays, axis=0)
-        elif operation == 'Max':
-            hf_array = np.maximum.reduce(self.arrays)
-        elif operation == 'Min':
-            hf_array = np.minimum.reduce(self.arrays)
-        elif operation == 'Prod':
-            hf_array = np.prod(self.arrays, axis=0)
-        else:
-            raise AttributeError
-
-        return {
-            'hf_array': hf_array,
-            'hf_info_dict': hf_info_dict,
-        }
-
-
 class FindRocks(Module):
     """
     Detect rock-like features from terrain data and return them as 'obstacles'.
