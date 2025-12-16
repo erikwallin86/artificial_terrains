@@ -95,6 +95,18 @@ RANDOM_AND_SMOOTHSTEP = [
 ]
 
 
+SINE_WITH_VARYING_WAVELENGTH = [
+    ('Size', [100, 10]),
+    ('Function', 'np.sin(2*np.pi*x/(-x/5+15))'),
+]
+
+
+SINE_WITH_VARYING_AMPLITUDE = [
+    ('Size', [100, 10]),
+    ('Function', 'np.sin(2*np.pi*x/10)*(x/50+0.5)'),
+]
+
+
 # Sample gaussian hills, along a circle
 GAUSSIAN_HILLS_WITH_SAMPLED_LOCATIONS = [
     ('Donut', {'width': 20}),
