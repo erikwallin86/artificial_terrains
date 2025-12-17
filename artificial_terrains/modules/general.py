@@ -14,11 +14,17 @@ class Print(Module):
     @debug_decorator
     def __call__(self, **kwargs):
         for key, value in kwargs.items():
-            # if isinstance(value, np.ndarray):
-            #     print(f"len(value):{len(value)}")
-
             # Print
             self.logger.info(f"{key}: {value}")
+
+        # Print some specific information
+        self.print_specific(**kwargs)
+
+    def print_specific(self, terrain_prim=None, terrain_temp=None, **_):
+        if terrain_prim:
+            print(f"len(terrain_prim):{len(terrain_prim)}")
+        if terrain_temp:
+            print(f"len(terrain_temp):{len(terrain_temp)}")
 
 
 class Exit(Module):
