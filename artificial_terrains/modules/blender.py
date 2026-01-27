@@ -1,8 +1,8 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import os
 import sys
 import numpy as np
-from utils.utils import get_terrains, get_terrain
+from ..utils.utils import get_terrains, get_terrain
 
 
 def fix_blender_path():
@@ -37,12 +37,12 @@ class Ground(Module):
                  ground_material=None, grid=True,
                  last=None,
                  **_):
-        from utils.Blender import grid_from_array
+        from ..utils.Blender import grid_from_array
         import hashlib
 
         filename = default if default is not None else filename
         if filename is not None:
-            from utils.terrains import Terrain
+            from ..utils.terrains import Terrain
             # Load data
             terrain = Terrain.from_numpy(filename)
             terrains = [terrain]
@@ -67,7 +67,7 @@ class Ground(Module):
             if ground_material is not None:
                 # Add grid image
                 if grid:
-                    from utils.Blender import add_grid
+                    from ..utils.Blender import add_grid
 
                     min_resolution = 2048
                     # Resolution proportional to terrain size (10 px per unit)
@@ -108,11 +108,11 @@ class Ground2(Module):
                  **_):
 
         import hashlib
-        from utils.Blender import create_displaced_ground_from_terrain
+        from ..utils.Blender import create_displaced_ground_from_terrain
 
         filename = default if default is not None else filename
         if filename is not None:
-            from utils.terrains import Terrain
+            from ..utils.terrains import Terrain
             # Load data
             terrain = Terrain.from_numpy(filename)
             terrains = [terrain]
@@ -137,7 +137,7 @@ class Ground2(Module):
             if ground_material is not None:
                 # Add grid image
                 if grid:
-                    from utils.Blender import add_grid
+                    from ..utils.Blender import add_grid
 
                     min_resolution = 2048
                     # Resolution proportional to terrain size (10 px per unit)
@@ -168,12 +168,12 @@ class BasicSetup(Module):
     @debug_decorator
     def __call__(self, default=None, **_):
         import bpy
-        from utils.Blender import (
+        from ..utils.Blender import (
             get_material, setup_z_coord_shader, setup_lights,
             setup_near_far,
         )
         # Remove Cube
-        from utils.Blender import remove_object
+        from ..utils.Blender import remove_object
         remove_object(name='Cube')
 
         # Create Groundmaterial
@@ -239,7 +239,7 @@ class ImageTexture(Module):
 
     @debug_decorator
     def __call__(self, ground_material=None, texture=None, default=None, **_):
-        from utils.Blender import (use_image_texture)
+        from ..utils.Blender import (use_image_texture)
 
         texture = default if default is not None else texture
         image_texture_kwargs = {}
@@ -252,7 +252,7 @@ class ColorMap(Module):
 
     @debug_decorator
     def __call__(self, ground_material=None, cmap_name='viridis', default=None, **_):
-        from utils.Blender import (colormap_to_colorramp)
+        from ..utils.Blender import (colormap_to_colorramp)
         import colorcet as cc
         import matplotlib.cm as cm
         cmap_name = default if default is not None else cmap_name
@@ -280,7 +280,7 @@ class GenericCamera(Module):
 
     @debug_decorator
     def __call__(self, camera='top', default=None, **_):
-        from utils.Blender import (
+        from ..utils.Blender import (
             setup_camera, set_view_to_camera)
 
         # Setup generic camera and return
@@ -310,12 +310,12 @@ class Camera(Module):
                  center=None,
                  distance=None,
                  **_):
-        from utils.artificial_shapes import determine_extent_and_resolution
+        from ..utils.artificial_shapes import determine_extent_and_resolution
 
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
-        from utils.Blender import (
+        from ..utils.Blender import (
             setup_top_camera, set_view_to_camera, setup_angled_camera)
 
         if isinstance(default, str):
@@ -355,8 +355,8 @@ class Depth(Module):
                  terrain_temp=[], terrain_prim=[],
                  overwrite=False,
                  **_):
-        from utils.Blender import get_depth, render_eevee
-        from utils.Blender import setup_render_z
+        from ..utils.Blender import get_depth, render_eevee
+        from ..utils.Blender import setup_render_z
 
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
@@ -383,7 +383,7 @@ class Depth(Module):
         # Set lowest point at 0
         dmap = dmap - np.min(dmap)
 
-        from utils.terrains import Terrain
+        from ..utils.terrains import Terrain
         terrain = Terrain.from_array(
             dmap,
             size=terrain.size,  # TODO: take from camera instead
@@ -409,7 +409,7 @@ class Render(Module):
                  overwrite=False,
                  loop_id=None,
                  **_):
-        from utils.Blender import render_eevee
+        from ..utils.Blender import render_eevee
 
         if filename is None:
             filename = f'render{loop_id}.png'
@@ -442,8 +442,8 @@ class RenderSegmentation(Module):
     def __call__(self, filename='render.png', default=None,
                  overwrite=False, folder='RenderSegmentation',
                  **_):
-        from utils.Blender import render_eevee, get_depth
-        from utils.Blender import setup_segmentation_render
+        from ..utils.Blender import render_eevee, get_depth
+        from ..utils.Blender import setup_segmentation_render
 
         # Possibly set folder from 'default'.
         if default is not None and '.' in default:
@@ -507,7 +507,7 @@ class AddMeshObjects(Module):
 
         # Construct 'interpolator'
         if terrain is not None:
-            from utils.interpolator import Interpolator
+            from ..utils.interpolator import Interpolator
             interpolator = Interpolator(terrain.array, terrain.extent)
         else:
             interpolator = None

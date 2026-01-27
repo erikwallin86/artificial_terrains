@@ -8,17 +8,13 @@ Modular, extensible terrain generation library.
 
 """
 import sys
-import os
 import logging
 
 # make artificial_terrains.examples as a valid import:
 from .utils import examples
 __all__ = ["examples"]
 
-# Hack: extend sys.path so imports still work after moving all code into
-# artificial_terrains/artificial_terrains for packaging. This avoids having
-# to rewrite all existing `import modules...` calls right now.
-sys.path.append(os.path.dirname(__file__))
+_last_pipe = {}
 
 
 def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
@@ -60,7 +56,8 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
             'call_total': 1,
         }
 
-    from modules.modules import MODULES
+    # from modules.modules import MODULES
+    from artificial_terrains.modules.modules import MODULES
     # Build module objects
     list_of_modules_kwargs_tuples = []
     for module, options in modules:

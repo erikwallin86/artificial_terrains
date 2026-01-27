@@ -1,4 +1,4 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import numpy as np
 
 
@@ -10,8 +10,8 @@ class Basic(Module):
     @debug_decorator
     def __call__(self, terrain_temp=None, scale_list=[400, 32, 0.5],
                  default=None, seed=None, **kwargs):
-        from utils.noise import get_simplex
-        from utils.terrains import Terrain
+        from ..utils.noise import get_simplex
+        from ..utils.terrains import Terrain
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
@@ -69,8 +69,8 @@ class Octaves(Module):
             only_generate_weights=False,
             **kwargs
     ):
-        from utils.noise import get_simplex
-        from utils.terrains import Terrain
+        from ..utils.noise import get_simplex
+        from ..utils.terrains import Terrain
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
@@ -143,8 +143,8 @@ class Rocks(Module):
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
-        from utils.noise import get_simplex
-        from utils.terrains import Terrain
+        from ..utils.noise import get_simplex
+        from ..utils.terrains import Terrain
 
         for i, (x, height) in enumerate(zip(rock_size, rock_heights)):
             info_dict = {}
@@ -197,8 +197,8 @@ class Holes(Module):
 
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
-        from utils.noise import get_simplex
-        from utils.terrains import Terrain
+        from ..utils.noise import get_simplex
+        from ..utils.terrains import Terrain
 
         for i, (x, height) in enumerate(zip(size_list, heights)):
             info_dict = {}

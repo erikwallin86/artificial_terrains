@@ -1,8 +1,8 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import os
 import numpy as np
 import yaml
-from utils.plots import save_all_axes
+from ..utils.plots import save_all_axes
 
 
 class Save(Module):
@@ -64,7 +64,7 @@ class LoadTIF(Module):
         terrain_temp = [] if terrain_temp is None else terrain_temp
         terrain_prim = [] if terrain_prim is None else terrain_prim
 
-        from utils.terrains import Terrain
+        from ..utils.terrains import Terrain
         terrain = Terrain.from_geotiff(filename)
         terrain_temp.append(terrain)
 
@@ -125,7 +125,7 @@ class Load(Module):
         file_list = self.expand_folders_to_get_npz(file_list)
 
         import re
-        from utils.terrains import Terrain
+        from ..utils.terrains import Terrain
         # Regular expressions to match filenames
 
         terrain_regex = re.compile(r"terrain(?:(_.*?))?_(\d{5})\.npz$")
@@ -205,7 +205,7 @@ class Load(Module):
         return new_file_list
 
     def expand_folders_to_get_npz(self, file_list):
-        from utils.utils import get_list_of_files
+        from ..utils.utils import get_list_of_files
         # If folder, get all npz files in it
         new_file_list = []
         for filename in file_list:
@@ -242,7 +242,7 @@ class FindRocks(Module):
     @debug_decorator
     def __call__(self, terrain_prim=None, terrain_temp=None,
                  default=None, last=None, **kwargs):
-        from utils.utils import get_terrains, find_rocks
+        from ..utils.utils import get_terrains, find_rocks
 
         terrains = get_terrains(
             terrain_temp, terrain_prim, last=last, remove=False,
@@ -295,8 +295,8 @@ class PlotRocks(Module):
                  default=None, last=None,
                  dpi=200, exportmode=False,
                  **kwargs):
-        from utils.utils import get_terrain
-        from utils.plots import plot_terrain, new_fig
+        from ..utils.utils import get_terrain
+        from ..utils.plots import plot_terrain, new_fig
 
         # Get terrain
         try:
@@ -339,7 +339,7 @@ class Plot(Module):
                  exportmode=False, dpi=400,
                  vmin=None, vmax=None,
                  call_number=None, call_total=None, **kwargs):
-        from utils.plots import plot_terrain, save_all_axes
+        from ..utils.plots import plot_terrain, save_all_axes
 
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder

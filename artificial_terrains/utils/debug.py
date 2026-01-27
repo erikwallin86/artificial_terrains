@@ -1,4 +1,4 @@
-from utils.plots import debug_plot
+from .plots import debug_plot
 import os
 
 

@@ -121,8 +121,8 @@ class Obstacles:
           size: used for uniform distribution, unless other specified
           position_distribution: optional positional distribution
         '''
-        from utils.utils import generate_size_distribution
-        from utils.utils import spawn_particles
+        from .utils import generate_size_distribution
+        from .utils import spawn_particles
         # Generate density mapping
         obstacle_density_mapping = generate_size_distribution(Y=Y)
         # Uniform position distribution

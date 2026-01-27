@@ -1,7 +1,7 @@
 import os
 import time
 import functools
-from utils.debug import debug
+from ..utils.debug import debug
 
 
 def debug_decorator(func):

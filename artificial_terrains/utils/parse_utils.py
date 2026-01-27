@@ -176,7 +176,7 @@ def get_args_combined_with_settings(parser):
 
     # ## module specific code ###
     # if not [name, option] pair, (only name)
-    from modules.modules import MODULES
+    from ..modules.modules import MODULES
     for i, pair in enumerate(args.modules):
         if not isinstance(pair, (tuple, list)):
             key = pair

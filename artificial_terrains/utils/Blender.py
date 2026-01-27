@@ -117,7 +117,7 @@ def add_grid(
             node_tree.links.remove(link)
 
     # Generate grid
-    from utils.plots import generate_line_grid
+    from .plots import generate_line_grid
     arr = generate_line_grid(**grid_kwargs)
     height, width, _ = arr.shape
 

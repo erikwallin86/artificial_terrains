@@ -1,6 +1,6 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import numpy as np
-from utils.terrains import Terrain
+from ..utils.terrains import Terrain
 
 
 class Combine(Module):
@@ -31,7 +31,7 @@ class Combine(Module):
             # So here we make sure this is negative
             last = -last
 
-        from utils.utils import get_terrains
+        from ..utils.utils import get_terrains
         terrains = get_terrains(
             terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
@@ -85,7 +85,7 @@ class ToPrimary(Combine):
     @debug_decorator
     def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, **_):
-        from utils.utils import get_terrains
+        from ..utils.utils import get_terrains
         terrain = get_terrains(terrain_temp, terrain_prim, last,
                                print_fn=self.info)
         terrain_prim.extend(terrain)
@@ -116,7 +116,7 @@ class WeightedSum(Module):
         self.debug(f"Use weights:{weights.squeeze()}")
 
         # Get terrains
-        from utils.utils import get_terrains
+        from ..utils.utils import get_terrains
         terrains = get_terrains(
             terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
@@ -158,7 +158,7 @@ class Compose(Module):
         operation = default if default is not None else operation
         assert operation in operations, f'{operation} not in {operations}'
 
-        from utils.utils import get_terrains
+        from ..utils.utils import get_terrains
         terrains = get_terrains(
             terrain_temp, terrain_prim, last=2, remove=True,
             print_fn=self.info)
@@ -217,13 +217,13 @@ class Stack(Module):
             # So here we make sure this is negative
             last = -last
 
-        from utils.utils import get_terrains
+        from ..utils.utils import get_terrains
         terrains = get_terrains(
             terrain_temp, terrain_prim, last=last, remove=True,
             print_fn=self.info)
 
-        from utils.terrains import assign_grid_indices
-        from utils.terrains import merge_terrain_blocks
+        from ..utils.terrains import assign_grid_indices
+        from ..utils.terrains import merge_terrain_blocks
 
         # Construct grid-indices from terrain extents
         grid_indices = assign_grid_indices(terrains)

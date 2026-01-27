@@ -3,9 +3,9 @@ import os
 from scipy.ndimage import gaussian_filter
 from scipy.optimize import brentq
 
-from modules.module import Module, debug_decorator
-from utils.utils import get_terrains, get_terrain
-from utils.plots import new_fig, save_all_axes
+from .module import Module, debug_decorator
+from ..utils.utils import get_terrains, get_terrain
+from ..utils.plots import new_fig, save_all_axes
 
 
 class SaveData(Module):
@@ -216,7 +216,7 @@ class Roughness(Module):
     def __call__(self, terrain_temp=[], terrain_prim=[],
                  default=None, last=None, sigma_meter=5, **_):
 
-        from utils.terrains import get_surface_area
+        from ..utils.terrains import get_surface_area
 
         # Possibly set sigma (m) using default value
         sigma_meter = default if default is not None else sigma_meter
@@ -351,7 +351,7 @@ class SurfaceStructure(Module):
         }
 
         # Calculate surface structure
-        from utils.utils import calc_ytstruktur_2
+        from ..utils.utils import calc_ytstruktur_2
         h_20 = results['h_20']
         h_40 = results['h_40']
         h_60 = results['h_60']

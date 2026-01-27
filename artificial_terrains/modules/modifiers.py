@@ -1,7 +1,7 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import numpy as np
 import os
-from utils.utils import get_terrains, get_terrain
+from ..utils.utils import get_terrains, get_terrain
 
 
 class Negate(Module):
@@ -199,7 +199,7 @@ class BezierRemap(Module):
 
         # plot
         if plot:
-            from utils.plots import new_fig
+            from ..utils.plots import new_fig
             fig, ax = new_fig()
             ax.plot(xp, fp)
             filename = os.path.join(self.save_dir, 'bezier.png')
@@ -334,7 +334,7 @@ class Resample(Module):
             new_ny = int(resolution * size[1])
 
         # --- Build interpolator from current terrain ------------------
-        from utils.interpolator import Interpolator
+        from ..utils.interpolator import Interpolator
         interp = Interpolator(hf_array, extent)  # uses RegularGridInterpolator internally
 
         left, right, bottom, top = extent

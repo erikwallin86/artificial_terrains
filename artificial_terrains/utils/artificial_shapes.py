@@ -56,7 +56,7 @@ def determine_extent_and_resolution(resolution=None, size=None, grid_size=None, 
     Determine extent and resolution.
 
     Default: use extent (m) and resolution (points/m) to decide -> (extent, grid_size)
-    
+
     If grid_size explicitly given, use that instead.
     '''
     if resolution is not None:
@@ -66,7 +66,7 @@ def determine_extent_and_resolution(resolution=None, size=None, grid_size=None, 
         else:
             resolution_x, resolution_y = (resolution, resolution)
 
-        from utils.terrains import extent_to_size
+        from .terrains import extent_to_size
         [size_x, size_y] = extent_to_size(extent)
         grid_size_x = int(size_x * resolution_x)
         grid_size_y = int(size_y * resolution_y)

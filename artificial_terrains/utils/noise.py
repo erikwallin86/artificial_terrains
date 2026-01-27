@@ -23,7 +23,7 @@ def get_simplex(resolution=None, size=None, N=None, grid_size=None,
         opensimplex.seed(seed)
 
     # Setup sizes etc.
-    from utils.artificial_shapes import determine_extent_and_resolution
+    from .artificial_shapes import determine_extent_and_resolution
     extent, (N_x, N_y) = determine_extent_and_resolution(
         resolution, size, grid_size, extent)
 

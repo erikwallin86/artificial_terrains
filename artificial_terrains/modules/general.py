@@ -1,10 +1,10 @@
 import os
 import numpy as np
-from utils.terrains import Terrain
-from utils.utils import Distribution
-from utils.plots import save_all_axes
+from ..utils.terrains import Terrain
+from ..utils.utils import Distribution
+from ..utils.plots import save_all_axes
 import colorcet as cc
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 
 
 class Print(Module):
@@ -97,7 +97,7 @@ class Extent(Module):
         extent = default if default is not None else extent
 
         self.info(f"Set extent:{extent} [m]")
-        from utils.terrains import extent_to_size
+        from ..utils.terrains import extent_to_size
 
         return {
             'size': extent_to_size(extent),
@@ -113,7 +113,7 @@ class Location(Module):
     def __call__(self, location=[0, 0], extent=None, default=None, **kwargs):
         location = default if default is not None else location
 
-        from utils.terrains import extent_to_location
+        from ..utils.terrains import extent_to_location
         current_location = extent_to_location(extent)
 
         # Calculate diff
@@ -201,7 +201,7 @@ class DebugPlot(Module):
 
     @debug_decorator
     def __call__(self, default=None, filename='debug_plot.png', **kwargs):
-        from utils.plots import debug_plot_horizontal
+        from ..utils.plots import debug_plot_horizontal
 
         filename = default if default is not None else filename
         filename = os.path.join(self.save_dir_original, filename)
@@ -223,8 +223,8 @@ class PlotObstacles(Module):
 
         filename = os.path.join(self.save_dir, filename)
 
-        from utils.obstacles import Obstacles
-        from utils.plots import plot_obstacles
+        from ..utils.obstacles import Obstacles
+        from ..utils.plots import plot_obstacles
         obstacles = Obstacles()
 
         obstacles.position = np.array(position).T
@@ -264,7 +264,7 @@ class SaveObstacles(Module):
         if os.path.exists(filename) and not overwrite:
             return
 
-        from utils.obstacles import Obstacles
+        from ..utils.obstacles import Obstacles
         obstacles = Obstacles()
 
         obstacles.position = np.array(position).T
@@ -311,7 +311,7 @@ class SetDistribution(Module):
     @debug_decorator
     def __call__(self, default, **_):
         # Parse distribution, and return
-        from utils.utils import parse_and_assign_distribution
+        from ..utils.utils import parse_and_assign_distribution
         varname, dist_obj = parse_and_assign_distribution(default)
 
         return {f'{varname}_distribution': dist_obj}
@@ -405,7 +405,7 @@ class Random(Module):
             else:
                 to_generate = default
 
-        from utils.artificial_shapes import determine_extent_and_resolution
+        from ..utils.artificial_shapes import determine_extent_and_resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
@@ -446,7 +446,7 @@ class Random(Module):
                 lookup_name = f'{name}_lookup_function'
                 if lookup_name in kwargs:
                     # Get values using lookup array and list of positions
-                    from utils.interpolator import Interpolator
+                    from ..utils.interpolator import Interpolator
                     terrain = kwargs[lookup_name]
                     interpolator = Interpolator(terrain.array, terrain.extent)
                     position = pipe['position']
@@ -460,7 +460,7 @@ class Random(Module):
         return pipe
 
     def points_from_probability(self, prob: Terrain, number_of_values):
-        from utils.noise import generate_points_from_2D_prob
+        from ..utils.noise import generate_points_from_2D_prob
         # Generate integers between (0, 0) and prob.array.shape
         points = generate_points_from_2D_prob(prob.array, number_of_values)
         # Add uniform random noise in [0, 1)
@@ -512,7 +512,7 @@ class LoadObstacles(Module):
                  **pipe):
         filename = default if default is not None else filename
 
-        from utils.obstacles import Obstacles
+        from ..utils.obstacles import Obstacles
 
         if 'yaml' in filename:
             obstacles = Obstacles.from_yaml(filename)
@@ -555,7 +555,7 @@ class RemoveDistantObstacles(Module):
                  extent=None,
                  default=None,
                  **pipe):
-        from utils.terrains import distances_to_extent
+        from ..utils.terrains import distances_to_extent
         # Use the provided default distance_limit if set, otherwise use the
         # given value for distance_limit.
         distance_limit = default if default is not None else distance_limit

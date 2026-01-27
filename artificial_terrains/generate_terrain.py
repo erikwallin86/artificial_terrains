@@ -1,5 +1,15 @@
 import os
 import sys
+
+if __package__ in (None, ""):
+    # Allow running this file directly (python artificial_terrains/generate_terrain.py)
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if repo_root not in sys.path:
+        sys.path.insert(0, repo_root)
+    in_package = False
+else:
+    in_package = True
+
 try:
     import bpy
     # Make sure current dir is in path. A blender py workaround
@@ -9,14 +19,26 @@ try:
 except Exception:
     using_blender = False
 else:
-    from modules.blender import fix_blender_argv, fix_blender_path
+    if in_package:
+        from .modules.blender import fix_blender_argv, fix_blender_path
+    else:
+        from artificial_terrains.modules.blender import (
+            fix_blender_argv, fix_blender_path
+        )
     fix_blender_path()
     fix_blender_argv()
     using_blender = True
 
-from utils.parse_utils import create_parser, get_args_combined_with_settings
-from modules.modules import MODULES
-from utils.logging_utils import get_logger, level_map
+if in_package:
+    from .utils.parse_utils import create_parser, get_args_combined_with_settings
+    from .modules.modules import MODULES
+    from .utils.logging_utils import get_logger, level_map
+else:
+    from artificial_terrains.utils.parse_utils import (
+        create_parser, get_args_combined_with_settings
+    )
+    from artificial_terrains.modules.modules import MODULES
+    from artificial_terrains.utils.logging_utils import get_logger, level_map
 
 
 def main():

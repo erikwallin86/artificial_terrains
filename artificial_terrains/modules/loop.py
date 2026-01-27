@@ -1,4 +1,4 @@
-from modules.module import Module
+from .module import Module
 import numpy as np
 from itertools import zip_longest
 
@@ -21,7 +21,7 @@ class Loop(Module):
                 # Note: only works for 'regular' distributions, not random ones
                 # There needs to be a fixed length
                 # e.g.
-                from utils.utils import parse_and_assign_distribution
+                from ..utils.utils import parse_and_assign_distribution
                 parameter, distribution = parse_and_assign_distribution(default)
                 # Get the sequence from the (regular) distribution
                 sequence = distribution._sequence

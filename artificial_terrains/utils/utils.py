@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import os
-from utils.terrains import Terrain
+from .terrains import Terrain
 from itertools import cycle, islice
 
 
@@ -401,7 +401,7 @@ def spawn_particles(obstacle_density_mapping, probability):
       particle_radius has size [1, N]
       {
     '''
-    from utils.noise import generate_points_from_2D_prob
+    from .noise import generate_points_from_2D_prob
     # Create lists of particles
     particle_pos = []
     particle_width = []

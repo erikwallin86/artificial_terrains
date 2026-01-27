@@ -1,6 +1,6 @@
-from modules.module import Module, debug_decorator
+from .module import Module, debug_decorator
 import numpy as np
-from utils.terrains import Terrain
+from ..utils.terrains import Terrain
 
 
 class Generative(Module):
@@ -46,7 +46,7 @@ class Generative(Module):
             pitch_deg = [pitch_deg]
 
         # Setup sizes etc.
-        from utils.artificial_shapes import determine_extent_and_resolution
+        from ..utils.artificial_shapes import determine_extent_and_resolution
         # Get size and resolution from any two tuples: resolution, size, resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
@@ -63,8 +63,8 @@ class Generative(Module):
         keys = list(properties.keys())
 
         from itertools import zip_longest
-        from utils.artificial_shapes import get_meshgrid
-        from utils.artificial_shapes import FUNCTIONS
+        from ..utils.artificial_shapes import get_meshgrid
+        from ..utils.artificial_shapes import FUNCTIONS
 
         for values in zip_longest(*properties.values()):
             # Create a dictionary for each group, excluding any None values
@@ -168,12 +168,12 @@ class Function(Module):
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
         # Setup sizes etc.
-        from utils.artificial_shapes import determine_extent_and_resolution
+        from ..utils.artificial_shapes import determine_extent_and_resolution
         # Get size and resolution from any two tuples: resolution, size, resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
-        from utils.artificial_shapes import get_meshgrid
+        from ..utils.artificial_shapes import get_meshgrid
 
         # Get meshgrid
         X, Y = get_meshgrid(extent, N_x, N_y)
