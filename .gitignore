@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build / packaging
+build/
+dist/
+pip-wheel-metadata/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project runtime outputs
+artificial_terrains/runs/
+artificial_terrains/Terrains/
+artificial_terrains/example_plots/
+artificial_terrains/example_renders*/
+artificial_terrains/assets/Rocks/
+
+# Local experiments / temp data
+artificial_terrains/old/
+artificial_terrains/test/
+artificial_terrains/real_terrains/
+artificial_terrains/*.tif
+artificial_terrains/*.npz
+artificial_terrains/*.png
+
+# Logs
+*.log
+logger.txt
