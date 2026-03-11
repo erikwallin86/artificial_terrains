@@ -586,7 +586,10 @@ class SetSlope(Module):
         # Use `default` if `target_slope_deg` is not explicitly provided
         target_slope_deg = default if default is not None else target_slope_deg
 
-        target_slope = np.tan(np.radians(target_slope_deg))
+        # Unwrap singleton NumPy arrays so the Brent root-finding objective stays scalar.
+        if isinstance(target_slope_deg, np.ndarray):
+            target_slope_deg = float(target_slope_deg.item())
+        target_slope = float(np.tan(np.radians(target_slope_deg)))
 
         gradients = np.asarray(mean_gradient)
         weights = np.asarray(weights)
