@@ -693,6 +693,33 @@ class PlotCfg(ArtificialTerrainCfg):
         ]
 
 
+@dataclass
+class RenderCfg(ArtificialTerrainCfg):
+    ''' For rendering with blender '''
+
+    filename: str | None = None
+    folder: str | None = 'example_renders'
+
+    @property
+    def modules(self):
+        kwargs = {
+            'folder': self.folder,
+            'filename': self.filename,
+        }
+        # Remove all None values
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return [
+            ('ClearScene', None),
+            ('BasicSetup', None),
+            ('Holdout', None),
+            ('Ground', {}),
+            ('Camera', 45),
+            ('Render', {'folder': self.folder,
+                        'filename': self.filename}),
+        ]
+
+
 COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
     LoadOrGenerateAndSetSlopeCfg()
     + AndFlatInCenterCfg()
