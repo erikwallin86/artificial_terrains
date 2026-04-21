@@ -672,6 +672,27 @@ class TerrainAndHillsAndPerimiterCfg(ArtificialTerrainCfg):
         return size + terrain + perimiter + hills
 
 
+@dataclass
+class PlotCfg(ArtificialTerrainCfg):
+    filename: str | None = None  # overwrite filename
+    folder: str | None = None
+    filename_base: str | None = None
+
+    @property
+    def modules(self):
+        kwargs = {
+            'filename_base': self.filename_base,
+            'folder': self.folder,
+            'filename': self.filename,
+        }
+        # Remove all None values
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return [
+            ('Plot', kwargs),
+        ]
+
+
 COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
     LoadOrGenerateAndSetSlopeCfg()
     + AndFlatInCenterCfg()
