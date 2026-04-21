@@ -493,7 +493,7 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
 
     folder: str = 'Terrains/multiple_octaves2'
     number_of_sets: int = 5
-    slope_deg: float = 8
+    slope_deg: float | None = 8
 
     @property
     def modules(self):
@@ -517,12 +517,14 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
             f'{self.folder}/terrain_temp_{random.randint(0, self.number_of_sets - 1):0{digits}d}_{i:05d}.npz'
             for i in range(self.num_octaves)
         ]
+
+        slope_kwargs = {'target_slope_deg': self.slope_deg} if self.slope_deg is not None else {}
         modules.extend(
             [
                 ('Load', files),
                 ('Random', 'weights'),
                 ('Slope', {}),
-                ('SetSlope', self.slope_deg),
+                ('SetSlope', slope_kwargs),
                 ('WeightedSum', {}),
             ]
         )
