@@ -10,9 +10,9 @@ Modular, extensible terrain generation library.
 import sys
 import logging
 
-# make artificial_terrains.examples as a valid import:
-from .utils import examples
-__all__ = ["examples"]
+from . import configs
+
+__all__ = ["configs"]
 
 _last_pipe = {}
 

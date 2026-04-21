@@ -21,7 +21,7 @@ Use a pre-configured example
 # Python
 import artificial_terrains as at
 
-config = at.examples.LoadOrGenerateAndSetSlopeCfg(slope_deg=3)
+config = at.configs.LoadOrGenerateAndSetSlopeCfg(slope_deg=3)
 at.run(config)
 terrain = at.get_terrain()
 ```
