@@ -338,6 +338,7 @@ class Plot(Module):
                  filename_base='terrain',
                  exportmode=False, dpi=400,
                  vmin=None, vmax=None,
+                 filename=None,
                  call_number=None, call_total=None, **kwargs):
         from ..utils.plots import plot_terrain, save_all_axes
 
@@ -358,7 +359,8 @@ class Plot(Module):
 
         # Plot terrain
         for i, terrain in enumerate(terrain_prim):
-            filename = f'{filename_base}{self.file_id}_{i:05d}.png'
+            if filename is None:
+                filename = f'{filename_base}{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
@@ -369,7 +371,8 @@ class Plot(Module):
 
         # Plot terrain_temp
         for i, terrain in enumerate(terrain_temp):
-            filename = f'{filename_base}_temp{self.file_id}_{i:05d}.png'
+            if filename is None:
+                filename = f'{filename_base}_temp{self.file_id}_{i:05d}.png'
             filename = os.path.join(self.save_dir, filename)
             list_of_filenames.append(filename)
             if not os.path.exists(filename) or overwrite:
