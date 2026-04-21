@@ -722,6 +722,45 @@ class RenderCfg(ArtificialTerrainCfg):
         ]
 
 
+@dataclass
+class RocksCfg(ArtificialTerrainCfg):
+
+    # Spatial variation
+    length_scale: float | None = 10.0  # if none, then no spatial variation
+    scale: float = 10.0  # multiply mask. High value --> rocks?
+
+    @property
+    def modules(self):
+        modules = []
+        if self.length_scale is not None:
+            # Add spatial variation
+            modules.extend(
+                [
+                    ('Basic', self.length_scale),
+                    ('Scale', self.scale),
+                    ('Clip', None),
+                    ('AsFactor', None),
+                ]
+            )
+
+        modules.extend(
+            [
+                ('Rocks', None),
+                ('Combine', None),
+            ]
+        )
+
+        if self.length_scale is not None:
+            # scale with 'factor' from above
+            modules.extend(
+                [
+                    ('Scale', None),
+                ]
+            )
+
+        return modules
+
+
 COMBINED_SET_SLOPE_AND_FLAT_IN_CENTER = (
     LoadOrGenerateAndSetSlopeCfg()
     + AndFlatInCenterCfg()
