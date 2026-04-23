@@ -533,17 +533,20 @@ class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
 
 @dataclass
 class AndFlatInCenterCfg(ArtificialTerrainCfg):
-    width: float = 5
+    width = 5
+    pitch_deg = 0
+    compose_method = 'OverAndAlign'
 
     @property
     def modules(self):
         return [
-            # Assumes there is already a terrain in primary
             ('Cube', {'width': self.width}),
             ('AsFactor', {}),
-            ('Plane', {}),
+            ('Plane', {'pitch_deg': self.pitch_deg*np.random.uniform(0, 1),
+                       'yaw_deg': np.random.uniform(0, 360)
+                       }),
             ('ToPrimary', {}),
-            ('Compose', {}),
+            ('Compose', {'operation': self.compose_method}),
         ]
 
 
