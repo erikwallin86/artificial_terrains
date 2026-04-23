@@ -867,6 +867,8 @@ if __name__ == "__main__":
     }
     del cfg_configs['ArtificialTerrainCfg']
     del cfg_configs['CombinedArtificialTerrainCfg']
+    del cfg_configs['RenderCfg']
+    del cfg_configs['PlotCfg']
 
     combined_configs = {
         name: value for name, value in current_module.items()
