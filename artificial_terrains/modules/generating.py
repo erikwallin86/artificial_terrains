@@ -8,7 +8,8 @@ class Basic(Module):
     ''' Make basic terrains
     '''
     @debug_decorator
-    def __call__(self, terrain_temp=None, scale_list=[400, 32, 0.5],
+    def __call__(self, terrain_temp=None,
+                 scale: list | float | int = [400, 32, 0.5],
                  default=None, seed=None, **kwargs):
         from ..utils.noise import get_simplex
         from ..utils.terrains import Terrain
@@ -16,17 +17,17 @@ class Basic(Module):
         terrain_temp = [] if terrain_temp is None else terrain_temp
 
         # Possibly replace scaling list from 'default'
-        if isinstance(default, list):
-            scale_list = default
+        if isinstance(default, (list, tuple)):
+            scale = default
         elif isinstance(default, (float, int)):
-            scale_list = [default]
+            scale = [default]
 
-        # Make sure scale_list is a list
-        if isinstance(scale_list, (float, int)):
-            scale_list = [scale_list]
+        # Make sure scale is a list
+        if isinstance(scale, (float, int)):
+            scale = [scale]
 
         info_dict = {}
-        for i, x in enumerate(scale_list):
+        for i, x in enumerate(scale):
             scaling = 1.75/(1+x/68)
             simplex_noise = 1/scaling * get_simplex(
                 **kwargs,
@@ -134,7 +135,7 @@ class Rocks(Module):
         rock_size = default if default is not None else rock_size
 
         # Make sure 'rock-size' is a list
-        if not isinstance(rock_size, list):
+        if not isinstance(rock_size, (list, tuple)):
             rock_size = [rock_size]
 
         if rock_heights is None:

@@ -724,28 +724,40 @@ class RenderCfg(ArtificialTerrainCfg):
 
 @dataclass
 class RocksCfg(ArtificialTerrainCfg):
+    '''
+    Rocky terrain, with a , designed to combine with other configs.
 
+
+    '''
     # Spatial variation
     length_scale: float | None = 10.0  # if none, then no spatial variation
-    scale: float = 10.0  # multiply mask. High value --> rocks?
+    fraction: float = 0.5  # in [0, 1]. part of terrain with stone patches
+
+    rock_density: float = 0.8  # [0, 1]. Maps to linearly to 'fraction' in [1, 0.5]
+    rock_size: list[float] = (0.5, 1, 2, 4)
 
     @property
     def modules(self):
         modules = []
         if self.length_scale is not None:
-            # Add spatial variation
+            # Possibly add spatial variation to rock occurances, of some length scale
             modules.extend(
                 [
-                    ('Basic', self.length_scale),
-                    ('Scale', self.scale),
+                    ('Basic', self.length_scale),  # values in ~[-0.5, 0.5]
+                    # Add value, to get desired 1 fraction on mask
+                    ('Add', self.fraction-0.5),
+                    # Scale and Clip to get more 'binary' mask
+                    ('Scale', {'factor': 10, 'last': 1}),
                     ('Clip', None),
+                    # Use as multiplication factor (will flatten out terrains where mask is 0)
                     ('AsFactor', None),
                 ]
             )
 
+        fraction = 1 - self.rock_density/2
         modules.extend(
             [
-                ('Rocks', None),
+                ('Rocks', {'fraction': fraction, 'rock_size': self.rock_size}),
                 ('Combine', None),
             ]
         )
@@ -754,7 +766,8 @@ class RocksCfg(ArtificialTerrainCfg):
             # scale with 'factor' from above
             modules.extend(
                 [
-                    ('Scale', None),
+                    ('Scale', {'last': 1}),  # scale only the last terrain, in case there are several terrains in primary
+                    ('Combine', None),  # Additional combine, in case combining with some other config. Not sure this is great
                 ]
             )
 

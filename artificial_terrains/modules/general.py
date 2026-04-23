@@ -44,7 +44,7 @@ class GridSize(Module):
     def __call__(self, grid_size=100, default=None, **kwargs):
         grid_size = default if default is not None else grid_size
 
-        if isinstance(grid_size, list):
+        if isinstance(grid_size, (list, tuple)):
             grid_size_x, grid_size_y = grid_size
         elif isinstance(grid_size, str) and 'x' in default:
             grid_size_x, grid_size_y = map(float, default.lower().split('x'))
