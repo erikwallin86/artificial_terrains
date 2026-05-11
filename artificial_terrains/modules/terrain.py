@@ -2,6 +2,8 @@ from .module import Module, debug_decorator
 import os
 import numpy as np
 import yaml
+from collections.abc import Sequence
+from typing import Any
 from ..utils.plots import save_all_axes
 
 
@@ -67,6 +69,62 @@ class LoadTIF(Module):
         from ..utils.terrains import Terrain
         terrain = Terrain.from_geotiff(filename)
         terrain_temp.append(terrain)
+
+        return {
+            'terrain_temp': terrain_temp,
+            'terrain_prim': terrain_prim,
+        }
+
+
+class Terrain(Module):
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self,
+                 from_array: np.ndarray | None = None,
+                 size: tuple[float, float] | None = None,
+                 extent: tuple[float, float, float, float] | None = None,
+                 terrain_temp: list[Any] | None = None,
+                 terrain_prim: list[Any] | None = None,
+                 target: str = 'temp',
+                 **kwargs: Any) -> dict[str, list[Any]]:
+        """
+        Create a terrain from an in-memory array.
+
+        Args:
+            from_array: Two-dimensional height array to load.
+            size: Physical terrain size in x/y. Used together with
+                ``from_array`` unless ``extent`` is provided.
+            extent: Terrain extent ``[xmin, xmax, ymin, ymax]``.
+            terrain_temp: Existing temporary terrain list.
+            terrain_prim: Existing primary terrain list.
+            target: Output list to append to, either ``'temp'`` or ``'prim'``.
+
+        Returns:
+            dict: Pipe update containing ``terrain_temp`` and ``terrain_prim``.
+        """
+        from ..utils.terrains import Terrain as TerrainData
+
+        if from_array is None:
+            raise ValueError("Terrain module requires 'from_array'.")
+
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_prim = [] if terrain_prim is None else terrain_prim
+
+        array = np.asarray(from_array, dtype=np.float64)
+
+        terrain = TerrainData.from_array(
+            array=array,
+            size=size,
+            extent=extent,
+        )
+
+        if target == 'prim':
+            terrain_prim.append(terrain)
+        elif target == 'temp':
+            terrain_temp.append(terrain)
+        else:
+            raise ValueError("target must be 'temp' or 'prim'.")
 
         return {
             'terrain_temp': terrain_temp,
