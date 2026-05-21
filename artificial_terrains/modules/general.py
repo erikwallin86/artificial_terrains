@@ -404,7 +404,11 @@ class Random(Module):
             if '[' not in default:
                 to_generate = [default]
             else:
-                to_generate = default
+                to_generate = [
+                    parameter.strip()
+                    for parameter in default.strip('[]').split(',')
+                    if parameter.strip()
+                ]
 
         from ..utils.artificial_shapes import determine_extent_and_resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
@@ -414,6 +418,18 @@ class Random(Module):
             from ..utils.terrains import extent_to_size
             size_x, size_y = extent_to_size(extent)
             number_of_values = max(1, int(round(density * size_x * size_y)))
+
+        dynamic_distribution_mapping = {}
+        explicit_kwargs = getattr(self, 'module_kwargs', {})
+        for name, value in {**explicit_kwargs, **kwargs}.items():
+            if not isinstance(value, Distribution):
+                continue
+            if name in {'position_x_distribution', 'position_y_distribution'}:
+                continue
+            if name.endswith('_distribution'):
+                dynamic_distribution_mapping[name.removesuffix('_distribution')] = value
+            else:
+                dynamic_distribution_mapping[name] = value
 
         # Setup distributions that depend on other parameters
         if position_x_distribution is None:
@@ -445,10 +461,12 @@ class Random(Module):
             'yaw_deg': yaw_deg_distribution,
             'pitch_deg': pitch_deg_distribution,
         }
+        name_to_distribution_mapping.update(dynamic_distribution_mapping)
+        names_to_generate = set(to_generate) | set(dynamic_distribution_mapping)
 
         # Loop through parameters, and run their distribution function
         for name, distribution in name_to_distribution_mapping.items():
-            if name in to_generate:
+            if name in names_to_generate:
                 lookup_name = f'{name}_lookup_function'
                 if lookup_name in kwargs:
                     # Get values using lookup array and list of positions
