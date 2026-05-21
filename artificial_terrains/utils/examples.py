@@ -614,10 +614,38 @@ class StoneCircleCfg(ArtificialTerrainCfg):
 class LunarMicroCraterFieldCfg(ArtificialTerrainCfg):
     diameter_min: float = 0.1
     diameter_max: float = 5.0
-    size_frequency_exponent: float = 3.0
-    # Crater count is derived as density [craters / m^2] times area.
-    crater_density: float = 0.05
+    # Diameter density follows p(d) ~ d^(-size_frequency_exponent), so
+    # halving the diameter increases point density by about 2^exponent.
+    # size_frequency_exponent = 2 gives N(>=D) ~ 1/D, i.e. 10x smaller
+    # craters are 10x more common in cumulative counts.
+    size_frequency_exponent: float = 2.0
+    # Calibrated so N(>=10 m) = 200 / km^2 = 2e-4 / m^2.
+    reference_diameter: float = 10.0
+    cumulative_density_at_reference: float = 2e-4
     combine_method: str = 'Add'
+
+    @property
+    def crater_density(self):
+        """Crater density inside [diameter_min, diameter_max] [craters / m^2]."""
+        alpha = self.size_frequency_exponent
+        d_ref = self.reference_diameter
+        d_min = self.diameter_min
+        d_max = self.diameter_max
+
+        if d_min <= 0 or d_max <= 0 or d_ref <= 0 or d_max <= d_min:
+            raise ValueError("Crater diameters must satisfy 0 < min < max and reference > 0.")
+
+        if np.isclose(alpha, 1.0):
+            n_min = self.cumulative_density_at_reference
+            n_min *= d_ref / d_min
+            n_max = self.cumulative_density_at_reference
+            n_max *= d_ref / d_max
+            return n_min - n_max
+
+        exponent = 1.0 - alpha
+        n_min = self.cumulative_density_at_reference * (d_min / d_ref) ** exponent
+        n_max = self.cumulative_density_at_reference * (d_max / d_ref) ** exponent
+        return n_min - n_max
 
     @property
     def modules(self):
@@ -626,10 +654,8 @@ class LunarMicroCraterFieldCfg(ArtificialTerrainCfg):
                 f'width=powerlaw({self.diameter_min},'
                 f'{self.diameter_max},{self.size_frequency_exponent})'
             )),
-            ('Random', {
-                'default': '[position,width]',
-                'density': self.crater_density,
-            }),
+            ('SetDistribution', "depth_ratio=uniform(0.10,0.15)"),
+            ('Random', {'density': self.crater_density}),
             ('Crater', {}),
             ('Combine', self.combine_method),
         ]
