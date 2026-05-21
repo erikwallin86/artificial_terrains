@@ -2,100 +2,100 @@ from .module import Module, debug_decorator
 import numpy as np
 from ..utils.terrains import Terrain
 
+FEATURE_KEYS = ('position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg')
+
+
+def iter_kwargs(kwargs):
+    """Yield kwargs for each generated feature."""
+    feature_lengths = [len(kwargs[key]) for key in FEATURE_KEYS if key in kwargs]
+    max_length = max(feature_lengths, default=1)
+
+    for index in range(max_length):
+        yielded_kwargs = {}
+        for key, value in kwargs.items():
+            if isinstance(value, (str, dict, Terrain)):
+                yielded_kwargs[key] = value
+                continue
+
+            try:
+                values = list(value)
+            except TypeError:
+                yielded_kwargs[key] = value
+                continue
+
+            if index < len(values):
+                yielded_kwargs[key] = values[index]
+
+        yield yielded_kwargs
+
 
 class Generative(Module):
     create_folder = False
-    '''
-    Generative base
-    '''
+    """Generate one or more terrains from a shape function."""
+
     @debug_decorator
     def __call__(
             self, function_name=None, terrain_temp=None, default=None,
-            position=[[0, 0]], height=[], width=[],
-            aspect=[], yaw_deg=[], pitch_deg=[],
             size=None, grid_size=None, resolution=None, extent=None,
             reset_input=True,
             **kwargs):
-        '''
-
-        Args:
-          position: list of positions, where position is [x, y] list
-          heights: list of heights, where height is float in [-infty, infty]
-          yaws: list of yaw, where yaw is float in [0, 2*np.pi]
-        '''
+        """Sample kwargs and evaluate the selected shape function."""
         terrain_temp = [] if terrain_temp is None else terrain_temp
-        functions = ['gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
-                     'smoothstep', 'sine', 'crater']
+        functions = [
+            'gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
+            'smoothstep', 'sine', 'crater',
+        ]
         if function_name is None:
             function_name = np.random.choice(functions)
 
         assert function_name in functions
 
-        # Format arguments
-        if np.array(position).ndim == 1:
-            position = [position]
-        if np.array(height).ndim == 0:
-            height = [height]
-        if np.array(yaw_deg).ndim == 0:
-            yaw_deg = [yaw_deg]
-        if np.array(width).ndim == 0:
-            width = [width]
-        if np.array(aspect).ndim == 0:
-            aspect = [aspect]
-        if np.array(pitch_deg).ndim == 0:
-            pitch_deg = [pitch_deg]
-
-        # Setup sizes etc.
         from ..utils.artificial_shapes import determine_extent_and_resolution
-        # Get size and resolution from any two tuples: resolution, size, resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
-        properties = {
-            'position': position,
-            'height': height,
-            'yaw_deg': yaw_deg,
-            'width': width,
-            'aspect': aspect,
-            'pitch_deg': pitch_deg,
+        feature_defaults = {
+            'position': [[0, 0]],
+            'height': [],
+            'yaw_deg': [],
+            'width': [],
+            'aspect': [],
+            'pitch_deg': [],
         }
+        kwargs = {**feature_defaults, **kwargs}
 
-        keys = list(properties.keys())
+        if np.array(kwargs['position']).ndim == 1:
+            kwargs['position'] = [kwargs['position']]
 
-        from itertools import zip_longest
+        for key in FEATURE_KEYS:
+            if key == 'position':
+                continue
+            if np.array(kwargs[key]).ndim == 0:
+                kwargs[key] = [kwargs[key]]
+
         from ..utils.artificial_shapes import get_meshgrid
         from ..utils.artificial_shapes import FUNCTIONS
+        function_factory = FUNCTIONS[function_name]
 
-        for values in zip_longest(*properties.values()):
-            # Create a dictionary for each group, excluding any None values
-            kwargs = {k: v for k, v in zip(keys, values) if v is not None}
-            self.logger.debug(f"kwargs:{kwargs}")
+        # Iterate feature-wise kwargs, while repeating scalar context unchanged.
+        for feature_kwargs in iter_kwargs(kwargs):
+            self.logger.debug(f"kwargs:{feature_kwargs}")
 
-            # Setup function callable
-            function_callable = FUNCTIONS[function_name](**kwargs)
-
-            # Get meshgrid
+            function_callable = function_factory(**feature_kwargs)
             X, Y = get_meshgrid(extent, N_x, N_y)
-
-            # Get heights from function callable
             heights_array = function_callable(X, Y)
 
-            # Make terrain, and add to dict
             terrain = Terrain.from_array(heights_array, extent=extent)
-            # desctiption = f'{kwargs.__repr__()}'
-            desctiption = f'{self.name}{self.file_id}_{kwargs.__repr__()}'
             terrain_temp.append(terrain)
 
-        pipe = {
-            'terrain_temp': terrain_temp,
-        }
+        pipe = {'terrain_temp': terrain_temp}
 
         if reset_input:
             pipe['position'] = [[0, 0]]
-            for parameter in ['height', 'yaw_deg',
-                              'width', 'aspect', 'pitch_deg']:
-                if parameter:
-                    pipe[parameter] = []
+            for parameter in FEATURE_KEYS:
+                if parameter == 'position':
+                    continue
+                pipe[parameter] = []
 
         return pipe
 
