@@ -417,32 +417,34 @@ class Plot(Module):
 
         # Plot terrain
         for i, terrain in enumerate(terrain_prim):
-            if filename is None:
-                filename = f'{filename_base}{self.file_id}_{i:05d}.png'
-            filename = os.path.join(self.save_dir, filename)
-            list_of_filenames.append(filename)
-            if not os.path.exists(filename) or overwrite:
+            current_filename = filename
+            if current_filename is None:
+                current_filename = f'{filename_base}{self.file_id}_{i:05d}.png'
+            current_filename = os.path.join(self.save_dir, current_filename)
+            list_of_filenames.append(current_filename)
+            if not os.path.exists(current_filename) or overwrite:
                 fig, ax = plot_terrain(terrain, vmin=vmin, vmax=vmax)
-                fig.savefig(filename, dpi=dpi)
+                fig.savefig(current_filename, dpi=dpi)
                 if exportmode:
-                    save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+                    save_all_axes(fig, current_filename, delta=0.0, dpi=dpi)
 
         # Plot terrain_temp
         for i, terrain in enumerate(terrain_temp):
-            if filename is None:
-                filename = f'{filename_base}_temp{self.file_id}_{i:05d}.png'
-            filename = os.path.join(self.save_dir, filename)
-            list_of_filenames.append(filename)
-            if not os.path.exists(filename) or overwrite:
+            current_filename = filename
+            if current_filename is None:
+                current_filename = f'{filename_base}_temp{self.file_id}_{i:05d}.png'
+            current_filename = os.path.join(self.save_dir, current_filename)
+            list_of_filenames.append(current_filename)
+            if not os.path.exists(current_filename) or overwrite:
                 fig, ax = plot_terrain(terrain, vmin=vmin, vmax=vmax)
-                fig.savefig(filename, dpi=dpi)
+                fig.savefig(current_filename, dpi=dpi)
                 if exportmode:
-                    save_all_axes(fig, filename, delta=0.0, dpi=dpi)
+                    save_all_axes(fig, current_filename, delta=0.0, dpi=dpi)
 
         result = {'plot_filenames': list_of_filenames}
 
         if exportmode:
-            filename = filename.replace('.png', f'_{0:01d}.png')
+            filename = current_filename.replace('.png', f'_{0:01d}.png')
             # Possibly use last result as image texture
             result['texture'] = filename
 
