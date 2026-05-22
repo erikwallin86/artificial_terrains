@@ -547,14 +547,18 @@ class CFGModule(Module):
             )
 
         cfg_target = configs.get_cfg_target(cfg_name, explicit_kwargs)
-        if not hasattr(cfg_target, 'modules'):
+        if isinstance(cfg_target, list):
+            child_modules = cfg_target
+        elif hasattr(cfg_target, 'modules'):
+            child_modules = cfg_target.modules
+        else:
             raise ValueError(
                 f"CFGModule:{cfg_name} did not resolve to a config with modules."
             )
 
         # Instantiate the config's child modules and run them in the current pipe.
         list_of_modules_kwargs_tuples = []
-        for module, options in cfg_target.modules:
+        for module, options in child_modules:
             if module is None:
                 continue
             module_class = MODULES[module]
