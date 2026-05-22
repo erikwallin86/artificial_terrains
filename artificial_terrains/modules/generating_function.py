@@ -1,11 +1,13 @@
 from .module import Module, debug_decorator
+from typing import Any
 import numpy as np
 from ..utils.terrains import Terrain
 
-FEATURE_KEYS = ('position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg')
+FEATURE_KEYS: tuple[str, ...] = (
+    'position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg')
 
 
-def iter_kwargs(kwargs):
+def iter_kwargs(kwargs: dict[str, Any]):
     """Yield kwargs for each generated feature."""
     feature_lengths = [len(kwargs[key]) for key in FEATURE_KEYS if key in kwargs]
     max_length = max(feature_lengths, default=1)
@@ -20,6 +22,13 @@ def iter_kwargs(kwargs):
             try:
                 values = list(value)
             except TypeError:
+                yielded_kwargs[key] = value
+                continue
+
+            # Only the six feature keys determine how many calls to make.
+            # Other iterables are sampled at the same index only when they
+            # match that feature count; otherwise they are passed through.
+            if key not in FEATURE_KEYS and len(values) != max_length:
                 yielded_kwargs[key] = value
                 continue
 

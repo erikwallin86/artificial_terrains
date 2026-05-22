@@ -443,8 +443,8 @@ class Plot(Module):
 
         result = {'plot_filenames': list_of_filenames}
 
-        if exportmode:
-            filename = current_filename.replace('.png', f'_{0:01d}.png')
+        if exportmode and list_of_filenames:
+            filename = list_of_filenames[-1].replace('.png', f'_{0:01d}.png')
             # Possibly use last result as image texture
             result['texture'] = filename
 

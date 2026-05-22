@@ -1,5 +1,7 @@
 # Change name of this file!
 from dataclasses import asdict, dataclass
+from typing import Any
+
 import numpy as np
 import sys
 import inspect
@@ -499,28 +501,20 @@ class SmallLunarCraterFunction():
 class CraterFunction():
     def __init__(
             self,
-            position=(0, 0),
-            depth_ratio=0.13,
-            width=5.0,
-            rim_height_ratio=0.024,
-            rim_width_ratio=0.10,
-            outer_radius_factor=1.7,
-            cavity_exponent=2.0,
-            **_):
-        """
-        Idealized small lunar crater.
+            position: tuple[float, float] = (0, 0),
+            depth_ratio: float = 0.13,
+            width: float = 5.0,
+            rim_height_ratio: float = 0.024,
+            rim_width_ratio: float = 0.10,
+            outer_radius_factor: float = 1.7,
+            cavity_exponent: float = 2.0,
+            **_: Any):
+        """Idealized axisymmetric crater with width-scaled shape parameters.
 
-        The crater is modeled as a paraboloid-like bowl with a smooth raised rim:
-
-        - bowl: ``-depth * (1 - (r / R)**n)`` for ``r <= R``
-        - rim:  Gaussian ring centered at ``R`` and tapered to zero outside
-          ``outer_radius_factor * R``
-
-        Args:
-            depth: Rim-to-floor depth. If omitted, ``0.13 * width`` is used.
-            width: Rim-to-rim crater diameter.
-            rim_height: Rim uplift above the ambient surface. Defaults to
-                ``0.024 * width``, which preserves the default ~5 m crater.
+        The cavity depth and rim height are expressed as ratios of the crater
+        width, which makes the same shape model scale naturally across crater
+        sizes. The cavity is a smooth bowl inside the crater radius, and the
+        rim is a Gaussian ring that tapers back to zero before the outer radius.
         """
         self.position = position
         self.radius = width / 2
@@ -531,7 +525,7 @@ class CraterFunction():
         self.rim_sigma = max(rim_width_ratio * width, 1e-9)
         self.outer_radius = max(self.radius, outer_radius_factor * self.radius)
 
-    def __call__(self, x, y):
+    def __call__(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
         x = x - self.position[0]
         y = y - self.position[1]
 
