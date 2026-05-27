@@ -3,6 +3,24 @@ import numpy as np
 import os
 
 
+def get_light(name='Light', create=False):
+    light = bpy.data.objects.get(name)
+    if light is not None:
+        return light
+
+    for obj in bpy.data.objects:
+        if obj.type == 'LIGHT':
+            return obj
+
+    if not create:
+        return None
+
+    bpy.ops.object.light_add(type='SUN')
+    light = bpy.context.object
+    light.name = name
+    return light
+
+
 def setup_near_far():
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
@@ -189,6 +207,10 @@ def setup_world(hdri='forest.exr', hdri_level=None):
     ''' Setup world node with hdri light '''
 
     scene = bpy.context.scene
+    if scene.world is None:
+        world = bpy.data.worlds.new("World")
+        scene.world = world
+    scene.world.use_nodes = True
     node_tree = scene.world.node_tree
     nodes = node_tree.nodes
 
@@ -444,7 +466,9 @@ def setup_bsdf(material,
 
 
 def hide_light():
-    ob = bpy.data.objects.get("Light")
+    ob = get_light()
+    if ob is None:
+        return
     ob.hide_render = True
     ob.hide_viewport = True
 
@@ -464,7 +488,7 @@ def setup_lights(
 
     if level is not None:
         # Explicitly set sun level
-        ob = bpy.data.objects.get("Light")
+        ob = get_light(create=True)
         ob.hide_render = False
         ob.hide_viewport = False
         ob.data.energy = level
@@ -472,7 +496,7 @@ def setup_lights(
 
 def setup_sun(x=0, y=0, z=70, angle=55):
     # Place sun
-    light = bpy.data.objects['Light']
+    light = get_light(create=True)
     light.location.x = x/2
     light.location.y = y
     light.location.z = 50
