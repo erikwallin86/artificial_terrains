@@ -280,11 +280,6 @@ class SmallLunarCraterFunction():
     """Small axisymmetric lunar crater.
 
     The crater is modeled based on Mahanti et al. (2018).
-
-    Craters are classified by age into the classes A, B or C, with class A being
-    the youngest. More details about the shape of different crater classes can
-    be found in the CraterProfile class.
-
     Craters are classified by age into the classes A, B or C, with class A being
     the youngest. Class A craters have a curved bowl shape and a raised rim
     while class C craters are more degraded, with a straighter bowl shape and
@@ -292,9 +287,9 @@ class SmallLunarCraterFunction():
 
     The entire crater profile (bowl + rim) is expressed as a difference of two
     generalized sigmoid functions, where the parameters for each class have been
-    selected to trace the curves in figure mentioned. The remaining hardcoded
-    parameters have been selected to normalize the profile so that diameter,
-    depth and rim height can be adjusted.
+    selected to trace the corresponding curve in the left plot of figure 21 in
+    the paper. The remaining hardcoded parameters have been selected to
+    normalize the profile so that diameter, depth and rim height is adjustable.
     """
 
     max_width_to_diameter_ratio = 2.2
