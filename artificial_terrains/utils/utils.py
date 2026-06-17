@@ -557,6 +557,7 @@ class Distribution:
         random_distributions = {
             'uniform': np.random.uniform,
             'normal': np.random.normal,
+            'lognormal': np.random.lognormal,
             'exponential': np.random.exponential,
             'beta': np.random.beta,
         }
