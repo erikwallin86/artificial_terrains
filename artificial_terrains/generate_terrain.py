@@ -30,15 +30,34 @@ else:
     using_blender = True
 
 if in_package:
+    from . import configs
     from .utils.parse_utils import create_parser, get_args_combined_with_settings
     from .modules.modules import MODULES
     from .utils.logging_utils import get_logger, level_map
 else:
+    from artificial_terrains import configs
     from artificial_terrains.utils.parse_utils import (
         create_parser, get_args_combined_with_settings
     )
     from artificial_terrains.modules.modules import MODULES
     from artificial_terrains.utils.logging_utils import get_logger, level_map
+
+
+def format_invalid_choice_message(choice):
+    cfg_names = set(configs.get_cfg_names())
+    module_names = sorted(name for name in MODULES if name not in cfg_names)
+    cfg_names = sorted(cfg_names)
+
+    modules_text = ", ".join(module_names)
+    cfgs_text = ", ".join(cfg_names)
+
+    return (
+        f"Invalid module name: {choice}\n"
+        "No module or cfg matched that name.\n"
+        "Available options are:\n"
+        f"  Modules: {modules_text}\n"
+        f"  Cfgs: {cfgs_text}"
+    )
 
 
 def main():
@@ -60,7 +79,7 @@ def main():
     # Check that all modules exist
     for key, value in args.modules:
         if key not in MODULES.keys():
-            logger.info(f"Invalid choice {key}. ({MODULES.keys()})")
+            logger.info(format_invalid_choice_message(key))
             exit(1)
 
     if using_blender:
@@ -104,6 +123,7 @@ def main():
 
         # combine with general kwargs
         kwargs = {**general_kwargs, **kwargs}
+        module_obj.module_kwargs = kwargs.copy()
         # Add to list
         list_of_modules_kwargs_tuples.append((module_obj, kwargs))
 

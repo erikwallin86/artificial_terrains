@@ -570,6 +570,8 @@ class Distribution:
         if self.dist_name in random_distributions:
             return lambda size: random_distributions[self.dist_name](
                 *self.params, size=size)
+        elif self.dist_name == 'powerlaw':
+            return self._sample_powerlaw
         elif self.dist_name in regular_distributions:
             self._sequence = regular_distributions[self.dist_name](*self.params)
             self._sequence_iter = cycle(self._sequence)
@@ -579,6 +581,27 @@ class Distribution:
 
     def _sample_from_sequence(self, size=1):
         return np.array(list(islice(self._sequence_iter, size)))
+
+    def _sample_powerlaw(self, size=1):
+        if len(self.params) != 3:
+            raise ValueError(
+                "powerlaw distribution expects (xmin, xmax, alpha)"
+            )
+
+        xmin, xmax, alpha = self.params
+        if xmin <= 0 or xmax <= 0 or xmax <= xmin:
+            raise ValueError("powerlaw requires 0 < xmin < xmax")
+
+        u = np.random.uniform(0.0, 1.0, size=size)
+
+        # Probability density p(x) ~ x^-alpha on [xmin, xmax].
+        if np.isclose(alpha, 1.0):
+            return xmin * np.power(xmax / xmin, u)
+
+        exponent = 1.0 - alpha
+        low = xmin**exponent
+        high = xmax**exponent
+        return np.power(low + u * (high - low), 1.0 / exponent)
 
     def sample(self, size=1):
         return self.dist(size=size)

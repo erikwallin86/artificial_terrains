@@ -496,6 +496,76 @@ class SmallLunarCraterFunction():
         self._y_scale_rim = 247.973697
 
 
+class CraterFunction():
+    def __init__(
+            self,
+            position=(0, 0),
+            depth_ratio=0.13,
+            width=5.0,
+            rim_height_ratio=0.024,
+            rim_width_ratio=0.10,
+            outer_radius_factor=1.7,
+            cavity_exponent=2.0,
+            **_):
+        """
+        Idealized small lunar crater.
+
+        The crater is modeled as a paraboloid-like bowl with a smooth raised rim:
+
+        - bowl: ``-depth * (1 - (r / R)**n)`` for ``r <= R``
+        - rim:  Gaussian ring centered at ``R`` and tapered to zero outside
+          ``outer_radius_factor * R``
+
+        Args:
+            depth: Rim-to-floor depth. If omitted, ``0.13 * width`` is used.
+            width: Rim-to-rim crater diameter.
+            rim_height: Rim uplift above the ambient surface. Defaults to
+                ``0.024 * width``, which preserves the default ~5 m crater.
+        """
+        self.position = position
+        self.radius = width / 2
+
+        self.depth = depth_ratio * width
+        self.cavity_exponent = cavity_exponent
+        self.rim_height = rim_height_ratio * width
+        self.rim_sigma = max(rim_width_ratio * width, 1e-9)
+        self.outer_radius = max(self.radius, outer_radius_factor * self.radius)
+
+    def __call__(self, x, y):
+        x = x - self.position[0]
+        y = y - self.position[1]
+
+        # Axisymmetric crater profile: only radial distance from center matters.
+        rho, _phi = cartesian_to_polar(x, y)
+
+        normalized_radius = rho / self.radius
+        # Bowl-shaped cavity that reaches maximum depth at the center and
+        # returns to zero elevation at the rim crest.
+        bowl = np.where(
+            rho <= self.radius,
+            -self.depth * (1 - normalized_radius**self.cavity_exponent),
+            0,
+        )
+
+        # Raised rim represented as a Gaussian ring centered on the crater radius.
+        rim = self.rim_height * np.exp(
+            -0.5 * ((rho - self.radius) / self.rim_sigma)**2
+        )
+
+        if self.outer_radius > self.radius:
+            # Smoothly fade the rim uplift back to the surrounding terrain.
+            taper = np.where(
+                rho <= self.radius,
+                1,
+                1 - smoothstep(
+                    (rho - self.radius) / (self.outer_radius - self.radius)
+                ),
+            )
+            rim = rim * taper
+
+        return bowl + rim
+
+
 clsmembers_pairs = inspect.getmembers(sys.modules[__name__], inspect.isclass)
 FUNCTIONS = {k.replace('Function', '').lower(): v for (k, v)
              in clsmembers_pairs if 'Function' in k}

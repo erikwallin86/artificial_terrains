@@ -9,6 +9,7 @@ from . import other
 from . import loop
 from . import general
 from . import blender
+from .cfg_factory import build_cfg_modules
 
 MODULES: dict[str, type] = {}
 
@@ -22,4 +23,8 @@ for mod in module_files:
         # Optional: only include classes actually defined in that module file
         if cls.__module__ != mod.__name__:
             continue
+        if name == "CFGModule":
+            continue
         MODULES[name] = cls
+
+MODULES.update(build_cfg_modules())

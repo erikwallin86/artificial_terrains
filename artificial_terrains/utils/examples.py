@@ -3,6 +3,13 @@ import inspect
 import os
 import numpy as np
 
+EXCLUDED_CFG_NAMES = {
+    'ArtificialTerrainCfg',
+    'CombinedArtificialTerrainCfg',
+    'RenderCfg',
+    'PlotCfg',
+}
+
 
 # ## Examples which are simply lists ###
 
@@ -174,6 +181,23 @@ LUNAR = [
     ('ToPrimary', {}),
     ('Combine', {}),
 ]
+
+
+# Idealized simple lunar crater shape for plotting and parameter tuning
+CRATER = [
+    ('Extent', [-2, 2, -2, 2]),
+    ('Resolution', 200),
+    ('Crater', {
+        'width': 2.0,
+        'height': 0.26,
+        'rim_height': 0.05,
+        'rim_width_ratio': 0.12,
+        'outer_radius_factor': 1.8,
+    }),
+]
+
+
+# Defined below as an instantiated cfg so crater count is derived from density.
 
 
 # Save to folder
@@ -587,6 +611,34 @@ class StoneCircleCfg(ArtificialTerrainCfg):
 
 
 @dataclass
+class LunarMicroCraterFieldCfg(ArtificialTerrainCfg):
+    diameter_min: float = 0.1
+    diameter_max: float = 5.0
+    size_frequency_exponent: float = 3.0
+    # Crater count is derived as density [craters / m^2] times area.
+    crater_density: float = 0.05
+    combine_method: str = 'Add'
+
+    @property
+    def modules(self):
+        return [
+            ('SetDistribution', (
+                f'width=powerlaw({self.diameter_min},'
+                f'{self.diameter_max},{self.size_frequency_exponent})'
+            )),
+            ('Random', {
+                'default': '[position,width]',
+                'density': self.crater_density,
+            }),
+            ('Crater', {}),
+            ('Combine', self.combine_method),
+        ]
+
+
+LUNAR_MICROCRATERS = LunarMicroCraterFieldCfg()
+
+
+@dataclass
 class PerimiterWallsCfg(ArtificialTerrainCfg):
     width: float = 28.0
     height: float = 2.0
@@ -865,10 +917,8 @@ if __name__ == "__main__":
         if inspect.isclass(value) and issubclass(value, ArtificialTerrainCfg)
         and not name.startswith("And")
     }
-    del cfg_configs['ArtificialTerrainCfg']
-    del cfg_configs['CombinedArtificialTerrainCfg']
-    del cfg_configs['RenderCfg']
-    del cfg_configs['PlotCfg']
+    for name in EXCLUDED_CFG_NAMES:
+        del cfg_configs[name]
 
     combined_configs = {
         name: value for name, value in current_module.items()

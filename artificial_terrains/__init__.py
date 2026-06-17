@@ -72,6 +72,7 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
         else:
             kwargs = {'default': options}
         kwargs = {**general_kwargs, **kwargs}
+        module_obj.module_kwargs = kwargs.copy()
         list_of_modules_kwargs_tuples.append((module_obj, kwargs))
 
     # Run recursively

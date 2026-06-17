@@ -376,6 +376,7 @@ class Random(Module):
     def __call__(
             self, number_of_values=3,
             size=None, grid_size=None, resolution=None, extent=None,
+            density=None,
             position_x_distribution=None,
             position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
@@ -408,6 +409,11 @@ class Random(Module):
         from ..utils.artificial_shapes import determine_extent_and_resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
+
+        if density is not None:
+            from ..utils.terrains import extent_to_size
+            size_x, size_y = extent_to_size(extent)
+            number_of_values = max(1, int(round(density * size_x * size_y)))
 
         # Setup distributions that depend on other parameters
         if position_x_distribution is None:
@@ -494,6 +500,54 @@ class Random(Module):
             amplitude_list *= random_sign
 
         return amplitude_list
+
+
+class CFGModule(Module):
+    """Run a config target as a module."""
+    create_folder = False
+
+    @debug_decorator
+    def __call__(self, default=None, name=None, **kwargs):
+        from .. import configs
+        from ..generate_terrain import recursive_module_call
+        from ..utils.parse_utils import parse_options
+        from .modules import MODULES
+
+        explicit_kwargs = getattr(self, 'module_kwargs', {}).copy()
+
+        # Allow generated cfg modules to bind the config name implicitly.
+        if name is None and 'name' in explicit_kwargs:
+            name = explicit_kwargs.pop('name')
+
+        if default is None and 'default' in explicit_kwargs:
+            default = explicit_kwargs.pop('default')
+
+        cfg_name = name if name is not None else default
+        if cfg_name is None:
+            raise ValueError(
+                "CFGModule requires a config name, e.g. ('LUNAR_MICROCRATERS', ...)."
+            )
+
+        cfg_target = configs.get_cfg_target(cfg_name, explicit_kwargs)
+        if not hasattr(cfg_target, 'modules'):
+            raise ValueError(
+                f"CFGModule:{cfg_name} did not resolve to a config with modules."
+            )
+
+        # Instantiate the config's child modules and run them in the current pipe.
+        list_of_modules_kwargs_tuples = []
+        for module, options in cfg_target.modules:
+            if module is None:
+                continue
+            module_class = MODULES[module]
+            module_obj = module_class(self.save_dir_original, self.logger)
+            child_kwargs = parse_options(options)
+            module_obj.module_kwargs = child_kwargs.copy()
+            list_of_modules_kwargs_tuples.append((module_obj, child_kwargs))
+
+        return recursive_module_call(
+            list_of_modules_kwargs_tuples, pipe=kwargs, logger=self.logger,
+        )
 
 
 class LoadObstacles(Module):
