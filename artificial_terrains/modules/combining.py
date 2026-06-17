@@ -24,7 +24,7 @@ class Combine(Module):
 
         operations = ['Add', 'Max', 'Min', 'Prod']
         operation = default if default is not None else operation
-        assert operation in operations, f'operation not in {operations}'
+        assert operation in operations, f'operation {operation} not in {operations}'
 
         if last is not None and last > 0:
             # When e.g. taking the last two, the slice is [-2:]

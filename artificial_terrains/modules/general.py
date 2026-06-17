@@ -641,6 +641,8 @@ class RemoveDistantObstacles(Module):
 
         # Determine which obstacles are within the distance limit
         keep = (distances <= distance_limit)
+        print(f"keep.shape:{keep.shape}")
+        print(f"np.sum(keep):{np.sum(keep)}")
 
         result = {}
         # Filter the obstacle data based on the 'keep' boolean mask
