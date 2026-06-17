@@ -377,6 +377,7 @@ class Random(Module):
             self, number_of_values=3,
             size=None, grid_size=None, resolution=None, extent=None,
             density=None,
+            poisson=False,
             position_x_distribution=None,
             position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
@@ -417,7 +418,11 @@ class Random(Module):
         if density is not None:
             from ..utils.terrains import extent_to_size
             size_x, size_y = extent_to_size(extent)
-            number_of_values = max(1, int(round(density * size_x * size_y)))
+            expected_number_of_values = density * size_x * size_y
+            if poisson:
+                number_of_values = max(1, int(np.random.poisson(expected_number_of_values)))
+            else:
+                number_of_values = max(1, int(round(expected_number_of_values)))
 
         dynamic_distribution_mapping = {}
         explicit_kwargs = getattr(self, 'module_kwargs', {})

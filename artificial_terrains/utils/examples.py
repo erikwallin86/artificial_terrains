@@ -665,6 +665,31 @@ LUNAR_MICROCRATERS = LunarMicroCraterFieldCfg()
 
 
 @dataclass
+class SmallLunarCraterFieldCfg(LunarMicroCraterFieldCfg):
+    diameter_min: float = 1.0
+    diameter_max: float = 10.0
+    size_frequency_exponent: float = 2.1
+    reference_diameter: float = 10.0
+    cumulative_density_at_reference: float = 0.001
+
+    @property
+    def modules(self):
+        return [
+            ('SetDistribution', (
+                f'width=powerlaw({self.diameter_min},'
+                f'{self.diameter_max},{self.size_frequency_exponent})'
+            )),
+            ('SetDistribution', "depth_ratio=lognormal(-2.58,0.37)"),
+            ('Random', {'density': self.crater_density, 'poisson': True}),
+            ('SmallLunarCrater', {}),
+            ('Combine', self.combine_method),
+        ]
+
+
+SMALL_LUNAR_CRATERS = SmallLunarCraterFieldCfg()
+
+
+@dataclass
 class PerimiterWallsCfg(ArtificialTerrainCfg):
     width: float = 28.0
     height: float = 2.0

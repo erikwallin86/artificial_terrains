@@ -560,6 +560,7 @@ class Distribution:
             'lognormal': np.random.lognormal,
             'exponential': np.random.exponential,
             'beta': np.random.beta,
+            'poisson': np.random.poisson,
         }
 
         regular_distributions = {
