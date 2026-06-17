@@ -51,8 +51,8 @@ class Generative(Module):
         """Sample kwargs and evaluate the selected shape function."""
         terrain_temp = [] if terrain_temp is None else terrain_temp
         functions = [
-            'gaussian', 'step', 'donut', 'plane', 'sphere', 'cube',
-            'smoothstep', 'sine', 'crater',
+            'Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube',
+            'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater',
         ]
         if function_name is None:
             function_name = np.random.choice(functions)
@@ -112,56 +112,62 @@ class Generative(Module):
 class Gaussian(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='gaussian', **kwargs)
+            *args, function_name='Gaussian', **kwargs)
 
 
 class Step(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='step', **kwargs)
+            *args, function_name='Step', **kwargs)
 
 
 class Donut(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='donut', **kwargs)
+            *args, function_name='Donut', **kwargs)
 
 
 class Plane(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='plane', **kwargs)
+            *args, function_name='Plane', **kwargs)
 
 
 class Sphere(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='sphere', **kwargs)
+            *args, function_name='Sphere', **kwargs)
 
 
 class Cube(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='cube', **kwargs)
+            *args, function_name='Cube', **kwargs)
 
 
 class SmoothStep(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='smoothstep', **kwargs)
+            *args, function_name='SmoothStep', **kwargs)
 
 
 class Sine(Generative):
     def __call__(self, call_number=None, call_total=None, *args, **kwargs):
         return super().__call__(
-            *args, function_name='sine', call_number=call_number,
+            *args, function_name='Sine', call_number=call_number,
             call_total=call_total, **kwargs)
 
 
 class Crater(Generative):
     def __call__(self, *args, **kwargs):
         return super().__call__(
-            *args, function_name='crater', **kwargs)
+            *args, function_name='Crater', **kwargs)
+
+
+class SmallLunarCrater(Generative):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(
+            *args, function_name='SmallLunarCrater', **kwargs)
 
 
 class Function(Module):

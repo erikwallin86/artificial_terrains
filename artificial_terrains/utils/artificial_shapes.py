@@ -561,5 +561,5 @@ class CraterFunction():
 
 
 clsmembers_pairs = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-FUNCTIONS = {k.replace('Function', '').lower(): v for (k, v)
+FUNCTIONS = {k.replace('Function', ''): v for (k, v)
              in clsmembers_pairs if 'Function' in k}

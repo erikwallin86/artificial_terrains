@@ -19,7 +19,6 @@ dependencies = [
   "opensimplex",
   "PyYaml",
   "tifffile"
-  # add any others you rely on (like blender’s Python API if optional)
 ]
 
 [project.scripts]
