@@ -313,6 +313,7 @@ class SmallLunarCraterFunction():
             position: tuple[float, float] = (0.0, 0.0),
             height: float = 0.5,
             width: float = 5.0,
+            depth_ratio: float | None = None,
             rim_height: float | None = None,
             rim_height_scale: float = 1.0,
             vertical_scale: float = 1.0,
@@ -322,12 +323,13 @@ class SmallLunarCraterFunction():
         :param position: Crater center position.
         :param height: Rim-to-floor depth.
         :param width: Rim-to-rim diameter.
+        :param depth_ratio: Optional depth-to-diameter ratio. Overrides height.
         :param rim_height: Overrides default rim-to-terrain height if not None.
         :param rim_height_scale: Scales crater rim height.
         :param vertical_scale: Scales entire crater vertically.
         """
         diameter = width
-        depth = height
+        depth = diameter * depth_ratio if depth_ratio is not None else height
         self.position = position
         self.diameter = diameter
         self.depth = depth * vertical_scale
