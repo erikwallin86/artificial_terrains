@@ -46,8 +46,8 @@ class GridSize(Module):
 
         if isinstance(grid_size, (list, tuple)):
             grid_size_x, grid_size_y = grid_size
-        elif isinstance(grid_size, str) and 'x' in default:
-            grid_size_x, grid_size_y = map(float, default.lower().split('x'))
+        elif isinstance(grid_size, str) and 'x' in grid_size:
+            grid_size_x, grid_size_y = map(float, grid_size.lower().split('x'))
         else:
             grid_size_x, grid_size_y = (grid_size, grid_size)
 
@@ -71,10 +71,10 @@ class Size(Module):
         # och göra det här automatiskt
         size = default if default is not None else size
 
-        if isinstance(size, list):
+        if isinstance(size, (list, tuple)):
             size_x, size_y = size
-        elif isinstance(size, str) and 'x' in default:
-            size_x, size_y = map(float, default.lower().split('x'))
+        elif isinstance(size, str) and 'x' in size:
+            size_x, size_y = map(float, size.lower().split('x'))
         else:
             size_x, size_y = (size, size)
 

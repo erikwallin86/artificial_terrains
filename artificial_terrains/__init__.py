@@ -71,6 +71,10 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
             'extent': [-25, 25, -25, 25],
             'call_number': 0,
             'call_total': 1,
+            # Fresh lists each run; modules otherwise fall back to shared
+            # mutable defaults, and terrains leak between runs
+            'terrain_prim': [],
+            'terrain_temp': [],
         }
 
     # from modules.modules import MODULES
@@ -105,9 +109,9 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
 def get_terrain():
     """Return the last terrain (single)."""
 
-    if 'terrain_prim' in _last_pipe:
+    if _last_pipe.get('terrain_prim'):
         return _last_pipe['terrain_prim'][-1]
-    elif 'terrain_temp' in _last_pipe:
+    elif _last_pipe.get('terrain_temp'):
         return _last_pipe['terrain_temp'][-1]
     else:
         return None
@@ -116,9 +120,9 @@ def get_terrain():
 def get_terrains():
     """Return all terrains from the last run."""
 
-    if 'terrain_prim' in _last_pipe:
+    if _last_pipe.get('terrain_prim'):
         return _last_pipe['terrain_prim']
-    elif 'terrain_temp' in _last_pipe:
+    elif _last_pipe.get('terrain_temp'):
         return _last_pipe['terrain_temp']
     else:
         return None

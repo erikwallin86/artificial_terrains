@@ -494,7 +494,7 @@ class OptimizeRoughness(Module):
             self.debug(f"Optimal alpha: {alpha}")
             self.debug(f"loss(alpha):{loss(alpha)}")
         else:
-            logger.error("Optimization failed.")
+            raise RuntimeError(f"Optimization failed: {res.message}")
 
         # Plot roughness v pred roughness
         fig, ax = new_fig()
