@@ -90,8 +90,10 @@ class ToPrimary(Combine):
 
     @debug_decorator
     def __call__(
-            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            self, default=None, *, terrain_temp=None, terrain_prim=None,
             last=None):
+        terrain_temp = [] if terrain_temp is None else terrain_temp
+        terrain_prim = [] if terrain_prim is None else terrain_prim
         from ..utils.utils import get_terrains
         terrain = get_terrains(terrain_temp, terrain_prim, last,
                                print_fn=self.info)

@@ -278,6 +278,79 @@ class CubeFunction():
         return np.logical_and(x_dir, y_dir) * self.height
 
 
+class PathFunction():
+    """Sweep a sampled cross-section along a piecewise-linear path.
+
+    Positive lateral distances are to the left when traversing ``points``.
+    At corners, the nearest segment determines the lateral distance.
+    """
+
+    def __init__(
+            self, points, cross_section=None, width=2.0, height=0.2, **_):
+        self.points = np.asarray(points, dtype=float)
+        if self.points.ndim != 2 or self.points.shape[1] != 2 or len(self.points) < 2:
+            raise ValueError("Path points must contain at least two (x, y) pairs.")
+        if not np.all(np.isfinite(self.points)):
+            raise ValueError("Path points must contain only finite values.")
+
+        self.segments = np.diff(self.points, axis=0)
+        self.segment_lengths_squared = np.sum(self.segments**2, axis=1)
+        if np.any(self.segment_lengths_squared == 0):
+            raise ValueError("Consecutive path points must be distinct.")
+
+        self.cross_section = None
+        if cross_section is not None:
+            profile = np.asarray(cross_section, dtype=float)
+            if profile.ndim != 2 or profile.shape[1] != 2 or len(profile) < 2:
+                raise ValueError(
+                    "Path cross_section must contain at least two "
+                    "(lateral_distance, height) pairs."
+                )
+            if not np.all(np.isfinite(profile)):
+                raise ValueError("Path cross_section must contain only finite values.")
+            if np.any(np.diff(profile[:, 0]) <= 0):
+                raise ValueError(
+                    "Path cross_section lateral distances must be strictly increasing."
+                )
+            self.cross_section = profile
+        else:
+            if width <= 0:
+                raise ValueError("Path width must be positive.")
+            self.radius = width / 2
+            self.height = height
+
+    def __call__(self, x, y):
+        distance_squared = np.full(x.shape, np.inf, dtype=float)
+        lateral_distance = np.zeros(x.shape, dtype=float)
+
+        for start, segment, length_squared in zip(
+                self.points[:-1], self.segments, self.segment_lengths_squared):
+            offset_x = x - start[0]
+            offset_y = y - start[1]
+            along = (offset_x * segment[0] + offset_y * segment[1]) / length_squared
+            along = np.clip(along, 0.0, 1.0)
+            nearest_x = start[0] + along * segment[0]
+            nearest_y = start[1] + along * segment[1]
+            segment_distance_squared = (x - nearest_x)**2 + (y - nearest_y)**2
+            closer = segment_distance_squared < distance_squared
+            side = segment[0] * offset_y - segment[1] * offset_x
+            signed_distance = np.copysign(np.sqrt(segment_distance_squared), side)
+            lateral_distance = np.where(closer, signed_distance, lateral_distance)
+            distance_squared = np.minimum(distance_squared, segment_distance_squared)
+
+        if self.cross_section is not None:
+            return np.interp(
+                lateral_distance,
+                self.cross_section[:, 0],
+                self.cross_section[:, 1],
+                left=0.0,
+                right=0.0,
+            )
+
+        normalized_distance = np.abs(lateral_distance) / self.radius
+        return self.height * (1 - smoothstep(normalized_distance))
+
+
 class SmallLunarCraterFunction():
     """Small axisymmetric lunar crater.
 

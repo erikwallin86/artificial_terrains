@@ -22,7 +22,8 @@ def iter_kwargs(kwargs: dict[str, Any]):
     for index in range(max_length):
         yielded_kwargs = {}
         for key, value in kwargs.items():
-            if isinstance(value, (str, dict, Terrain)):
+            if key in {'points', 'cross_section'} or isinstance(
+                    value, (str, dict, Terrain)):
                 yielded_kwargs[key] = value
                 continue
 
@@ -74,7 +75,7 @@ class Generative(Module):
         if function_name is None:
             function_name = np.random.choice(functions)
 
-        assert function_name in functions
+        assert function_name in functions + ['Path']
 
         from ..utils.artificial_shapes import determine_extent_and_resolution
         extent, (N_x, N_y) = determine_extent_and_resolution(
@@ -164,6 +165,131 @@ class Crater(Generative):
 
 class SmallLunarCrater(Generative):
     function_name = 'SmallLunarCrater'
+
+
+class Path(Module):
+    """Set polyline geometry for a later path-based generating module."""
+    create_folder = False
+
+    @debug_decorator
+    def __call__(
+            self, direction='vertical', points=None, extent=None,
+            amplitude=None, wavelength=None, heading=0.0, angle=None,
+            phase=0.0, samples=64, curvature=None, seed=None,
+            default=None, **_):
+        direction = default if default is not None else direction
+        if points is None and not isinstance(direction, str):
+            points = direction
+
+        if points is None:
+            if extent is None:
+                raise ValueError("Path requires the current terrain extent.")
+            x_min, x_max, y_min, y_max = extent
+            center_x = (x_min + x_max) / 2
+            center_y = (y_min + y_max) / 2
+            if direction == 'vertical':
+                points = [(center_x, y_min), (center_x, y_max)]
+            elif direction == 'horizontal':
+                points = [(x_min, center_y), (x_max, center_y)]
+            elif direction == 'sine':
+                samples = int(samples)
+                if samples < 2:
+                    raise ValueError("Path samples must be at least two.")
+                size_x = x_max - x_min
+                size_y = y_max - y_min
+                amplitude = (
+                    0.1 * min(size_x, size_y)
+                    if amplitude is None else amplitude
+                )
+                heading = heading if angle is None else angle
+                heading_rad = np.deg2rad(heading)
+                tangent = np.array([np.cos(heading_rad), np.sin(heading_rad)])
+                normal = np.array([-tangent[1], tangent[0]])
+                half_span = 0.5 * (
+                    abs(tangent[0]) * size_x + abs(tangent[1]) * size_y)
+                wavelength = half_span if wavelength is None else wavelength
+                if amplitude < 0 or wavelength <= 0:
+                    raise ValueError(
+                        "Sine path amplitude must be non-negative and wavelength positive."
+                    )
+                along = np.linspace(-half_span, half_span, samples)
+                offsets = amplitude * np.sin(
+                    2 * np.pi * along / wavelength + phase)
+                center = np.array([center_x, center_y])
+                points = center + along[:, None] * tangent + offsets[:, None] * normal
+            elif direction == 'random':
+                samples = int(samples)
+                if samples < 2:
+                    raise ValueError("Path samples must be at least two.")
+                size_x = x_max - x_min
+                size_y = y_max - y_min
+                path_length = np.hypot(size_x, size_y)
+                step = path_length / (samples - 1)
+                curvature = (
+                    1.0 / max(size_x, size_y)
+                    if curvature is None else curvature
+                )
+                if curvature < 0:
+                    raise ValueError("Random path curvature must be non-negative.")
+
+                rng = np.random.default_rng(seed)
+                points = np.empty((samples, 2), dtype=float)
+                points[0] = rng.uniform([x_min, y_min], [x_max, y_max])
+                heading_rad = rng.uniform(-np.pi, np.pi)
+                for index in range(1, samples):
+                    heading_rad += rng.uniform(-curvature, curvature) * step
+                    points[index] = points[index - 1] + step * np.array([
+                        np.cos(heading_rad), np.sin(heading_rad)])
+            else:
+                raise ValueError(
+                    "Path direction must be 'vertical', 'horizontal', 'sine', 'random', "
+                    "or explicit points."
+                )
+
+        path_points = np.asarray(points, dtype=float)
+        if (
+                path_points.ndim != 2
+                or path_points.shape[1] != 2
+                or len(path_points) < 2
+                or not np.all(np.isfinite(path_points))):
+            raise ValueError("Path points must contain at least two finite (x, y) pairs.")
+        if np.any(np.sum(np.diff(path_points, axis=0)**2, axis=1) == 0):
+            raise ValueError("Consecutive path points must be distinct.")
+
+        return {'path_points': path_points.tolist()}
+
+
+class WheelTracks(Generative):
+    """Generate two wheel ruts along the path stored in the pipe."""
+
+    def __call__(
+            self, *args, path_points=None, gauge=1.6, track_width=0.6,
+            depth=0.08, default=None, **kwargs):
+        if path_points is None:
+            raise ValueError("WheelTracks requires Path to run first.")
+        gauge = default if default is not None else gauge
+        if gauge <= track_width:
+            raise ValueError("Wheel-track gauge must be greater than track width.")
+        if track_width <= 0 or depth <= 0:
+            raise ValueError("Wheel-track width and depth must be positive.")
+
+        half_gauge = gauge / 2
+        half_width = track_width / 2
+        cross_section = [
+            (-half_gauge - half_width, 0.0),
+            (-half_gauge, -depth),
+            (-half_gauge + half_width, 0.0),
+            (half_gauge - half_width, 0.0),
+            (half_gauge, -depth),
+            (half_gauge + half_width, 0.0),
+        ]
+        return super().__call__(
+            *args,
+            function_name='Path',
+            points=path_points,
+            cross_section=cross_section,
+            **kwargs,
+        )
 
 
 class Function(Module):

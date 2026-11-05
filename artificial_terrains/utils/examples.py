@@ -383,6 +383,92 @@ class GaussianHillCfg(ArtificialTerrainCfg):
         ]
 
 
+@dataclass
+class PathCfg(ArtificialTerrainCfg):
+    """Set a path direction or explicit polyline in the terrain pipe."""
+    direction: str = 'vertical'
+    points: list[tuple[float, float]] | None = None
+
+    @property
+    def modules(self):
+        if self.points is not None:
+            return [('Path', {'points': self.points})]
+        return [('Path', self.direction)]
+
+
+PATH = PathCfg()
+
+
+@dataclass
+class SinePathCfg(ArtificialTerrainCfg):
+    amplitude: float | None = None
+    wavelength: float | None = None
+    heading: float = 0.0
+    phase: float = 0.0
+    samples: int = 64
+
+    @property
+    def modules(self):
+        options = {
+            'direction': 'sine',
+            'amplitude': self.amplitude,
+            'wavelength': self.wavelength,
+            'heading': self.heading,
+            'phase': self.phase,
+            'samples': self.samples,
+        }
+        return [('Path', {key: value for key, value in options.items()
+                          if value is not None})]
+
+
+@dataclass
+class RandomPathCfg(ArtificialTerrainCfg):
+    seed: int | None = None
+    curvature: float | None = None
+    samples: int = 64
+
+    @property
+    def modules(self):
+        options = {
+            'direction': 'random',
+            'curvature': self.curvature,
+            'samples': self.samples,
+        }
+        modules = [] if self.seed is None else [('Seed', self.seed)]
+        modules.append(('Path', {key: value for key, value in options.items()
+                                 if value is not None}))
+        return modules
+
+
+@dataclass
+class WheelTracksCfg(ArtificialTerrainCfg):
+    """Generate two wheel ruts along the current path."""
+    gauge: float = 1.6
+    track_width: float = 0.6
+    depth: float = 0.08
+
+    @property
+    def modules(self):
+        return [
+            ('WheelTracks', {
+                'gauge': self.gauge,
+                'track_width': self.track_width,
+                'depth': self.depth,
+            }),
+        ]
+
+
+WHEEL_TRACKS = PathCfg() + WheelTracksCfg()
+
+
+WHEEL_TRACKS_ON_PLANE = (
+    FlatCfg()
+    + PathCfg()
+    + WheelTracksCfg()
+    + [('Combine', 'Add')]
+)
+
+
 # N number of random Gaussian hills
 @dataclass
 class GaussianHillRandomCfg(ArtificialTerrainCfg):
