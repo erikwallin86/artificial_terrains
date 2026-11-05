@@ -1,14 +1,24 @@
 import os
 import time
 import functools
+import inspect
+from typing import Callable, TypeVar
 from ..utils.debug import debug
 
+F = TypeVar("F", bound=Callable)
 
-def debug_decorator(func):
+
+def debug_decorator(func: F) -> F:
     '''
     Wrapper around calls to print some debug info
     and measure execution time.
+
+    If func has no **kwargs catch-all, it only receives the pipe keys it
+    declares, and unknown explicit module options raise a TypeError.
     '''
+    params = inspect.signature(func).parameters
+    accepts_any = any(p.kind is p.VAR_KEYWORD for p in params.values())
+
     @functools.wraps(func)
     def wrapper(self, call_number=None, call_total=None, *args, **kwargs):
         if call_number is not None and call_total is not None:
@@ -25,11 +35,17 @@ def debug_decorator(func):
         # ---- timing starts here ----
         start = time.perf_counter()
 
-        result = func(
-            self, *args,
-            call_number=call_number,
-            call_total=call_total,
-            **kwargs)
+        kwargs = {'call_number': call_number, 'call_total': call_total,
+                  **kwargs}
+        if not accepts_any:
+            unknown = set(getattr(self, 'module_options', {})) - set(params)
+            if unknown:
+                raise TypeError(
+                    f"{self.name} got unknown option(s) {sorted(unknown)}, "
+                    f"valid: {[p for p in params if p != 'self']}")
+            kwargs = {k: v for k, v in kwargs.items() if k in params}
+
+        result = func(self, *args, **kwargs)
 
         elapsed = time.perf_counter() - start
         # ---- timing ends here ----
@@ -42,7 +58,7 @@ def debug_decorator(func):
 
         return result
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 class Module():

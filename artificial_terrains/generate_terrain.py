@@ -121,6 +121,7 @@ def main():
             # Store value as 'default'
             kwargs = {'default': options}
 
+        module_obj.module_options = kwargs.copy()
         # combine with general kwargs
         kwargs = {**general_kwargs, **kwargs}
         module_obj.module_kwargs = kwargs.copy()

@@ -16,8 +16,9 @@ class SaveData(Module):
 
     @debug_decorator
     def __call__(self,
-                 filename='data.npz',
                  default=None,
+                 *,
+                 filename='data.npz',
                  folder='SaveData',
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
@@ -64,12 +65,8 @@ class LoadData(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 default=None,
-                 filename=None,
-                 overwrite=False,
-                 **kwargs,
-                 ):
+    def __call__(
+            self, default=None, *, filename=None, overwrite=False, **kwargs):
         if default is not None:
             filename = default
         else:
@@ -111,7 +108,7 @@ class LogData(Module):
 
     @debug_decorator
     def __call__(
-            self, default=None, filename='data.npz',
+            self, default=None, *, filename='data.npz',
             # parameters to skip:
             terrain_temp=[], terrain_prim=[],
             last=None,
@@ -180,6 +177,7 @@ class MakeData1D(Module):
     @debug_decorator
     def __call__(
             self,
+            *,
             # parameters to skip:
             terrain_temp=[], terrain_prim=[],
             last=None, call_number=None,
@@ -213,8 +211,9 @@ class Roughness(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, sigma_meter=5, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], last=None,
+            sigma_meter=5):
 
         from ..utils.terrains import get_surface_area
 
@@ -256,8 +255,9 @@ class Slope(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, sigma_meter=0, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], last=None,
+            sigma_meter=0):
 
         # Possibly override sigma with `default`
         sigma_meter = default if default is not None else sigma_meter
@@ -324,9 +324,9 @@ class SurfaceStructure(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 position=None, height=None,
-                 default=None, last=None, sigma_meter=0, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            position=None, height=None, last=None, sigma_meter=0):
 
         terrain = get_terrain(
             terrain_temp, terrain_prim, remove=False,
@@ -372,8 +372,7 @@ class CombineRoughness(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, roughness=None, weights=0,
-                 default=None, last=None, **kwargs):
+    def __call__(self, default=None, *, roughness=None, weights=0, last=None):
         """
         Parameters:
         - roughness: Array-like of roughness values.
@@ -406,8 +405,8 @@ class CombineSlope(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, mean_gradient=None, weights=0,
-                 default=None, last=None, **kwargs):
+    def __call__(
+            self, default=None, *, mean_gradient=None, weights=0, last=None):
         """
         Parameters:
         - mean_gradient: List of (dz/dx, dz/dy) tuples.
@@ -439,8 +438,8 @@ class OptimizeRoughness(Module):
     create_folder = True
 
     @debug_decorator
-    def __call__(self, mean_gradient=None, weights=0,
-                 default=None, last=None, **kwargs):
+    def __call__(
+            self, default=None, *, mean_gradient=None, weights=0, last=None):
         from scipy.optimize import minimize_scalar
 
         original_save_dir = os.path.dirname(self.save_dir)
@@ -532,8 +531,9 @@ class SetRoughness(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, roughness=None, weights=None, target_roughness=1.0,
-                 default=None, **_):
+    def __call__(
+            self, default=None, *, roughness=None, weights=None,
+            target_roughness=1.0):
 
         # Use `default` if `target_roughness` is not explicitly provided
         target_roughness = default if default is not None else target_roughness
@@ -580,8 +580,9 @@ class SetSlope(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, slope_deg=None, mean_gradient=None, weights=None,
-                 target_slope_deg=5, default=None, **_):
+    def __call__(
+            self, default=None, *, slope_deg=None, mean_gradient=None,
+            weights=None, target_slope_deg=5):
 
         # Use `default` if `target_slope_deg` is not explicitly provided
         target_slope_deg = default if default is not None else target_slope_deg
@@ -633,6 +634,7 @@ class PlotScatter(Module):
     @debug_decorator
     def __call__(self,
                  default=None,
+                 *,
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
@@ -697,6 +699,7 @@ class PlotHistogram(Module):
     @debug_decorator
     def __call__(self,
                  default=None,
+                 *,
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
@@ -754,6 +757,7 @@ class PlotLines(Module):
     @debug_decorator
     def __call__(self,
                  default=None,
+                 *,
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,
@@ -795,6 +799,7 @@ class PlotLines2(Module):
     @debug_decorator
     def __call__(self,
                  default=None,
+                 *,
                  # parameters to skip:
                  terrain_temp=[], terrain_prim=[],
                  last=None, call_number=None,

@@ -10,9 +10,26 @@ Modular, extensible terrain generation library.
 import sys
 import logging
 
+from typing import TYPE_CHECKING
+
 from . import configs
 
+if TYPE_CHECKING:
+    from .constructors import *  # noqa: F401,F403
+
 __all__ = ["configs"]
+
+
+def __getattr__(name):
+    """Load module constructors (at.Gaussian, ...) on first use.
+
+    Importing them loads all module files, which is slow (plotting libs).
+    """
+    import importlib
+    constructors = importlib.import_module(f"{__name__}.constructors")
+    if name in constructors.__all__:
+        return getattr(constructors, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 _last_pipe = {}
 
@@ -71,6 +88,7 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
             kwargs = {}
         else:
             kwargs = {'default': options}
+        module_obj.module_options = kwargs.copy()
         kwargs = {**general_kwargs, **kwargs}
         module_obj.module_kwargs = kwargs.copy()
         list_of_modules_kwargs_tuples.append((module_obj, kwargs))

@@ -12,12 +12,9 @@ class Save(Module):
 
     ''' Save numpy terrain '''
     @debug_decorator
-    def __call__(self, folder='Save',
-                 default=None,
-                 terrain_temp=[], terrain_prim=[],
-                 overwrite=False,
-                 loop_id="",
-                 **_):
+    def __call__(
+            self, default=None, *, folder='Save', terrain_temp=[],
+            terrain_prim=[], overwrite=False, loop_id=""):
         # Possibly set folder from 'default'.
         folder = default if default is not None else folder
 
@@ -56,10 +53,9 @@ class LoadTIF(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 terrain_temp=None, terrain_prim=None,
-                 loop_id="", filter_on_loop_id=True,
-                 **_):
+    def __call__(
+            self, default=None, *, filename=None, terrain_temp=None,
+            terrain_prim=None, loop_id="", filter_on_loop_id=True):
         filename = default if default is not None else filename
 
         # Populate primary and temporary lists
@@ -80,14 +76,12 @@ class Terrain(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 from_array: np.ndarray | None = None,
-                 size: tuple[float, float] | None = None,
-                 extent: tuple[float, float, float, float] | None = None,
-                 terrain_temp: list[Any] | None = None,
-                 terrain_prim: list[Any] | None = None,
-                 target: str = 'temp',
-                 **kwargs: Any) -> dict[str, list[Any]]:
+    def __call__(
+            self, *, from_array: np.ndarray | None = None,
+            size: tuple[float, float] | None = None,
+            extent: tuple[float, float, float, float] | None = None,
+            terrain_temp: list[Any] | None = None,
+            terrain_prim: list[Any] | None = None, target: str = 'temp'):
         """
         Create a terrain from an in-memory array.
 
@@ -137,10 +131,9 @@ class Load(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, file_list=None, default=None,
-                 terrain_temp=None, terrain_prim=None,
-                 loop_id="", filter_on_loop_id=True,
-                 **_):
+    def __call__(
+            self, default=None, *, file_list=None, terrain_temp=None,
+            terrain_prim=None, loop_id="", filter_on_loop_id=True):
         """
         Load terrain files into structured lists.
 
@@ -280,9 +273,9 @@ class Load(Module):
 
 class ClearTerrain(Module):
     @debug_decorator
-    def __call__(self,
-                 hf_array=None, hf_info_dict=None,
-                 call_number=None, call_total=None, **pipe):
+    def __call__(
+            self, *, hf_array=None, hf_info_dict=None, call_number=None,
+            call_total=None):
 
         return {
             'terrain_temp': [],
@@ -298,8 +291,9 @@ class FindRocks(Module):
     height, and width.
     """
     @debug_decorator
-    def __call__(self, terrain_prim=None, terrain_temp=None,
-                 default=None, last=None, **kwargs):
+    def __call__(
+            self, default=None, *, terrain_prim=None, terrain_temp=None,
+            last=None):
         from ..utils.utils import get_terrains, find_rocks
 
         terrains = get_terrains(
@@ -348,11 +342,9 @@ class PlotRocks(Module):
     ''' Plot rocks
     '''
     @debug_decorator
-    def __call__(self, terrain_prim=None, terrain_temp=None,
-                 position=None, width=None,
-                 default=None, last=None,
-                 dpi=200, exportmode=False,
-                 **kwargs):
+    def __call__(
+            self, default=None, *, terrain_prim=None, terrain_temp=None,
+            position=None, width=None, last=None, dpi=200, exportmode=False):
         from ..utils.utils import get_terrain
         from ..utils.plots import plot_terrain, new_fig
 
@@ -391,13 +383,11 @@ class Plot(Module):
 
     ''' Plot terrain '''
     @debug_decorator
-    def __call__(self, default=None, overwrite=False,
-                 terrain_temp=[], terrain_prim=[], folder='Plot',
-                 filename_base='terrain',
-                 exportmode=False, dpi=400,
-                 vmin=None, vmax=None,
-                 filename=None,
-                 call_number=None, call_total=None, **kwargs):
+    def __call__(
+            self, default=None, *, overwrite=False, terrain_temp=[],
+            terrain_prim=[], folder='Plot', filename_base='terrain',
+            exportmode=False, dpi=400, vmin=None, vmax=None, filename=None,
+            call_number=None, call_total=None):
         from ..utils.plots import plot_terrain, save_all_axes
 
         # Possibly set folder from 'default'.
@@ -454,10 +444,9 @@ class Plot(Module):
 class SaveYaml(Module):
     ''' Plot terrain '''
     @debug_decorator
-    def __call__(self, default=None, overwrite=False,
-                 call_number=None, call_total=None,
-                 terrain_temp=[], terrain_prim=[],
-                 **kwargs):
+    def __call__(
+            self, default=None, *, overwrite=False, call_number=None,
+            call_total=None, terrain_temp=[], terrain_prim=[], **kwargs):
         # Initialize
         if call_number == 0:
             self.list_of_kwargs = []

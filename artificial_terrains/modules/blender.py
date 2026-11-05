@@ -32,11 +32,9 @@ class Ground(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 terrain_temp=[], terrain_prim=[],
-                 ground_material=None, grid=True,
-                 last=None,
-                 **_):
+    def __call__(
+            self, default=None, *, filename=None, terrain_temp=[],
+            terrain_prim=[], ground_material=None, grid=True, last=None):
         from ..utils.Blender import grid_from_array
         import hashlib
 
@@ -101,11 +99,9 @@ class Ground2(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 terrain_temp=[], terrain_prim=[],
-                 ground_material=None, grid=True,
-                 last=None,
-                 **_):
+    def __call__(
+            self, default=None, *, filename=None, terrain_temp=[],
+            terrain_prim=[], ground_material=None, grid=True, last=None):
 
         import hashlib
         from ..utils.Blender import create_displaced_ground_from_terrain
@@ -166,7 +162,7 @@ class BasicSetup(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, **_):
+    def __call__(self, default=None):
         import bpy
         from ..utils.Blender import (
             get_material, setup_z_coord_shader, setup_lights,
@@ -207,7 +203,7 @@ class ClearScene(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, **_):
+    def __call__(self):
         import bpy
 
         # Deselect all objects
@@ -238,7 +234,7 @@ class ImageTexture(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ground_material=None, texture=None, default=None, **_):
+    def __call__(self, default=None, *, ground_material=None, texture=None):
         from ..utils.Blender import (use_image_texture)
 
         texture = default if default is not None else texture
@@ -251,7 +247,8 @@ class ColorMap(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, ground_material=None, cmap_name='viridis', default=None, **_):
+    def __call__(
+            self, default=None, *, ground_material=None, cmap_name='viridis'):
         from ..utils.Blender import (colormap_to_colorramp)
         import colorcet as cc
         import matplotlib.cm as cm
@@ -279,7 +276,7 @@ class GenericCamera(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, camera='top', default=None, **_):
+    def __call__(self, default=None, *, camera='top'):
         from ..utils.Blender import (
             setup_camera, set_view_to_camera)
 
@@ -300,16 +297,10 @@ class Camera(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, camera='top', default=None,
-                 terrain_temp=[], terrain_prim=[],
-                 size=None,
-                 resolution=None,
-                 extent=None,
-                 grid_size=None,
-                 angle=45,
-                 center=None,
-                 distance=None,
-                 **_):
+    def __call__(
+            self, default=None, *, camera='top', terrain_temp=[],
+            terrain_prim=[], size=None, resolution=None, extent=None,
+            grid_size=None, angle=45, center=None, distance=None):
         from ..utils.artificial_shapes import determine_extent_and_resolution
 
         extent, (N_x, N_y) = determine_extent_and_resolution(
@@ -350,11 +341,9 @@ class Camera(Module):
 class Depth(Module):
     ''' '''
     @debug_decorator
-    def __call__(self, filename="terrain.npz", default=None,
-                 folder='Depth',
-                 terrain_temp=[], terrain_prim=[],
-                 overwrite=False,
-                 **_):
+    def __call__(
+            self, default=None, *, filename="terrain.npz", folder='Depth',
+            terrain_temp=[], terrain_prim=[], overwrite=False):
         from ..utils.Blender import get_depth, render_eevee
         from ..utils.Blender import setup_render_z
 
@@ -404,11 +393,9 @@ class Render(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, filename=None, default=None,
-                 folder='Render',
-                 overwrite=False,
-                 loop_id=None,
-                 **_):
+    def __call__(
+            self, default=None, *, filename=None, folder='Render',
+            overwrite=False, loop_id=None):
         from ..utils.Blender import render_eevee
 
         if filename is None:
@@ -439,9 +426,9 @@ class RenderSegmentation(Module):
     Uniform color for 'Rock's and 'Ground'. Render and get array
     '''
     @debug_decorator
-    def __call__(self, filename='render.png', default=None,
-                 overwrite=False, folder='RenderSegmentation',
-                 **_):
+    def __call__(
+            self, default=None, *, filename='render.png', overwrite=False,
+            folder='RenderSegmentation'):
         from ..utils.Blender import render_eevee, get_depth
         from ..utils.Blender import setup_segmentation_render
 
@@ -478,10 +465,7 @@ class Holdout(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 terrain_temp=[], terrain_prim=[],
-                 default=None,
-                 **_):
+    def __call__(self, default=None, *, terrain_temp=[], terrain_prim=[]):
         import bpy
         bpy.context.scene.render.film_transparent = True
 
@@ -491,16 +475,12 @@ class AddMeshObjects(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 filename='obstacles.npz',
-                 position=[[-10, 10], [10, 10], [10, -10], [-10, -10]],
-                 width=[10, 5, 3, 1],
-                 yaw_deg=[0, 90, 180, 270],
-                 pitch_deg=[0, 10, 20, 30],
-                 terrain_temp=[], terrain_prim=[],
-                 size=None,
-                 default=None,
-                 **_):
+    def __call__(
+            self, default=None, *, filename='obstacles.npz',
+            position=[[-10, 10], [10, 10], [10, -10], [-10, -10]],
+            width=[10, 5, 3, 1], yaw_deg=[0, 90, 180, 270],
+            pitch_deg=[0, 10, 20, 30], terrain_temp=[], terrain_prim=[],
+            size=None):
         # Get latest terrain from dict/heap
         terrain = get_terrain(terrain_temp, terrain_prim, remove=False,
                               print_fn=self.info)

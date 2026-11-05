@@ -8,9 +8,9 @@ class Basic(Module):
     ''' Make basic terrains
     '''
     @debug_decorator
-    def __call__(self, terrain_temp=None,
-                 scale: list | float | int = [400, 32, 0.5],
-                 default=None, seed=None, **kwargs):
+    def __call__(
+            self, default=None, *, terrain_temp=None,
+            scale: list | float | int = [400, 32, 0.5], seed=None, **kwargs):
         from ..utils.noise import get_simplex
         from ..utils.terrains import Terrain
 
@@ -60,16 +60,9 @@ class Octaves(Module):
     '''
     @debug_decorator
     def __call__(
-            self, terrain_temp=None, default=None,
-            num_octaves=10,
-            start=128,
-            persistence=0.60,
-            amplitude_start=10,
-            random_amp=0.5,
-            random_sign=True,
-            only_generate_weights=False,
-            **kwargs
-    ):
+            self, default=None, *, terrain_temp=None, num_octaves=10,
+            start=128, persistence=0.60, amplitude_start=10, random_amp=0.5,
+            random_sign=True, only_generate_weights=False, **kwargs):
         from ..utils.noise import get_simplex
         from ..utils.terrains import Terrain
 
@@ -124,14 +117,9 @@ class Rocks(Module):
 
     ''' Test to make some rocks '''
     @debug_decorator
-    def __call__(self,
-                 rock_size=[0.5, 1, 2, 4],
-                 rock_heights=None,
-                 fraction=0.8,
-                 default=None,
-                 terrain_temp=None,
-                 random_shift=False,
-                 **kwargs):
+    def __call__(
+            self, default=None, *, rock_size=[0.5, 1, 2, 4], rock_heights=None,
+            fraction=0.8, terrain_temp=None, random_shift=False, **kwargs):
         rock_size = default if default is not None else rock_size
 
         # Make sure 'rock-size' is a list
@@ -184,13 +172,9 @@ class Holes(Module):
 
     ''' Test to make some rocks '''
     @debug_decorator
-    def __call__(self,
-                 size_list=[0.5, 1, 2, 4],
-                 heights=None,
-                 fraction=0.8,
-                 default=None,
-                 terrain_temp=None,
-                 **kwargs):
+    def __call__(
+            self, default=None, *, size_list=[0.5, 1, 2, 4], heights=None,
+            fraction=0.8, terrain_temp=None, **kwargs):
         size_list = default if default is not None else size_list
 
         if heights is None:

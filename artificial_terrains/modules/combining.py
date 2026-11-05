@@ -8,8 +8,9 @@ class Combine(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Add', terrain_temp=None, terrain_prim=None,
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, operation='Add', terrain_temp=None,
+            terrain_prim=None, last=None):
         '''
         Combine terrains in terrain_temp (or terrain_prim) using 'operation'
 
@@ -83,8 +84,9 @@ class ToPrimary(Combine):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            last=None):
         from ..utils.utils import get_terrains
         terrain = get_terrains(terrain_temp, terrain_prim, last,
                                print_fn=self.info)
@@ -101,10 +103,9 @@ class WeightedSum(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, weights=[5, 8, 0.1], terrain_temp=None,
-                 terrain_prim=None, last=None,
-                 overwrite=False,
-                 default=None, **_):
+    def __call__(
+            self, default=None, *, weights=[5, 8, 0.1], terrain_temp=None,
+            terrain_prim=None, last=None, overwrite=False):
 
         # Initialize lists
         terrain_temp = [] if terrain_temp is None else terrain_temp
@@ -141,9 +142,9 @@ class Compose(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, operation='Over',
-                 terrain_temp=None, terrain_prim=None,
-                 factor=None, default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, operation='Over', terrain_temp=None,
+            terrain_prim=None, factor=None, last=None):
         '''
         Combine terrains two terrains using some operation and mask (factor)
 
@@ -203,8 +204,9 @@ class Stack(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=None, terrain_prim=None,
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=None, terrain_prim=None,
+            last=None):
         '''
         Operates on the 'most recent' list.
         '''

@@ -8,8 +8,9 @@ class Negate(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            last=None):
         terrains = get_terrains(
             terrain_temp, terrain_prim, last, remove=False,
             print_fn=self.info)
@@ -23,8 +24,9 @@ class Scale(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 factor=2, default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], factor=2,
+            last=None):
         factor = default if default is not None else factor
 
         terrains = get_terrains(
@@ -40,8 +42,9 @@ class Add(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 term=1, default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], term=1,
+            last=None):
         term = default if default is not None else term
 
         terrains = get_terrains(
@@ -59,8 +62,9 @@ class Absolute(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            last=None):
         terrains = get_terrains(
             terrain_temp, terrain_prim, last, remove=False,
             print_fn=self.info)
@@ -74,9 +78,9 @@ class Clip(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 clip_min=0, clip_max=1,
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            clip_min=0, clip_max=1, last=None):
         ''' Clip terrains '''
 
         terrains = get_terrains(
@@ -92,8 +96,9 @@ class Around(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 around=1, default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], around=1,
+            last=None):
         ''' Move terrain in z to place mean at some value '''
         # Get value from 'default'
         around = default if default is not None else around
@@ -116,8 +121,9 @@ class AsProbability(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            last=None):
         ''' Use terrain as a 2d probability '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
@@ -135,9 +141,9 @@ class AsLookupFor(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 parameter='width',
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            parameter='width', last=None):
         ''' Use terrain as function f(x, y) to sample values given positions '''
         # Use default input for the parameter
         parameter = default if default is not None else parameter
@@ -153,8 +159,9 @@ class AsFactor(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            last=None):
         ''' Use terrain as a 2d factor '''
         # Get and remove terrain from dict/heap
         terrain = get_terrain(
@@ -180,9 +187,10 @@ class BezierRemap(Module):
     create_folder = True
 
     @debug_decorator
-    def __call__(self, bezier_args=0.5, terrain_temp=[], terrain_prim=[],
-                 default=None, plot=False, call_number=None, call_total=None,
-                 last=None, **pipe):
+    def __call__(
+            self, default=None, *, bezier_args=0.5, terrain_temp=[],
+            terrain_prim=[], plot=False, call_number=None, call_total=None,
+            last=None):
 
         bezier_args = default if default is not None else bezier_args
         # Make sure a is a list
@@ -265,8 +273,9 @@ class Smooth(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 default=None, last=None, sigma_meter=5, **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[], last=None,
+            sigma_meter=5):
         from scipy.ndimage import gaussian_filter
 
         # Possibly set sigma (m) using default value
@@ -302,12 +311,9 @@ class Resample(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, terrain_temp=[], terrain_prim=[],
-                 new_shape=None,
-                 resolution=None,
-                 default=None,
-                 last=None,
-                 **_):
+    def __call__(
+            self, default=None, *, terrain_temp=[], terrain_prim=[],
+            new_shape=None, resolution=None, last=None):
         # Let "default" act as fallback scale if user wires it that way
         if default is not None and isinstance(default, float):
             # interpret as "resolution" (points per meter)

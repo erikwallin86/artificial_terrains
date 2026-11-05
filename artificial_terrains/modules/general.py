@@ -32,7 +32,7 @@ class Exit(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, **_):
+    def __call__(self):
         exit(0)
 
 
@@ -41,7 +41,7 @@ class GridSize(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, grid_size=100, default=None, **kwargs):
+    def __call__(self, default=None, *, grid_size=100):
         grid_size = default if default is not None else grid_size
 
         if isinstance(grid_size, (list, tuple)):
@@ -66,7 +66,7 @@ class Size(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, size=50, default=None, **kwargs):
+    def __call__(self, default=None, *, size=50):
         # göra så att 'default' parametern alltid står först
         # och göra det här automatiskt
         size = default if default is not None else size
@@ -93,7 +93,7 @@ class Extent(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, extent=[-25, 25, -25, 25], default=None, **kwargs):
+    def __call__(self, default=None, *, extent=[-25, 25, -25, 25]):
         extent = default if default is not None else extent
 
         self.info(f"Set extent:{extent} [m]")
@@ -110,7 +110,7 @@ class Location(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, location=[0, 0], extent=None, default=None, **kwargs):
+    def __call__(self, default=None, *, location=[0, 0], extent=None):
         location = default if default is not None else location
 
         from ..utils.terrains import extent_to_location
@@ -137,7 +137,7 @@ class Resolution(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, resolution=5, default=None, **kwargs):
+    def __call__(self, default=None, *, resolution=5):
         resolution = default if default is not None else resolution
 
         self.info(f"Set points-per-meter:{resolution}")
@@ -161,7 +161,7 @@ class Seed(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, seed=0, default=None, **kwargs):
+    def __call__(self, default=None, *, seed=0):
         # Override with default if specified
         if default is not None and isinstance(default, int):
             seed = default
@@ -183,7 +183,7 @@ class Folder(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, folder=None, default=None, **kwargs):
+    def __call__(self, default=None, *, folder=None):
         # göra så att 'default' parametern alltid står först
         # och göra det här automatiskt
         folder = default if default is not None else folder
@@ -200,7 +200,7 @@ class DebugPlot(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, filename='debug_plot.png', **kwargs):
+    def __call__(self, default=None, *, filename='debug_plot.png', **kwargs):
         from ..utils.plots import debug_plot_horizontal
 
         filename = default if default is not None else filename
@@ -211,11 +211,10 @@ class DebugPlot(Module):
 class PlotObstacles(Module):
     ''' Plot obstacles '''
     @debug_decorator
-    def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
-                 width=[5], aspect=[1], pitch_deg=[0],
-                 filename=None, default=None,
-                 exportmode=False, dpi=200,
-                 **kwargs):
+    def __call__(
+            self, default=None, *, size=None, position=[[0, 0]], height=[1],
+            yaw_deg=[0], width=[5], aspect=[1], pitch_deg=[0], filename=None,
+            exportmode=False, dpi=200):
         # Setup filename
         filename = default if default is not None else filename
         if filename is None:
@@ -251,11 +250,10 @@ class PlotObstacles(Module):
 class SaveObstacles(Module):
     ''' Save obstacles '''
     @debug_decorator
-    def __call__(self, size=None, position=[[0, 0]], height=[1], yaw_deg=[0],
-                 width=[5], aspect=[1], pitch_deg=[0],
-                 filename='obstacles.npz', default=None,
-                 overwrite=False,
-                 **kwargs):
+    def __call__(
+            self, default=None, *, size=None, position=[[0, 0]], height=[1],
+            yaw_deg=[0], width=[5], aspect=[1], pitch_deg=[0],
+            filename='obstacles.npz', overwrite=False):
         # Setup filename
         filename = default if default is not None else filename
         filename = os.path.join(self.save_dir, filename)
@@ -286,7 +284,7 @@ class Set(Module):
     Set a parameter as Set:parameter=value
     '''
     @debug_decorator
-    def __call__(self, default, **_):
+    def __call__(self, default):
         import ast
 
         # Split the string into key and value
@@ -309,7 +307,7 @@ class SetDistribution(Module):
     Set a distribution as SetDistribution:parameter=distribution(*args)
     '''
     @debug_decorator
-    def __call__(self, default, **_):
+    def __call__(self, default):
         # Parse distribution, and return
         from ..utils.utils import parse_and_assign_distribution
         varname, dist_obj = parse_and_assign_distribution(default)
@@ -337,7 +335,7 @@ class SetLogger(Module):
     """Activate and configure the shared logger."""
     create_folder = False
 
-    def __call__(self, default=None, level="info", **_):
+    def __call__(self, default=None, *, level="info"):
         import logging
         # import sys
         logger = logging.getLogger("artificial_terrains")
@@ -374,21 +372,17 @@ class Random(Module):
     '''
     @debug_decorator
     def __call__(
-            self, number_of_values=3,
-            size=None, grid_size=None, resolution=None, extent=None,
-            density=None,
-            poisson=False,
-            position_x_distribution=None,
+            self, default=None, *, number_of_values=3, size=None,
+            grid_size=None, resolution=None, extent=None, density=None,
+            poisson=False, position_x_distribution=None,
             position_y_distribution=None,
             height_distribution=Distribution('uniform', 1, 5),
             width_distribution=Distribution('uniform', 2, 10),
             aspect_distribution=Distribution('uniform', 0.5, 1.5),
             yaw_deg_distribution=Distribution('uniform', 0, 360),
             pitch_deg_distribution=Distribution('uniform', 0, 30),
-            position_probability_2d=None,
-            terrain_temp=[],
-            seed=None,
-            default=None, **kwargs):
+            position_probability_2d=None, terrain_temp=[], seed=None,
+            **kwargs):
 
         to_generate = ['position', 'height', 'yaw_deg', 'width', 'aspect',
                        'pitch_deg']
@@ -530,7 +524,7 @@ class CFGModule(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, name=None, **kwargs):
+    def __call__(self, default=None, *, name=None, **kwargs):
         from .. import configs
         from ..generate_terrain import recursive_module_call
         from ..utils.parse_utils import parse_options
@@ -570,6 +564,7 @@ class CFGModule(Module):
             module_obj = module_class(self.save_dir_original, self.logger)
             child_kwargs = parse_options(options)
             module_obj.module_kwargs = child_kwargs.copy()
+            module_obj.module_options = child_kwargs.copy()
             list_of_modules_kwargs_tuples.append((module_obj, child_kwargs))
 
         return recursive_module_call(
@@ -582,15 +577,10 @@ class LoadObstacles(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 filename='obstacles.npz',
-                 extent=None,
-                 default=None,
-                 call_number=None,
-                 call_total=None,
-                 exportmode=None,
-                 overwrite=False,
-                 **pipe):
+    def __call__(
+            self, default=None, *, filename='obstacles.npz', extent=None,
+            call_number=None, call_total=None, exportmode=None,
+            overwrite=False, **pipe):
         filename = default if default is not None else filename
 
         from ..utils.obstacles import Obstacles
@@ -631,11 +621,8 @@ class RemoveDistantObstacles(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self,
-                 distance_limit=100,
-                 extent=None,
-                 default=None,
-                 **pipe):
+    def __call__(
+            self, default=None, *, distance_limit=100, extent=None, **pipe):
         from ..utils.terrains import distances_to_extent
         # Use the provided default distance_limit if set, otherwise use the
         # given value for distance_limit.

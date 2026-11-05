@@ -41,19 +41,23 @@ def iter_kwargs(kwargs: dict[str, Any]):
 class Generative(Module):
     create_folder = False
     """Generate one or more terrains from a shape function."""
+    # Set by subclasses; None means a random function is chosen
+    function_name = None
 
     @debug_decorator
     def __call__(
-            self, function_name=None, terrain_temp=None, default=None,
-            size=None, grid_size=None, resolution=None, extent=None,
-            reset_input=True,
-            **kwargs):
+            self, default=None, *, position=[[0, 0]], height=[], yaw_deg=[],
+            width=[], aspect=[], pitch_deg=[], function_name=None,
+            terrain_temp=None, size=None, grid_size=None, resolution=None,
+            extent=None, reset_input=True, **kwargs):
         """Sample kwargs and evaluate the selected shape function."""
         terrain_temp = [] if terrain_temp is None else terrain_temp
         functions = [
             'Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube',
             'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater',
         ]
+        if function_name is None:
+            function_name = self.function_name
         if function_name is None:
             function_name = np.random.choice(functions)
 
@@ -63,15 +67,15 @@ class Generative(Module):
         extent, (N_x, N_y) = determine_extent_and_resolution(
             resolution, size, grid_size, extent)
 
-        feature_defaults = {
-            'position': [[0, 0]],
-            'height': [],
-            'yaw_deg': [],
-            'width': [],
-            'aspect': [],
-            'pitch_deg': [],
+        kwargs = {
+            'position': position,
+            'height': height,
+            'yaw_deg': yaw_deg,
+            'width': width,
+            'aspect': aspect,
+            'pitch_deg': pitch_deg,
+            **kwargs,
         }
-        kwargs = {**feature_defaults, **kwargs}
 
         if np.array(kwargs['position']).ndim == 1:
             kwargs['position'] = [kwargs['position']]
@@ -110,64 +114,43 @@ class Generative(Module):
 
 
 class Gaussian(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Gaussian', **kwargs)
+    function_name = 'Gaussian'
 
 
 class Step(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Step', **kwargs)
+    function_name = 'Step'
 
 
 class Donut(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Donut', **kwargs)
+    function_name = 'Donut'
 
 
 class Plane(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Plane', **kwargs)
+    function_name = 'Plane'
 
 
 class Sphere(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Sphere', **kwargs)
+    function_name = 'Sphere'
 
 
 class Cube(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Cube', **kwargs)
+    function_name = 'Cube'
 
 
 class SmoothStep(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='SmoothStep', **kwargs)
+    function_name = 'SmoothStep'
 
 
 class Sine(Generative):
-    def __call__(self, call_number=None, call_total=None, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Sine', call_number=call_number,
-            call_total=call_total, **kwargs)
+    function_name = 'Sine'
 
 
 class Crater(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='Crater', **kwargs)
+    function_name = 'Crater'
 
 
 class SmallLunarCrater(Generative):
-    def __call__(self, *args, **kwargs):
-        return super().__call__(
-            *args, function_name='SmallLunarCrater', **kwargs)
+    function_name = 'SmallLunarCrater'
 
 
 class Function(Module):
@@ -177,11 +160,9 @@ class Function(Module):
     '''
     @debug_decorator
     def __call__(
-            self,
-            expression='x',
-            terrain_temp=None, default=None, overwrite=None,
-            size=None, grid_size=None, resolution=None, extent=None,
-            **kwargs):
+            self, default=None, *, expression='x', terrain_temp=None,
+            overwrite=None, size=None, grid_size=None, resolution=None,
+            extent=None, **kwargs):
         '''
         '''
         expression = default if default is not None else expression
