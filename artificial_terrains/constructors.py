@@ -71,12 +71,14 @@ __all__ = [
     'Function',
     'Gaussian',
     'Generative',
+    'Path',
     'Plane',
     'Sine',
     'SmallLunarCrater',
     'SmoothStep',
     'Sphere',
     'Step',
+    'WheelTracks',
     'Combine',
     'CombineLast',
     'Compose',
@@ -167,12 +169,14 @@ Donut = constructor('Donut', generating_function.Donut.__call__)
 Function = constructor('Function', generating_function.Function.__call__)
 Gaussian = constructor('Gaussian', generating_function.Gaussian.__call__)
 Generative = constructor('Generative', generating_function.Generative.__call__)
+Path = constructor('Path', generating_function.Path.__call__)
 Plane = constructor('Plane', generating_function.Plane.__call__)
 Sine = constructor('Sine', generating_function.Sine.__call__)
 SmallLunarCrater = constructor('SmallLunarCrater', generating_function.SmallLunarCrater.__call__)
 SmoothStep = constructor('SmoothStep', generating_function.SmoothStep.__call__)
 Sphere = constructor('Sphere', generating_function.Sphere.__call__)
 Step = constructor('Step', generating_function.Step.__call__)
+WheelTracks = constructor('WheelTracks', generating_function.WheelTracks.__call__)
 Combine = constructor('Combine', combining.Combine.__call__)
 CombineLast = constructor('CombineLast', combining.CombineLast.__call__)
 Compose = constructor('Compose', combining.Compose.__call__)

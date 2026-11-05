@@ -5,7 +5,9 @@ from ..utils.terrains import Terrain
 
 FunctionName = Literal[
     'Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube',
-    'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater']
+    'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater', 'Path']
+PathDirection = Literal['vertical', 'horizontal', 'sine', 'random']
+PathPoints = list[tuple[float, float]] | list[list[float]]
 # One value, or one value per generated feature
 Feature = float | list[float] | None
 Position = tuple[float, float] | list[float] | list[list[float]]
@@ -173,10 +175,12 @@ class Path(Module):
 
     @debug_decorator
     def __call__(
-            self, direction='vertical', points=None, extent=None,
+            self,
+            default: PathDirection | PathPoints | None = None, *,
+            direction: PathDirection | PathPoints = 'vertical',
+            points: PathPoints | None = None, extent=None,
             amplitude=None, wavelength=None, heading=0.0, angle=None,
-            phase=0.0, samples=64, curvature=None, seed=None,
-            default=None, **_):
+            phase=0.0, samples=64, curvature=None, seed=None):
         direction = default if default is not None else direction
         if points is None and not isinstance(direction, str):
             points = direction
@@ -263,8 +267,9 @@ class WheelTracks(Generative):
     """Generate two wheel ruts along the path stored in the pipe."""
 
     def __call__(
-            self, *args, path_points=None, gauge=1.6, track_width=0.6,
-            depth=0.08, default=None, **kwargs):
+            self, default: float | None = None, *, path_points=None,
+            gauge: float = 1.6, track_width: float = 0.6,
+            depth: float = 0.08, **kwargs):
         if path_points is None:
             raise ValueError("WheelTracks requires Path to run first.")
         gauge = default if default is not None else gauge
@@ -284,7 +289,6 @@ class WheelTracks(Generative):
             (half_gauge + half_width, 0.0),
         ]
         return super().__call__(
-            *args,
             function_name='Path',
             points=path_points,
             cross_section=cross_section,

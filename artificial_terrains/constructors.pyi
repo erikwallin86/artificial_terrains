@@ -72,12 +72,14 @@ __all__ = [
     'Function',
     'Gaussian',
     'Generative',
+    'Path',
     'Plane',
     'Sine',
     'SmallLunarCrater',
     'SmoothStep',
     'Sphere',
     'Step',
+    'WheelTracks',
     'Combine',
     'CombineLast',
     'Compose',
@@ -653,7 +655,7 @@ def Generative(
     width: float | list[float] | None = ...,
     aspect: float | list[float] | None = ...,
     pitch_deg: float | list[float] | None = ...,
-    function_name: Literal['Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube', 'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater'] | None = None,
+    function_name: Literal['Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube', 'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater', 'Path'] | None = None,
     size=None,
     grid_size=None,
     resolution=None,
@@ -663,6 +665,23 @@ def Generative(
 ) -> ModuleCall:
     """Sample kwargs and evaluate the selected shape function.
     """
+    ...
+
+def Path(
+    default: Literal['vertical', 'horizontal', 'sine', 'random'] | (list[tuple[float, float]] | list[list[float]]) | None = None,
+    *,
+    direction: Literal['vertical', 'horizontal', 'sine', 'random'] | (list[tuple[float, float]] | list[list[float]]) = 'vertical',
+    points: list[tuple[float, float]] | list[list[float]] | None = None,
+    extent=None,
+    amplitude=None,
+    wavelength=None,
+    heading=0.0,
+    angle=None,
+    phase=0.0,
+    samples=64,
+    curvature=None,
+    seed=None,
+) -> ModuleCall:
     ...
 
 def Plane(
@@ -761,6 +780,18 @@ def Step(
     resolution=None,
     extent=None,
 ) -> ModuleCall:
+    ...
+
+def WheelTracks(
+    default: float | None = None,
+    *,
+    gauge: float = 1.6,
+    track_width: float = 0.6,
+    depth: float = 0.08,
+    **kwargs,
+) -> ModuleCall:
+    """Sample kwargs and evaluate the selected shape function.
+    """
     ...
 
 def Combine(

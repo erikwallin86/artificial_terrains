@@ -83,7 +83,8 @@ def find_def(func):
 
 
 # Pipe data and bookkeeping: never set by hand, so left out of the stub
-HIDDEN = {"terrain_temp", "terrain_prim", "call_number", "call_total"}
+HIDDEN = {"terrain_temp", "terrain_prim", "call_number", "call_total",
+          "path_points"}
 # Generative parameters kept for the shape modules (per-call overrides)
 SHAPE_SETTINGS = ("size", "grid_size", "resolution", "extent")
 
