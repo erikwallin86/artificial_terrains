@@ -1,3 +1,4 @@
+from typing import Literal
 from .module import Module, debug_decorator
 import os
 import sys
@@ -298,7 +299,8 @@ class Camera(Module):
 
     @debug_decorator
     def __call__(
-            self, default=None, *, camera='top', terrain_temp=[],
+            self, default: Literal['top', 'angled'] | float | None = None,
+            *, camera: Literal['top', 'angled'] = 'top', terrain_temp=[],
             terrain_prim=[], size=None, resolution=None, extent=None,
             grid_size=None, angle=45, center=None, distance=None):
         from ..utils.artificial_shapes import determine_extent_and_resolution

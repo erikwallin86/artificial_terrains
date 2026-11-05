@@ -2,6 +2,11 @@ import numpy as np
 
 
 class Terrain():
+    array: np.ndarray
+    size: list[float] | tuple[float, float]
+    extent: list[float] | tuple[float, float, float, float]
+    kwargs: dict
+
     def __init__(self):
         self.i = 0
 

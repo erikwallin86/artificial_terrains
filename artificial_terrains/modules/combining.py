@@ -1,6 +1,10 @@
+from typing import Literal
 from .module import Module, debug_decorator
 import numpy as np
 from ..utils.terrains import Terrain
+
+CombineOperation = Literal['Add', 'Max', 'Min', 'Prod']
+ComposeOperation = Literal['Over', 'Under', 'OverAndAlign', 'UnderAndAlign']
 
 
 class Combine(Module):
@@ -9,8 +13,9 @@ class Combine(Module):
 
     @debug_decorator
     def __call__(
-            self, default=None, *, operation='Add', terrain_temp=None,
-            terrain_prim=None, last=None):
+            self, default: CombineOperation | None = None, *,
+            operation: CombineOperation = 'Add', terrain_temp=None,
+            terrain_prim=None, last: int | None = None):
         '''
         Combine terrains in terrain_temp (or terrain_prim) using 'operation'
 
@@ -143,8 +148,9 @@ class Compose(Module):
 
     @debug_decorator
     def __call__(
-            self, default=None, *, operation='Over', terrain_temp=None,
-            terrain_prim=None, factor=None, last=None):
+            self, default: ComposeOperation | None = None, *,
+            operation: ComposeOperation = 'Over', terrain_temp=None,
+            terrain_prim=None, factor=None, last: int | None = None):
         '''
         Combine terrains two terrains using some operation and mask (factor)
 

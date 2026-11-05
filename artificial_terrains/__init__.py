@@ -10,12 +10,13 @@ Modular, extensible terrain generation library.
 import sys
 import logging
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable
 
 from . import configs
 
 if TYPE_CHECKING:
     from .constructors import *  # noqa: F401,F403
+    from .utils.terrains import Terrain
 
 __all__ = ["configs"]
 
@@ -34,8 +35,10 @@ def __getattr__(name):
 _last_pipe = {}
 
 
-def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
-        verbose=False):
+def run(modules: Iterable[tuple[str | None, Any]], save_dir: str = "",
+        logger: logging.Logger | None = None,
+        general_kwargs: dict[str, Any] | None = None,
+        pipe: dict[str, Any] | None = None, verbose: bool = False) -> None:
     """
     Run a list of (name, options) modules just like the CLI script.
     Example:
@@ -106,7 +109,7 @@ def run(modules, save_dir="", logger=None, general_kwargs=None, pipe=None,
     _last_pipe = last_pipe
 
 
-def get_terrain():
+def get_terrain() -> "Terrain | None":
     """Return the last terrain (single)."""
 
     if _last_pipe.get('terrain_prim'):
@@ -117,7 +120,7 @@ def get_terrain():
         return None
 
 
-def get_terrains():
+def get_terrains() -> "list[Terrain] | None":
     """Return all terrains from the last run."""
 
     if _last_pipe.get('terrain_prim'):

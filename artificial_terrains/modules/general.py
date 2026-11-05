@@ -1,7 +1,15 @@
+from typing import Literal
 import os
 import numpy as np
 from ..utils.terrains import Terrain
 from ..utils.utils import Distribution
+
+# Trailing _ avoids clashing with the module classes of the same name.
+# Strings like '20x10' give different x and y values.
+Size_ = float | tuple[float, float] | list[float] | str
+GridSize_ = int | tuple[int, int] | list[int] | str
+# xmin, xmax, ymin, ymax
+Extent_ = tuple[float, float, float, float] | list[float]
 from ..utils.plots import save_all_axes
 import colorcet as cc
 from .module import Module, debug_decorator
@@ -41,7 +49,8 @@ class GridSize(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, *, grid_size=100):
+    def __call__(self, default: GridSize_ | None = None, *,
+                 grid_size: GridSize_ = 100):
         grid_size = default if default is not None else grid_size
 
         if isinstance(grid_size, (list, tuple)):
@@ -66,7 +75,7 @@ class Size(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, *, size=50):
+    def __call__(self, default: Size_ | None = None, *, size: Size_ = 50):
         # göra så att 'default' parametern alltid står först
         # och göra det här automatiskt
         size = default if default is not None else size
@@ -93,7 +102,8 @@ class Extent(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, *, extent=[-25, 25, -25, 25]):
+    def __call__(self, default: Extent_ | None = None, *,
+                 extent: Extent_ = [-25, 25, -25, 25]):
         extent = default if default is not None else extent
 
         self.info(f"Set extent:{extent} [m]")
@@ -137,7 +147,8 @@ class Resolution(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, *, resolution=5):
+    def __call__(self, default: float | None = None, *,
+                 resolution: float = 5):
         resolution = default if default is not None else resolution
 
         self.info(f"Set points-per-meter:{resolution}")
@@ -161,7 +172,9 @@ class Seed(Module):
     create_folder = False
 
     @debug_decorator
-    def __call__(self, default=None, *, seed=0):
+    def __call__(
+            self, default: int | Literal['persistent_random'] | None = None,
+            *, seed: int = 0):
         # Override with default if specified
         if default is not None and isinstance(default, int):
             seed = default

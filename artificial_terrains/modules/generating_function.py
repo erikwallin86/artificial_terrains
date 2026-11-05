@@ -1,7 +1,14 @@
 from .module import Module, debug_decorator
-from typing import Any
+from typing import Any, Literal
 import numpy as np
 from ..utils.terrains import Terrain
+
+FunctionName = Literal[
+    'Gaussian', 'Step', 'Donut', 'Plane', 'Sphere', 'Cube',
+    'SmoothStep', 'Sine', 'Crater', 'SmallLunarCrater']
+# One value, or one value per generated feature
+Feature = float | list[float] | None
+Position = tuple[float, float] | list[float] | list[list[float]]
 
 FEATURE_KEYS: tuple[str, ...] = (
     'position', 'height', 'yaw_deg', 'width', 'aspect', 'pitch_deg')
@@ -46,8 +53,14 @@ class Generative(Module):
 
     @debug_decorator
     def __call__(
-            self, default=None, *, position=[[0, 0]], height=[], yaw_deg=[],
-            width=[], aspect=[], pitch_deg=[], function_name=None,
+            self, default=None, *,
+            position: Position = [[0, 0]],
+            height: Feature = [],
+            yaw_deg: Feature = [],
+            width: Feature = [],
+            aspect: Feature = [],
+            pitch_deg: Feature = [],
+            function_name: FunctionName | None = None,
             terrain_temp=None, size=None, grid_size=None, resolution=None,
             extent=None, reset_input=True, **kwargs):
         """Sample kwargs and evaluate the selected shape function."""

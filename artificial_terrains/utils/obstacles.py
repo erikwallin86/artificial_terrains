@@ -6,6 +6,13 @@ class Obstacles:
     # array_types = ['position', 'radius', 'height']
     array_types = ['position', 'width', 'height', 'yaw_deg', 'aspect',
                    'pitch_deg']
+    # Set dynamically (setattr) from array_types
+    position: np.ndarray
+    width: np.ndarray
+    height: np.ndarray
+    yaw_deg: np.ndarray
+    aspect: np.ndarray
+    pitch_deg: np.ndarray
     limit_name_mapping = {'position': 'pos_lim', 'width': 'width_lim'}
 
     def __init__(self, Y=None, N=None, **kwargs):

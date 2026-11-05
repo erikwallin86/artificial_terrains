@@ -2,6 +2,7 @@ import os
 import time
 import functools
 import inspect
+import logging
 from typing import Callable, TypeVar
 from ..utils.debug import debug
 
@@ -66,7 +67,11 @@ class Module():
     '''
     Args:
     '''
-    def __init__(self, save_dir=None, logger=None):
+    # Set per call by debug_decorator, used in output filenames
+    file_id: str = ''
+
+    def __init__(self, save_dir: str = "",
+                 logger: logging.Logger | None = None):
         self.save_dir = save_dir
         self.logger = logger
 
