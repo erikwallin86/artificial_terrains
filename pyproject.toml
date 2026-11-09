@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "artificial-terrains"
-version = "0.19"
+version = "0.20"
 description = "Modular, extensible terrain generation library"
 readme = "README.md"
 license = {text = "MIT"}
@@ -18,7 +18,10 @@ dependencies = [
   "colorcet",
   "opensimplex",
   "PyYaml",
-  "tifffile"
+  "tifffile",
+  # opensimplex uses its JIT kernels when numba is importable: ~1000x faster
+  # noise generation, identical output.
+  "numba"
 ]
 
 [project.scripts]

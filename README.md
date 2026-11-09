@@ -280,7 +280,13 @@ python -m pip install opensimplex
 python -m pip install colorcet
 python -m pip install PyYaml
 python -m pip install scipy
+python -m pip install numba
 ```
+
+### Numba
+Noise-based modules (e.g. `Octaves`, which use `opensimplex.noise2array`) use OpenSimplex's [Numba](https://numba.pydata.org/) kernels: orders of magnitude faster than plain Python (e.g. ~2.3 s → ~1 ms for a 751×751 grid, warm), identical output. Numba is a dependency; without it (e.g. `pip install --no-deps`) everything still works, much slower, with a warning.
+- The first call in a new environment JIT-compiles the kernels (around a second or more). The compiled code is cached on disk (`__pycache__` next to opensimplex, or `NUMBA_CACHE_DIR` if that location is read-only), so later processes start fast.
+- The array kernel is parallel. Limit its threads with e.g. `NUMBA_NUM_THREADS=1`, which is useful when running many environments in parallel.
 
 
 ## Settings file
@@ -349,6 +355,7 @@ python -m pip install opensimplex
 python -m pip install colorcet
 python -m pip install PyYaml
 python -m pip install scipy
+python -m pip install numba
 ```
 
 
@@ -363,6 +370,7 @@ This worked by running the following in git-bash in Windows:
  C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install colorcet
  C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install PyYaml
  C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install scipy
+ C:\\Program\ Files\\Blender\ Foundation\\Blender\ 4.1\\4.1\\python\\bin\\python.exe -m pip install numba
 ```
 (There where some problems with scipy though, for unknown reasons)
 

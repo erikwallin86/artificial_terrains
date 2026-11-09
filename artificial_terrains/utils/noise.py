@@ -1,6 +1,17 @@
+import warnings
+
 from opensimplex import noise2array
 import numpy as np
 import opensimplex
+
+try:
+    import numba  # noqa: F401  (opensimplex uses its JIT kernels when importable)
+except ImportError:
+    warnings.warn(
+        "numba is not installed: noise generation runs as plain Python and is "
+        "~1000x slower. Install it with: python -m pip install numba",
+        stacklevel=2,
+    )
 
 
 def get_simplex(resolution=None, size=None, N=None, grid_size=None,
