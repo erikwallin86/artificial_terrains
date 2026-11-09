@@ -242,29 +242,29 @@ GROUND_FROM_NOISE_LOAD = [
 
 
 # Load from single octaves, and construct different results with set (approximate) slope and roughness
-GROUND_FROM_NOISE_LOAD_SET_SLOPE_AND_ROUGHNESS = [
-    ('Load', 'Terrains/octaves'),
-    ('Random', 'weights'),  # Special command to generate new weights
-    ('Slope', {}),
-    ('SetSlope', 5),
-    ('Roughness', {}),
-    ('SetRoughness', 1.03),
-    ('WeightedSum', {}),
-]
+# GROUND_FROM_NOISE_LOAD_SET_SLOPE_AND_ROUGHNESS = [
+#     ('Load', 'Terrains/octaves'),
+#     ('Random', 'weights'),  # Special command to generate new weights
+#     ('Slope', {}),
+#     ('SetSlope', 5),
+#     ('Roughness', {}),
+#     ('SetRoughness', 1.03),
+#     ('WeightedSum', {}),
+# ]
 
 
 # Sample slope from some distribution
-GROUND_FROM_NOISE_LOAD_SAMPLE_SLOPE = [
-    ('Load', 'Terrains/octaves'),
-    ('Random', 'weights'),  # Special command to generate new weights
-    ('Slope', {}),
-    ('SetDistribution', 'target_slope_deg=uniform(0,10)'),
-    ('Sample', 'target_slope_deg'),
-    ('SetSlope', {}),
-    ('Roughness', {}),
-    ('SetRoughness', 1.03),
-    ('WeightedSum', {}),
-]
+# GROUND_FROM_NOISE_LOAD_SAMPLE_SLOPE = [
+#     ('Load', 'Terrains/octaves'),
+#     ('Random', 'weights'),  # Special command to generate new weights
+#     ('Slope', {}),
+#     ('SetDistribution', 'target_slope_deg=uniform(0,10)'),
+#     ('Sample', 'target_slope_deg'),
+#     ('SetSlope', {}),
+#     ('Roughness', {}),
+#     ('SetRoughness', 1.03),
+#     ('WeightedSum', {}),
+# ]
 
 # Use Loop:2x2 and Stack.
 # Could be used for parallelization, but is currently not
@@ -437,7 +437,6 @@ class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
     ''' Example of some extended functionality'''
     folder: str = 'Terrains/octaves'
     slope_deg: float = 8
-    roughness: float = 1.03
 
     @property
     def modules(self):
@@ -456,8 +455,6 @@ class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
             [
                 ('Slope', {}),
                 ('SetSlope', self.slope_deg),
-                ('Roughness', {}),
-                ('SetRoughness', self.roughness),
                 ('WeightedSum', {}),
             ]
         )
@@ -465,12 +462,11 @@ class LoadOrGenerateAndSetSlopeCfg(ArtificialTerrainCfg):
 
 
 @dataclass
-class LoadFromSeveralAndSetSlopeAndRoughnessCfg(ArtificialTerrainCfg):
+class LoadFromSeveralAndSetSlopeCfg(ArtificialTerrainCfg):
     ''' Example of some extended functionality'''
     folder: str = 'Terrains/multiple_octaves'
     number_of_sets: int = 5
     slope_deg: float = 8
-    roughness: float = 1.05
 
     @property
     def modules(self):
@@ -500,8 +496,6 @@ class LoadFromSeveralAndSetSlopeAndRoughnessCfg(ArtificialTerrainCfg):
                 ('Random', 'weights'),
                 ('Slope', {}),
                 ('SetSlope', self.slope_deg),
-                ('Roughness', {}),
-                ('SetRoughness', self.roughness),
                 ('WeightedSum', {}),
             ]
         )
