@@ -4,7 +4,6 @@ from .utils.examples import *  # noqa: F401,F403
 
 
 def _is_cfg_target(target):
-    from dataclasses import is_dataclass
     from .utils.examples import ArtificialTerrainCfg, CombinedArtificialTerrainCfg
 
     if isinstance(target, type):
@@ -16,10 +15,12 @@ def _is_cfg_target(target):
     if isinstance(target, list):
         return True
 
-    if is_dataclass(target):
-        return hasattr(target, "modules")
-
-    return hasattr(target, "modules")
+    # Use getattr_static so a `modules` property is not evaluated here: some
+    # presets sample random values in it, and registration must not consume
+    # from the global RNG.
+    from inspect import getattr_static
+    _missing = object()
+    return getattr_static(target, "modules", _missing) is not _missing
 
 
 def get_cfg_names():
