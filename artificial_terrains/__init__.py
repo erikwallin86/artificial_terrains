@@ -9,8 +9,14 @@ Modular, extensible terrain generation library.
 """
 import sys
 import logging
+from importlib.metadata import version as _version, PackageNotFoundError
 
 from . import configs
+
+try:
+    __version__ = _version("artificial-terrains")
+except PackageNotFoundError:  # e.g. used from a source checkout without install
+    __version__ = "unknown"
 
 __all__ = ["configs"]
 
